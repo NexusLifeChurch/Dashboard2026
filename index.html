@@ -3,29 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NxLife Dashboard</title>
+    <title>NxLife Dashboard V2</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #fcfbf8; color: #4a3b32; font-family: sans-serif; }
-        .navbar-nxl { background-color: #8c705f; }
-        .card-premium { border: none; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); background: white; }
-        .text-gold { color: #b8975a; }
+        :root { --nxl-coffee: #8c705f; --nxl-gold: #b8975a; --nxl-bg: #fcfbf8; }
+        body { background-color: var(--nxl-bg); color: #4a3b32; font-family: sans-serif; padding-bottom: 50px; }
+        .navbar-nxl { background-color: var(--nxl-coffee); }
+        .card-premium { border: none; border-radius: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: white; transition: 0.3s; }
+        .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+        .badge-fm { background-color: var(--nxl-gold); }
+        .badge-fr { background-color: #a39489; }
+        .birthday-card { border-left: 5px solid #e8a0bf; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark navbar-nxl shadow-sm mb-4">
-        <div class="container text-center">
-            <span class="navbar-brand mb-0 h5 w-100">🕊️ NxLife Leader Dashboard</span>
+    <nav class="navbar navbar-dark navbar-nxl shadow-sm mb-3 sticky-top">
+        <div class="container d-flex justify-content-between">
+            <span class="navbar-brand mb-0 h6">🕊️ NxLife Dashboard</span>
+            <div class="form-check form-switch text-white d-flex align-items-center gap-2">
+                <small>รวมเด็ก</small>
+                <input class="form-check-input" type="checkbox" id="toggleKids" onchange="renderUI()">
+            </div>
         </div>
     </nav>
 
-    <div class="container text-center">
-        <div class="row g-3">
+    <div class="container">
+        <div class="row g-2 mb-4 text-center">
             <div class="col-6">
                 <div class="card card-premium p-3">
                     <small class="text-muted">Family</small>
-                    <h2 id="ui-family" class="text-gold fw-bold">...</h2>
+                    <h2 id="ui-family" class="fw-bold text-gold">...</h2>
                 </div>
             </div>
             <div class="col-6">
@@ -35,38 +43,79 @@
                 </div>
             </div>
         </div>
-        <div class="mt-4">
-            <small class="text-muted" id="ui-update">กำลังดึงข้อมูล...</small>
+
+        <h6 class="fw-bold mb-3">ขุมกำลังแคร์ (Caremily)</h6>
+        <div id="careList" class="mb-4"></div>
+
+        <h6 class="fw-bold mb-3">🎂 วันเกิดเดือนนี้</h6>
+        <div id="birthdayList" class="row g-2"></div>
+        
+        <div class="text-center mt-4">
+            <small class="text-muted" id="ui-update"></small>
         </div>
     </div>
 
     <script>
-        // ⚠️ ใช้ URL อันล่าสุดที่คุณเปิดแล้วขึ้น Success เมื่อกี้นะครับ
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
+        let rawMembers = [];
+        let careMap = {};
 
-        async function fetchData() {
+        async function init() {
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                
-                // ตรวจสอบว่ามีข้อมูลส่งมาจริงไหม
-                if (data.success) {
-                    // หาตำแหน่งของคอลัมน์ Nxl_Status
-                    const statusIdx = data.headers.indexOf('Nxl_Status');
-                    
-                    // สมมติว่าเราจะเริ่มนับจากข้อมูลจริง (ซึ่งดึงมาจาก GAS ในอนาคต)
-                    // แต่ตอนนี้เพื่อให้หน้าจอไม่ว่าง เราจะใช้ตัวเลข rowCount มาโชว์ก่อน
-                    // หรือถ้าคุณใช้โค้ด Code.gs ตัว "ไม้ตาย" ที่ผมนับให้ ให้ดึงจากตรงนั้น
-                    
-                    document.getElementById('ui-family').innerText = data.rowCount; // โชว์ยอดรวมไปก่อนเพื่อทดสอบ
-                    document.getElementById('ui-friends').innerText = "Online";
-                    document.getElementById('ui-update').innerText = 'อัปเดตล่าสุด: ' + data.lastUpdate;
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                if(data.success) {
+                    rawMembers = data.members;
+                    careMap = data.careMap;
+                    document.getElementById('ui-update').innerText = 'อัปเดต: ' + data.lastUpdate;
+                    renderUI();
                 }
-            } catch (err) {
-                document.getElementById('ui-update').innerText = 'เกิดข้อผิดพลาดในการแสดงผล';
+            } catch (e) {
+                document.getElementById('ui-update').innerText = 'โหลดไม่สำเร็จ กรุณารีเฟรช';
             }
         }
-        fetchData();
+
+        function renderUI() {
+            const includeKids = document.getElementById('toggleKids').checked;
+            const filtered = rawMembers.filter(m => includeKids || m.status !== 'Fm-Kids');
+
+            // 1. นับยอด
+            const fam = filtered.filter(m => m.status.startsWith('Fm-')).length;
+            const fri = filtered.filter(m => m.status.startsWith('Fr-')).length;
+            document.getElementById('ui-family').innerText = fam;
+            document.getElementById('ui-friends').innerText = fri;
+
+            // 2. รายชื่อแคร์
+            const careDiv = document.getElementById('careList');
+            careDiv.innerHTML = '';
+            const groups = {};
+            filtered.forEach(m => {
+                if(!groups[m.careId]) groups[m.careId] = { fam:0, fri:0 };
+                if(m.status.startsWith('Fm-')) groups[m.careId].fam++;
+                if(m.status.startsWith('Fr-')) groups[m.careId].fri++;
+            });
+
+            Object.keys(groups).forEach(id => {
+                const cName = careMap[id] ? careMap[id].name : id;
+                careDiv.innerHTML += `
+                    <div class="card card-premium p-2 mb-2 d-flex flex-row justify-content-between align-items-center px-3">
+                        <span>${cName}</span>
+                        <div>
+                            <span class="badge badge-fm">${groups[id].fam}</span>
+                            <span class="badge badge-fr">${groups[id].fri}</span>
+                        </div>
+                    </div>`;
+            });
+
+            // 3. วันเกิด
+            const bList = document.getElementById('birthdayList');
+            const bdays = filtered.filter(m => m.isBirthdayMonth);
+            bList.innerHTML = bdays.length ? '' : '<div class="text-center text-muted w-100">ไม่มีวันเกิดเดือนนี้</div>';
+            bdays.forEach(m => {
+                bList.innerHTML += `<div class="col-4 text-center"><div class="card card-premium p-2 birthday-card"><small>${m.nickname}</small></div></div>`;
+            });
+        }
+        init();
     </script>
 </body>
 </html>
