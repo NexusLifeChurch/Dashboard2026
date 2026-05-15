@@ -3,26 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NxLife Dashboard V2</title>
+    <title>NxLife Dashboard Premium</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --nxl-coffee: #8c705f; --nxl-gold: #b8975a; --nxl-bg: #fcfbf8; }
         body { background-color: var(--nxl-bg); color: #4a3b32; font-family: sans-serif; padding-bottom: 50px; }
         .navbar-nxl { background-color: var(--nxl-coffee); }
-        .card-premium { border: none; border-radius: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: white; transition: 0.3s; }
-        .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
-        .badge-fm { background-color: var(--nxl-gold); }
-        .badge-fr { background-color: #a39489; }
-        .birthday-card { border-left: 5px solid #e8a0bf; }
+        .card-premium { border: none; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); background: white; }
+        .accordion-item { border: none; border-radius: 12px !important; margin-bottom: 8px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .accordion-button:not(.collapsed) { background-color: #f8f5f2; color: var(--nxl-coffee); box-shadow: none; }
+        .accordion-button:focus { box-shadow: none; }
+        .badge-fm { background-color: var(--nxl-gold); font-weight: normal; }
+        .badge-fr { background-color: #a39489; font-weight: normal; }
+        .birthday-card { border-left: 4px solid #e89fb2; background: white; padding: 10px; border-radius: 10px; font-size: 0.85rem; }
+        .form-switch .form-check-input { width: 2.5em; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-dark navbar-nxl shadow-sm mb-3 sticky-top">
-        <div class="container d-flex justify-content-between">
+        <div class="container d-flex justify-content-between align-items-center">
             <span class="navbar-brand mb-0 h6">🕊️ NxLife Dashboard</span>
             <div class="form-check form-switch text-white d-flex align-items-center gap-2">
-                <small>รวมเด็ก</small>
+                <small style="font-size: 0.7rem;">รวมเด็ก</small>
                 <input class="form-check-input" type="checkbox" id="toggleKids" onchange="renderUI()">
             </div>
         </div>
@@ -32,30 +35,35 @@
         <div class="row g-2 mb-4 text-center">
             <div class="col-6">
                 <div class="card card-premium p-3">
-                    <small class="text-muted">Family</small>
-                    <h2 id="ui-family" class="fw-bold text-gold">...</h2>
+                    <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Family</small>
+                    <h2 id="ui-family" class="fw-bold mb-0" style="color: var(--nxl-gold);">0</h2>
                 </div>
             </div>
             <div class="col-6">
                 <div class="card card-premium p-3">
-                    <small class="text-muted">Friends</small>
-                    <h2 id="ui-friends" class="fw-bold">...</h2>
+                    <small class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 1px;">Friends</small>
+                    <h2 id="ui-friends" class="fw-bold mb-0">0</h2>
                 </div>
             </div>
         </div>
 
-        <h6 class="fw-bold mb-3">ขุมกำลังแคร์ (Caremily)</h6>
-        <div id="careList" class="mb-4"></div>
+        <h6 class="fw-bold mb-3 d-flex align-items-center">📊 ขุมกำลังแคร์ <small class="text-muted ms-2 fw-normal" style="font-size: 0.7rem;">(แตะเพื่อดูรายละเอียด)</small></h6>
+        <div class="accordion" id="careAccordion">
+            </div>
 
-        <h6 class="fw-bold mb-3">🎂 วันเกิดเดือนนี้</h6>
-        <div id="birthdayList" class="row g-2"></div>
+        <h6 class="fw-bold mt-4 mb-3">🎂 วันเกิดเดือนนี้</h6>
+        <div id="birthdayList" class="row g-2">
+            </div>
         
-        <div class="text-center mt-4">
-            <small class="text-muted" id="ui-update"></small>
+        <div class="text-center mt-5">
+            <small class="text-muted" id="ui-update" style="font-size: 0.7rem;"></small>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
+        // ใช้ URL ล่าสุดของคุณ
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
         let rawMembers = [];
         let careMap = {};
@@ -67,11 +75,11 @@
                 if(data.success) {
                     rawMembers = data.members;
                     careMap = data.careMap;
-                    document.getElementById('ui-update').innerText = 'อัปเดต: ' + data.lastUpdate;
+                    document.getElementById('ui-update').innerText = 'Data Synced: ' + data.lastUpdate;
                     renderUI();
                 }
             } catch (e) {
-                document.getElementById('ui-update').innerText = 'โหลดไม่สำเร็จ กรุณารีเฟรช';
+                document.getElementById('ui-update').innerText = 'Connection Error';
             }
         }
 
@@ -79,40 +87,51 @@
             const includeKids = document.getElementById('toggleKids').checked;
             const filtered = rawMembers.filter(m => includeKids || m.status !== 'Fm-Kids');
 
-            // 1. นับยอด
-            const fam = filtered.filter(m => m.status.startsWith('Fm-')).length;
-            const fri = filtered.filter(m => m.status.startsWith('Fr-')).length;
-            document.getElementById('ui-family').innerText = fam;
-            document.getElementById('ui-friends').innerText = fri;
+            // 1. ยอดรวม
+            document.getElementById('ui-family').innerText = filtered.filter(m => m.status.startsWith('Fm-')).length;
+            document.getElementById('ui-friends').innerText = filtered.filter(m => m.status.startsWith('Fr-')).length;
 
-            // 2. รายชื่อแคร์
-            const careDiv = document.getElementById('careList');
-            careDiv.innerHTML = '';
+            // 2. จัดกลุ่มแคร์และทำ Accordion
+            const acc = document.getElementById('careAccordion');
+            acc.innerHTML = '';
             const groups = {};
             filtered.forEach(m => {
-                if(!groups[m.careId]) groups[m.careId] = { fam:0, fri:0 };
+                if(!groups[m.careId]) groups[m.careId] = { fam:0, fri:0, members: [] };
                 if(m.status.startsWith('Fm-')) groups[m.careId].fam++;
                 if(m.status.startsWith('Fr-')) groups[m.careId].fri++;
+                groups[m.careId].members.push(m);
             });
 
-            Object.keys(groups).forEach(id => {
+            Object.keys(groups).sort().forEach((id, index) => {
                 const cName = careMap[id] ? careMap[id].name : id;
-                careDiv.innerHTML += `
-                    <div class="card card-premium p-2 mb-2 d-flex flex-row justify-content-between align-items-center px-3">
-                        <span>${cName}</span>
-                        <div>
-                            <span class="badge badge-fm">${groups[id].fam}</span>
-                            <span class="badge badge-fr">${groups[id].fri}</span>
+                const html = `
+                    <div class="accordion-item card-premium">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}">
+                                <div class="d-flex justify-content-between w-100 pe-3">
+                                    <span class="fw-bold" style="font-size: 0.9rem;">${cName}</span>
+                                    <span class="badge rounded-pill text-dark" style="background: #eee; font-size: 0.7rem;">${groups[id].fam + groups[id].fri} คน</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse${index}" class="accordion-collapse collapse" data-bs-parent="#careAccordion">
+                            <div class="accordion-body py-2">
+                                <div class="d-flex gap-2">
+                                    <span class="badge badge-fm">Family: ${groups[id].fam}</span>
+                                    <span class="badge badge-fr">Friends: ${groups[id].fri}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>`;
+                acc.innerHTML += html;
             });
 
             // 3. วันเกิด
             const bList = document.getElementById('birthdayList');
             const bdays = filtered.filter(m => m.isBirthdayMonth);
-            bList.innerHTML = bdays.length ? '' : '<div class="text-center text-muted w-100">ไม่มีวันเกิดเดือนนี้</div>';
+            bList.innerHTML = bdays.length ? '' : '<div class="text-muted text-center w-100 p-3">ไม่มีวันเกิดเดือนนี้</div>';
             bdays.forEach(m => {
-                bList.innerHTML += `<div class="col-4 text-center"><div class="card card-premium p-2 birthday-card"><small>${m.nickname}</small></div></div>`;
+                bList.innerHTML += `<div class="col-4"><div class="birthday-card text-center">${m.nickname}</div></div>`;
             });
         }
         init();
