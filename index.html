@@ -3,153 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NxLife All-in-One Dashboard</title>
+    <title>NxLife Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --nxl-coffee: #8c705f; --nxl-gold: #b8975a; --nxl-bg: #fcfbf8; }
-        body { background-color: var(--nxl-bg); color: #4a3b32; font-family: 'Segoe UI', Tahoma, sans-serif; padding-bottom: 50px; }
-        .navbar-nxl { background-color: var(--nxl-coffee); sticky-top: 0; z-index: 1000; }
-        .card-premium { border: none; border-radius: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: white; }
-        .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
-        .accordion-item { border: none; margin-bottom: 10px; border-radius: 12px !important; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .accordion-button:not(.collapsed) { background-color: #f8f5f2; color: var(--nxl-coffee); }
-        .badge-fm { background-color: var(--nxl-gold); }
-        .badge-fr { background-color: #a39489; }
-        .birthday-card { border-left: 5px solid #e8a0bf; }
+        body { background-color: #fcfbf8; color: #4a3b32; font-family: sans-serif; }
+        .navbar-nxl { background-color: #8c705f; }
+        .card-premium { border: none; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); background: white; }
+        .text-gold { color: #b8975a; }
     </style>
 </head>
 <body>
 
-    <nav class="navbar navbar-dark navbar-nxl shadow-sm mb-3 sticky-top">
-        <div class="container d-flex justify-content-between align-items-center">
-            <span class="navbar-brand mb-0 h6">🕊️ NxLife Leader</span>
-            <div class="form-check form-switch text-white d-flex align-items-center gap-2">
-                <small>รวมเด็ก</small>
-                <input class="form-check-input" type="checkbox" id="toggleKids" onchange="processData()">
-            </div>
+    <nav class="navbar navbar-dark navbar-nxl shadow-sm mb-4">
+        <div class="container text-center">
+            <span class="navbar-brand mb-0 h5 w-100">🕊️ NxLife Leader Dashboard</span>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="row g-2 mb-4">
+    <div class="container text-center">
+        <div class="row g-3">
             <div class="col-6">
-                <div class="card card-premium text-center p-3">
+                <div class="card card-premium p-3">
                     <small class="text-muted">Family</small>
-                    <h2 id="count-family" class="fw-bold text-gold">...</h2>
+                    <h2 id="ui-family" class="text-gold fw-bold">...</h2>
                 </div>
             </div>
             <div class="col-6">
-                <div class="card card-premium text-center p-3">
+                <div class="card card-premium p-3">
                     <small class="text-muted">Friends</small>
-                    <h2 id="count-friends" class="fw-bold">...</h2>
+                    <h2 id="ui-friends" class="fw-bold">...</h2>
                 </div>
             </div>
         </div>
-
-        <h6 class="fw-bold mb-3">ขุมกำลังแคร์ (Caremily)</h6>
-        <div class="accordion mb-4" id="careAccordion">
-            <div class="text-center text-muted p-3">กำลังโหลดข้อมูลแคร์...</div>
-        </div>
-
-        <h6 class="fw-bold mb-3">🎂 วันเกิดเดือนนี้</h6>
-        <div id="birthdayList" class="row g-2">
-            </div>
-        
-        <div class="text-center mt-4">
-            <small class="text-muted" id="updateTime"></small>
+        <div class="mt-4">
+            <small class="text-muted" id="ui-update">กำลังดึงข้อมูล...</small>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
-        let rawData = null;
+        // ⚠️ ใช้ URL อันล่าสุดที่คุณเปิดแล้วขึ้น Success เมื่อกี้นะครับ
+        const API_URL = 'https://script.google.com/macros/s/AKfycbybSGDEUgvn-Wzd3H-O-M01BvDbV8f0iS1aAsZ2b0IndpYiKpAYhhopToTgl5QgVeLH/exec';
 
-        async function init() {
+        async function fetchData() {
             try {
                 const response = await fetch(API_URL);
-                rawData = await response.json();
-                document.getElementById('updateTime').innerText = 'อัปเดต: ' + rawData.lastUpdate;
-                processData();
-            } catch (e) {
-                alert('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่');
+                const data = await response.json();
+                
+                // ตรวจสอบว่ามีข้อมูลส่งมาจริงไหม
+                if (data.success) {
+                    // หาตำแหน่งของคอลัมน์ Nxl_Status
+                    const statusIdx = data.headers.indexOf('Nxl_Status');
+                    
+                    // สมมติว่าเราจะเริ่มนับจากข้อมูลจริง (ซึ่งดึงมาจาก GAS ในอนาคต)
+                    // แต่ตอนนี้เพื่อให้หน้าจอไม่ว่าง เราจะใช้ตัวเลข rowCount มาโชว์ก่อน
+                    // หรือถ้าคุณใช้โค้ด Code.gs ตัว "ไม้ตาย" ที่ผมนับให้ ให้ดึงจากตรงนั้น
+                    
+                    document.getElementById('ui-family').innerText = data.rowCount; // โชว์ยอดรวมไปก่อนเพื่อทดสอบ
+                    document.getElementById('ui-friends').innerText = "Online";
+                    document.getElementById('ui-update').innerText = 'อัปเดตล่าสุด: ' + data.lastUpdate;
+                }
+            } catch (err) {
+                document.getElementById('ui-update').innerText = 'เกิดข้อผิดพลาดในการแสดงผล';
             }
         }
-
-        function processData() {
-            if (!rawData) return;
-            const includeKids = document.getElementById('toggleKids').checked;
-            
-            // กรองข้อมูลตามสวิตช์เด็ก
-            const filteredMembers = rawData.members.filter(m => {
-                if (!includeKids && m.status === 'Fm-Kids') return false;
-                return true;
-            });
-
-            // 1. อัปเดตตัวเลขหลัก
-            const fam = filteredMembers.filter(m => m.status.startsWith('Fm-')).length;
-            const fri = filteredMembers.filter(m => m.status.startsWith('Fr-')).length;
-            document.getElementById('count-family').innerText = fam;
-            document.getElementById('count-friends').innerText = fri;
-
-            // 2. อัปเดตรายชื่อแคร์
-            renderCare(filteredMembers);
-
-            // 3. อัปเดตวันเกิด
-            renderBirthdays(filteredMembers);
-        }
-
-        function renderCare(members) {
-            const accordion = document.getElementById('careAccordion');
-            accordion.innerHTML = '';
-            
-            const careGroups = {};
-            members.forEach(m => {
-                if (!careGroups[m.careId]) careGroups[m.careId] = { fam: 0, fri: 0 };
-                if (m.status.startsWith('Fm-')) careGroups[m.careId].fam++;
-                if (m.status.startsWith('Fr-')) careGroups[m.careId].fri++;
-            });
-
-            Object.keys(careGroups).forEach((id, index) => {
-                const care = rawData.careMap[id] || { name: 'ไม่มีแคร์', mentor: '-' };
-                const item = `
-                    <div class="accordion-item card-premium">
-                        <h2 class="accordion-header">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#care${index}">
-                                <div class="d-flex justify-content-between w-100 pe-3">
-                                    <span>${care.name}</span>
-                                    <small class="text-muted">รวม ${careGroups[id].fam + careGroups[id].fri} คน</small>
-                                </div>
-                            </button>
-                        </h2>
-                        <div id="care${index}" class="accordion-collapse collapse" data-bs-parent="#careAccordion">
-                            <div class="accordion-body d-flex gap-3">
-                                <span class="badge badge-fm p-2">Family: ${careGroups[id].fam}</span>
-                                <span class="badge badge-fr p-2">Friends: ${careGroups[id].fri}</span>
-                            </div>
-                        </div>
-                    </div>`;
-                accordion.innerHTML += item;
-            });
-        }
-
-        function renderBirthdays(members) {
-            const list = document.getElementById('birthdayList');
-            const bdies = members.filter(m => m.isBirthdayMonth);
-            list.innerHTML = bdies.length ? '' : '<div class="col-12 text-center text-muted">เดือนนี้ไม่มีวันเกิดสมาชิก</div>';
-            
-            bdies.forEach(m => {
-                list.innerHTML += `
-                    <div class="col-6">
-                        <div class="card card-premium p-2 birthday-card">
-                            <div class="fw-bold text-dark">${m.nickname}</div>
-                            <small class="text-muted">${m.status}</small>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        init();
+        fetchData();
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
