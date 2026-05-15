@@ -1,45 +1,155 @@
-const SPREADSHEET_ID = '1lfMQlQl79SaO56frLIfO6SIZY-yt_KV6YSJJB7APicU'; 
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NxLife All-in-One Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --nxl-coffee: #8c705f; --nxl-gold: #b8975a; --nxl-bg: #fcfbf8; }
+        body { background-color: var(--nxl-bg); color: #4a3b32; font-family: 'Segoe UI', Tahoma, sans-serif; padding-bottom: 50px; }
+        .navbar-nxl { background-color: var(--nxl-coffee); sticky-top: 0; z-index: 1000; }
+        .card-premium { border: none; border-radius: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); background: white; }
+        .form-switch .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+        .accordion-item { border: none; margin-bottom: 10px; border-radius: 12px !important; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+        .accordion-button:not(.collapsed) { background-color: #f8f5f2; color: var(--nxl-coffee); }
+        .badge-fm { background-color: var(--nxl-gold); }
+        .badge-fr { background-color: #a39489; }
+        .birthday-card { border-left: 5px solid #e8a0bf; }
+    </style>
+</head>
+<body>
 
-function doGet(e) {
-  try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const memberSheet = ss.getSheetByName('Members');
-    const data = memberSheet.getDataRange().getValues();
-    
-    // หารอยัลตี้ Index ของคอลัมน์ Nxl_Status
-    const headers = data[0];
-    const statusIdx = headers.indexOf('Nxl_Status');
-    
-    let familyCount = 0;
-    let friendsCount = 0;
+    <nav class="navbar navbar-dark navbar-nxl shadow-sm mb-3 sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="navbar-brand mb-0 h6">🕊️ NxLife Leader</span>
+            <div class="form-check form-switch text-white d-flex align-items-center gap-2">
+                <small>รวมเด็ก</small>
+                <input class="form-check-input" type="checkbox" id="toggleKids" onchange="processData()">
+            </div>
+        </div>
+    </nav>
 
-    // เริ่มวนลูปนับข้อมูล (ข้ามหัวตารางแถวที่ 0)
-    for (let i = 1; i < data.length; i++) {
-      let status = data[i][statusIdx];
-      if (status && status.toString().startsWith('Fm-')) {
-        familyCount++;
-      } else if (status && status.toString().startsWith('Fr-')) {
-        friendsCount++;
-      }
-    }
+    <div class="container">
+        <div class="row g-2 mb-4">
+            <div class="col-6">
+                <div class="card card-premium text-center p-3">
+                    <small class="text-muted">Family</small>
+                    <h2 id="count-family" class="fw-bold text-gold">...</h2>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="card card-premium text-center p-3">
+                    <small class="text-muted">Friends</small>
+                    <h2 id="count-friends" class="fw-bold">...</h2>
+                </div>
+            </div>
+        </div>
 
-    const result = {
-      totalFamily: familyCount,
-      totalFriends: friendsCount,
-      lastUpdate: new Date().toLocaleString('th-TH')
-    };
+        <h6 class="fw-bold mb-3">ขุมกำลังแคร์ (Caremily)</h6>
+        <div class="accordion mb-4" id="careAccordion">
+            <div class="text-center text-muted p-3">กำลังโหลดข้อมูลแคร์...</div>
+        </div>
 
-    // ส่งออกเป็น JSON
-    return ContentService.createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
+        <h6 class="fw-bold mb-3">🎂 วันเกิดเดือนนี้</h6>
+        <div id="birthdayList" class="row g-2">
+            </div>
+        
+        <div class="text-center mt-4">
+            <small class="text-muted" id="updateTime"></small>
+        </div>
+    </div>
 
-  } catch (f) {
-    return ContentService.createTextOutput(JSON.stringify({error: f.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbybSGDEUgvn-Wzd3H-O-M01BvDbV8f0iS1aAsZ2b0IndpYiKpAYhhopToTgl5QgVeLH/exec';
+        let rawData = null;
 
-// ⚠️ สำคัญ: ต้องกดปุ่ม "เรียกใช้ (Run)" ฟังก์ชันนี้ 1 ครั้ง เพื่อขออนุญาตเข้าถึง Google Sheets
-function forceAuthAllPermissions() {
-  SpreadsheetApp.openById(SPREADSHEET_ID).getName();
-}
+        async function init() {
+            try {
+                const response = await fetch(API_URL);
+                rawData = await response.json();
+                document.getElementById('updateTime').innerText = 'อัปเดต: ' + rawData.lastUpdate;
+                processData();
+            } catch (e) {
+                alert('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่');
+            }
+        }
+
+        function processData() {
+            if (!rawData) return;
+            const includeKids = document.getElementById('toggleKids').checked;
+            
+            // กรองข้อมูลตามสวิตช์เด็ก
+            const filteredMembers = rawData.members.filter(m => {
+                if (!includeKids && m.status === 'Fm-Kids') return false;
+                return true;
+            });
+
+            // 1. อัปเดตตัวเลขหลัก
+            const fam = filteredMembers.filter(m => m.status.startsWith('Fm-')).length;
+            const fri = filteredMembers.filter(m => m.status.startsWith('Fr-')).length;
+            document.getElementById('count-family').innerText = fam;
+            document.getElementById('count-friends').innerText = fri;
+
+            // 2. อัปเดตรายชื่อแคร์
+            renderCare(filteredMembers);
+
+            // 3. อัปเดตวันเกิด
+            renderBirthdays(filteredMembers);
+        }
+
+        function renderCare(members) {
+            const accordion = document.getElementById('careAccordion');
+            accordion.innerHTML = '';
+            
+            const careGroups = {};
+            members.forEach(m => {
+                if (!careGroups[m.careId]) careGroups[m.careId] = { fam: 0, fri: 0 };
+                if (m.status.startsWith('Fm-')) careGroups[m.careId].fam++;
+                if (m.status.startsWith('Fr-')) careGroups[m.careId].fri++;
+            });
+
+            Object.keys(careGroups).forEach((id, index) => {
+                const care = rawData.careMap[id] || { name: 'ไม่มีแคร์', mentor: '-' };
+                const item = `
+                    <div class="accordion-item card-premium">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#care${index}">
+                                <div class="d-flex justify-content-between w-100 pe-3">
+                                    <span>${care.name}</span>
+                                    <small class="text-muted">รวม ${careGroups[id].fam + careGroups[id].fri} คน</small>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="care${index}" class="accordion-collapse collapse" data-bs-parent="#careAccordion">
+                            <div class="accordion-body d-flex gap-3">
+                                <span class="badge badge-fm p-2">Family: ${careGroups[id].fam}</span>
+                                <span class="badge badge-fr p-2">Friends: ${careGroups[id].fri}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                accordion.innerHTML += item;
+            });
+        }
+
+        function renderBirthdays(members) {
+            const list = document.getElementById('birthdayList');
+            const bdies = members.filter(m => m.isBirthdayMonth);
+            list.innerHTML = bdies.length ? '' : '<div class="col-12 text-center text-muted">เดือนนี้ไม่มีวันเกิดสมาชิก</div>';
+            
+            bdies.forEach(m => {
+                list.innerHTML += `
+                    <div class="col-6">
+                        <div class="card card-premium p-2 birthday-card">
+                            <div class="fw-bold text-dark">${m.nickname}</div>
+                            <small class="text-muted">${m.status}</small>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        init();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
