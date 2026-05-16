@@ -297,4 +297,142 @@
                     <div class="greeting">ชาโลม..ไม่ใช่ชาบู สวัสดี</div>
                     <div class="header-actions">
                         <div class="bell-icon"><i class="fa-regular fa-bell"></i><div class="badge">99+</div></div>
-                        <img src="https://
+                        <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/NexusLife%20Logo.jpg" class="avatar" alt="Profile" onerror="this.src='https://via.placeholder.com/44x44.png?text=N'">
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="pill active">ดูภาพรวม</div>
+                    <div class="pill">รู้จัก NxLife</div>
+                </div>
+
+                <div class="hero">
+                    <div class="hero-text">
+                        <h2>ALPHA COURSE</h2>
+                        <p>ร่วมค้นหาความหมายของชีวิตไปด้วยกัน</p>
+                    </div>
+                </div>
+
+                <div class="menu-scroll">
+                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-people-roof"></i></div><span class="menu-label">กลุ่มแคร์</span></div>
+                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-user-group"></i></div><span class="menu-label">กลุ่มคน</span></div>
+                    <div class="menu-item"><div class="menu-icon"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-label">กิจกรรม</span></div>
+                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-label">ผู้เลี้ยง</span></div>
+                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-label">วันเกิด</span></div>
+                </div>
+
+                <div class="section-title">นิยามชุมชน (Glossary)</div>
+                <div class="feed-list">
+                    <div class="card">
+                        <div class="card-icon"><i class="fa-solid fa-house-chimney-user"></i></div>
+                        <div class="card-content">
+                            <h3>Family (ครอบครัว)</h3>
+                            <p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง พร้อมดูแลและเติบโตไปด้วยกัน</p>
+                            <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon" style="background:#F3F4F6; color:var(--gray-text);"><i class="fa-solid fa-user-plus"></i></div>
+                        <div class="card-content">
+                            <h3>Friend (เพื่อนใหม่)</h3>
+                            <p>ผู้มาเยือนที่กำลังทำความรู้จักชุมชนของเรา เราพร้อมต้อนรับด้วยความรักเสมอ</p>
+                            <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom-nav">
+                <div class="nav-item active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
+                <div class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
+                <div class="nav-item"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
+                <div class="nav-item"><i class="fa-solid fa-sliders"></i><span>ตัวกรอง</span></div>
+                <div class="nav-item"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // === Flow Control: Bulletproof Version (ไม่รอโหลด Event) ===
+        console.log("NxLife Application v1.0.4 Initiated.");
+        
+        // สั่งให้ทำงานทันที ไม่ต้องรอ DOMContentLoaded
+        setTimeout(() => {
+            const splash = document.getElementById('screen-splash');
+            const pinScreen = document.getElementById('screen-pin');
+            
+            if (splash) {
+                splash.style.opacity = '0';
+                splash.style.pointerEvents = 'none'; 
+            }
+            
+            setTimeout(() => {
+                if (pinScreen) pinScreen.style.transform = 'translateX(0)';
+            }, 400);
+
+            setTimeout(() => {
+                if (splash) splash.style.display = 'none';
+            }, 1200); 
+        }, 2000); // แสดงหน้า Splash เป็นเวลา 2 วินาที
+
+        // === PIN Logic ===
+        let currentPin = '';
+        const dots = document.querySelectorAll('.dot');
+
+        function enterPin(num) {
+            if (currentPin.length < 4) {
+                currentPin += num;
+                updateDots();
+                
+                if (currentPin.length === 4) {
+                    setTimeout(checkPin, 300);
+                }
+            }
+        }
+
+        function deletePin() {
+            if (currentPin.length > 0) {
+                currentPin = currentPin.slice(0, -1);
+                updateDots();
+            }
+        }
+
+        function updateDots() {
+            dots.forEach((dot, index) => {
+                if (index < currentPin.length) dot.classList.add('active');
+                else dot.classList.remove('active');
+            });
+        }
+
+        function checkPin() {
+            if (currentPin === '3456') {
+                loginSuccess();
+            } else {
+                alert('รหัส PIN ไม่ถูกต้อง\nกรุณาติดต่อ Admin..Poomableman');
+                currentPin = '';
+                updateDots();
+            }
+        }
+
+        function loginSuccess() {
+            document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
+            document.getElementById('screen-home').classList.add('active');
+        }
+
+        function showPinHint() {
+            alert('คำใบ้รหัสผ่านของคุณคือ: 3456');
+        }
+
+        // === Navigation UI Logic ===
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navItems.forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
