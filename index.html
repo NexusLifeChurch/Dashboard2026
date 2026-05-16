@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community v1.0.19</title>
+    <title>NxLife Community v1.0.20</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -115,9 +115,9 @@
         .content-scroll::-webkit-scrollbar { display: none; }
 
         .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .greet-text { font-size: 19px; font-weight: 700; color: var(--charcoal); line-height: 1.3; }
+        .greet-text { font-size: 19px; font-weight: 700; color: var(--charcoal); line-height: 1.4; }
         
-        .profile-img { width: 44px; height: 44px; object-fit: contain; }
+        .profile-img { width: 85px; height: 85px; object-fit: contain; }
 
         .banner-hero { 
             width: 100%; height: 180px; border-radius: 16px; 
@@ -125,7 +125,9 @@
                         url('https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NxBkkPlace.jpg?raw=true') center/cover;
             display: flex; align-items: flex-end; padding: 20px; margin-bottom: 25px; box-shadow: var(--shadow-premium); 
         }
-        .banner-hero h2 { color: white; font-size: 20px; font-family: 'Urbanist', sans-serif; }
+        .banner-txt { display: flex; flex-direction: column; gap: 2px; }
+        .banner-txt h2 { color: white; font-size: 24px; font-family: 'Urbanist', sans-serif; font-weight: 800; line-height: 1.1; letter-spacing: 0.5px; }
+        .banner-txt span { color: rgba(255, 255, 255, 0.85); font-size: 14px; font-family: 'Urbanist', sans-serif; font-weight: 600; letter-spacing: 1px; }
 
         .horizontal-menu { display: flex; gap: 18px; overflow-x: auto; padding: 10px 5px 20px; margin-bottom: 10px; }
         .horizontal-menu::-webkit-scrollbar { display: none; }
@@ -157,7 +159,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.19</div>
+            <div class="version-tag">v1.0.20</div>
         </div>
 
         <div id="screen-pin">
@@ -180,17 +182,20 @@
                 <button class="btn-key" onclick="pressKey(0)">0</button>
                 <button class="btn-key btn-del" onclick="delKey()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
-            <div class="link-forgot" onclick="alert('คำใบ้คือ: 3456')">ลืมรหัส PIN Code</div>
+            <div class="link-forgot" onclick="alert('+12345')">ลืมรหัส PIN Code</div>
         </div>
 
         <div id="screen-home">
             <div class="content-scroll">
                 <div class="home-header">
-                    <div class="greet-text">ชาโลม..ไม่ใช่ชาบู<br>สวัสดี</div>
+                    <div class="greet-text">ชาโลม.. ไม่ใช่ ชาบู<br>สวัสดี</div>
                     <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NexusLife%20Logo7.png?raw=true" class="profile-img">
                 </div>
                 <div class="banner-hero">
-                    <div class="banner-txt"><h2>ALPHA COURSE</h2></div>
+                    <div class="banner-txt">
+                        <h2>NEXUS LIFE</h2>
+                        <span>COMMUNITY</span>
+                    </div>
                 </div>
                 <div class="horizontal-menu">
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-people-roof"></i></div><span class="menu-txt">กลุ่มแคร์</span></div>
