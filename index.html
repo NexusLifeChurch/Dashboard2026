@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community v1.0.29</title>
+    <title>NxLife Community v1.0.30</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -116,27 +116,38 @@
         .content-scroll { flex: 1; overflow-y: auto; padding: 15px 20px 20px; }
         .content-scroll::-webkit-scrollbar { display: none; }
 
-        /* ส่วนหัวและแบนเนอร์ของหน้าหลัก (ลดพื้นที่) */
-        .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .greet-text { font-size: 18px; font-weight: 700; color: var(--charcoal); line-height: 1.3; }
+        /* ส่วนหัวของหน้าหลัก (บีบพื้นที่ให้กระชับ) */
+        .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .greet-text { font-size: 18px; font-weight: 700; color: var(--charcoal); line-height: 1.2; }
         .profile-img { width: 120px; height: auto; object-fit: contain; }
 
+        /* ภาพแบนเนอร์ */
         .banner-hero { 
-            width: 100%; height: 160px; border-radius: 8px; 
-            background: linear-gradient(to bottom, transparent, rgba(15,23,42,0.7)), 
+            width: 100%; height: 160px; border-radius: 12px; 
+            background: linear-gradient(to bottom, transparent, rgba(15,23,42,0.8)), 
                         url('https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NxBkkPlace.jpg?raw=true') center/cover;
-            display: flex; align-items: flex-end; padding: 15px 20px; margin-bottom: 15px; box-shadow: var(--shadow-premium); 
+            display: flex; align-items: center; /* ดันข้อความไปตรงกลางภาพ */
+            padding: 0 20px; margin-bottom: 0px; box-shadow: var(--shadow-premium); 
         }
-        .banner-txt { display: flex; flex-direction: column; gap: 2px; }
+        /* ขยับข้อความในแบนเนอร์ขึ้นหนีเมนูวงกลม */
+        .banner-txt { display: flex; flex-direction: column; gap: 2px; transform: translateY(-10px); }
         .banner-txt h2 { color: white; font-size: 22px; font-family: 'Urbanist', sans-serif; font-weight: 800; line-height: 1.1; letter-spacing: 0.5px; }
         .banner-txt span { color: rgba(255, 255, 255, 0.85); font-size: 13px; font-family: 'Urbanist', sans-serif; font-weight: 600; letter-spacing: 1px; }
 
-        .horizontal-menu { display: flex; gap: 18px; overflow-x: auto; padding: 5px 5px 15px; margin-bottom: 5px; }
+        /* เมนูวงกลม (ดึงขึ้นไปทับภาพแบนเนอร์) */
+        .horizontal-menu { 
+            display: flex; gap: 18px; overflow-x: auto; 
+            padding: 5px 5px 15px; 
+            margin-top: -30px; /* คำสั่งดึงวงกลมขึ้นไปทับภาพ 30px */
+            margin-bottom: 5px;
+            position: relative; z-index: 5; /* ให้อยู่เหนือภาพ */
+        }
         .horizontal-menu::-webkit-scrollbar { display: none; }
         .menu-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 65px; cursor: pointer; }
         .icon-circle { 
-            width: 58px; height: 58px; border-radius: 50%; background: white; 
-            box-shadow: var(--shadow-menu); color: var(--orange);
+            width: 56px; height: 56px; border-radius: 50%; background: white; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); /* เพิ่มเงาให้วงกลมลอยเด่นชัดเจน */
+            color: var(--orange);
             display: flex; justify-content: center; align-items: center; font-size: 20px;
             transition: 0.1s;
         }
@@ -190,7 +201,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.29</div>
+            <div class="version-tag">v1.0.30</div>
         </div>
 
         <div id="screen-pin">
@@ -277,7 +288,7 @@
     </div>
 
     <script>
-        // จำค่าล่าสุดของวงกลมที่เลือก (Default ให้ไม่มีค่า เพื่อโชว์คำว่า ชุมชนทั้งหมด)
+        // จำค่าล่าสุดของวงกลมที่เลือก
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
 
@@ -288,10 +299,10 @@
             'event': { name: 'กิจกรรม', icon: 'fa-calendar-check' },
             'mentor': { name: 'ผู้เลี้ยง', icon: 'fa-hand-holding-heart' },
             'birthday': { name: 'วันเกิด', icon: 'fa-cake-candles' },
-            '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' } // เปลี่ยนจาก Database เป็นลูกโลก
+            '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' } 
         };
 
-        // เปลี่ยนหน้า Splash Screen อัตโนมัติ (นับ 2 วิแล้วเด้งเลย ไม่ต้องรอโหลด)
+        // เปลี่ยนหน้า Splash Screen อัตโนมัติ (นับ 2 วิแล้วเด้งเลย)
         setTimeout(function() {
             const splash = document.getElementById('screen-splash');
             const pinScreen = document.getElementById('screen-pin');
