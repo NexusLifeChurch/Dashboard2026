@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community v1.0.13</title>
+    <title>NxLife Community v1.0.17</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -69,28 +69,27 @@
         }
 
         /* ================================
-           Screen 2: PIN Screen (ปรับช่องไฟลดขนาดไม่ให้ตกขอบ)
+           Screen 2: PIN Screen
            ================================ */
         #screen-pin {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-color: var(--bg-app); display: flex; flex-direction: column;
             align-items: center; 
-            padding: 40px 20px 30px; /* ลด padding บน-ล่าง เพื่อประหยัดพื้นที่แนวตั้ง */
+            padding: 45px 20px 20px; 
             z-index: 20;
             transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
-        .pin-logo { font-family: 'Urbanist', sans-serif; font-size: 34px; font-weight: 800; margin-bottom: 20px; letter-spacing: -1.5px; }
+        .pin-logo { font-family: 'Urbanist', sans-serif; font-size: 34px; font-weight: 800; margin-bottom: 15px; letter-spacing: -1.5px; }
         .nx-label { color: var(--charcoal); }
         .life-label { color: var(--orange); }
 
-        .pin-title { font-size: 22px; font-weight: 600; margin-bottom: 30px; color: var(--charcoal); }
-        .pin-dots { display: flex; gap: 20px; margin-bottom: 35px; }
+        .pin-title { font-size: 21px; font-weight: 600; margin-bottom: 25px; color: var(--charcoal); }
+        .pin-dots { display: flex; gap: 20px; margin-bottom: 30px; }
         .dot { width: 14px; height: 14px; border-radius: 50%; background-color: var(--gray-border); transition: 0.2s; }
         .dot.filled { background-color: var(--orange); transform: scale(1.2); box-shadow: 0 0 12px rgba(192, 100, 40, 0.3); }
 
-        /* คีย์แพดแบบบีบช่องไฟกระชับขึ้นเพื่อความปลอดภัยใน LINE WebView */
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 25px; width: 100%; max-width: 280px; margin-bottom: 15px; }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px 25px; width: 100%; max-width: 280px; margin-bottom: 25px; }
         .btn-key {
             width: 68px; height: 68px; border-radius: 50%; border: 1.5px solid var(--orange);
             display: flex; justify-content: center; align-items: center;
@@ -100,7 +99,7 @@
         .btn-key:active { background-color: var(--orange); color: var(--white); transform: scale(0.9); }
         .btn-del { border: none; color: var(--charcoal); font-size: 20px; background: transparent; }
 
-        .link-forgot { margin-top: auto; margin-bottom: 25px; color: var(--gray-text); font-size: 14px; text-decoration: underline; cursor: pointer; padding: 5px; }
+        .link-forgot { color: var(--gray-text); font-size: 14px; text-decoration: underline; cursor: pointer; padding: 5px; }
 
         /* ================================
            Screen 3: Home Dashboard
@@ -118,12 +117,12 @@
         .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .greet-text { font-size: 19px; font-weight: 700; color: var(--charcoal); line-height: 1.3; }
         
-        .profile-img { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--white); box-shadow: var(--shadow-premium); object-fit: cover; }
+        .profile-img { width: 44px; height: 44px; object-fit: contain; }
 
         .banner-hero { 
             width: 100%; height: 180px; border-radius: 16px; 
             background: linear-gradient(to bottom, transparent, rgba(15,23,42,0.7)), 
-                        url('https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/banner_alpha.jpg') center/cover;
+                        url('https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NxBkkPlace.jpg?raw=true') center/cover;
             display: flex; align-items: flex-end; padding: 20px; margin-bottom: 25px; box-shadow: var(--shadow-premium); 
         }
         .banner-hero h2 { color: white; font-size: 20px; font-family: 'Urbanist', sans-serif; }
@@ -158,7 +157,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.13</div>
+            <div class="version-tag">v1.0.17</div>
         </div>
 
         <div id="screen-pin">
@@ -182,14 +181,13 @@
                 <button class="btn-key btn-del" onclick="delKey()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
             <div class="link-forgot" onclick="alert('คำใบ้คือ: 3456')">ลืมรหัส PIN Code</div>
-            <div class="version-tag">v1.0.13</div>
         </div>
 
         <div id="screen-home">
             <div class="content-scroll">
                 <div class="home-header">
                     <div class="greet-text">ชาโลม..ไม่ใช่ชาบู<br>สวัสดี</div>
-                    <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/NexusLife%20Logo.jpg" class="profile-img">
+                    <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NexusLife%20Logo7.png?raw=true" class="profile-img">
                 </div>
                 <div class="banner-hero">
                     <div class="banner-txt"><h2>ALPHA COURSE</h2></div>
@@ -199,73 +197,4 @@
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-user-group"></i></div><span class="menu-txt">กลุ่มคน</span></div>
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-txt">กิจกรรม</span></div>
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-txt">ผู้เลี้ยง</span></div>
-                    <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-txt">วันเกิด</span></div>
-                </div>
-                <div class="feed-list">
-                    <div class="info-card">
-                        <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
-                        <div class="card-txt"><h3>Family</h3><p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
-                    </div>
-                    <div class="info-card">
-                        <div class="card-ico"><i class="fa-solid fa-user-plus"></i></div>
-                        <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
-                    </div>
-                </div>
-            </div>
-            <div class="nav-bar">
-                <div class="nav-btn active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
-                <div class="nav-btn"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
-                <div class="nav-btn"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
-                <div class="nav-btn"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        setTimeout(() => {
-            const splash = document.getElementById('screen-splash');
-            const pinScreen = document.getElementById('screen-pin');
-            splash.style.opacity = '0';
-            setTimeout(() => {
-                splash.style.display = 'none';
-                pinScreen.style.transform = 'translateX(0)';
-            }, 600); 
-        }, 2000); 
-
-        let pinInput = '';
-        const dots = document.querySelectorAll('.dot');
-        
-        function pressKey(num) {
-            if (pinInput.length < 4) {
-                pinInput += num;
-                renderDots();
-                if (pinInput.length === 4) setTimeout(validatePin, 300);
-            }
-        }
-        
-        function delKey() {
-            if (pinInput.length > 0) {
-                pinInput = pinInput.slice(0, -1);
-                renderDots();
-            }
-        }
-        
-        function renderDots() {
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('filled', index < pinInput.length);
-            });
-        }
-        
-        function validatePin() {
-            if (pinInput === '3456') {
-                document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
-                document.getElementById('screen-home').classList.add('visible');
-            } else {
-                alert('รหัส PIN ไม่ถูกต้อง\nกรุณาติดต่อ Admin..Poomableman');
-                pinInput = '';
-                renderDots();
-            }
-        }
-    </script>
-</body>
-</html>
+                    <div class="menu-btn"><div class
