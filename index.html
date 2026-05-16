@@ -365,16 +365,19 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
         // ความจำระบบข้อมูลแอป
-        let rawMembersData = [];    // เก็บข้อมูลดิบผู้เชื่อทั้งหมดจาก Sheet
-        let rawCareData = [];       // เก็บข้อมูลดิบกลุ่มแคร์ทั้งหมดจาก Sheet Care_Info
+        let rawMembersData = [];    
+        let rawCareData = [];       
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
+        
+        // ตัวแปรเก็บ Error Message เพื่อเอาไว้โชว์บนหน้าจอ
+        let apiDebugMessage = ''; 
 
         // ตะกร้าเก็บค่า Master Filter Logic สำคัญ (3 เงื่อนไขหลัก)
         let masterFilterSettings = {
-            statusMode: 'ALL',       // ALL (ดูทั้งหมด) / COMMUNITY (F ขึ้นต้น) / SEND (ส่งออก)
-            includeKids: true,       // true (เปิด-รวมเด็ก) / false (ปิด-ไม่รวมเด็ก)
-            selectedCares: []        // รายชื่อ Care_ID เฉพาะกลุ่มที่เลือกติ๊กถูกไว้
+            statusMode: 'ALL',       // ALL / COMMUNITY / SEND
+            includeKids: true,       // true / false
+            selectedCares: []        
         };
 
         const circleContext = {
@@ -386,7 +389,6 @@
             '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' }
         };
 
-        // เริ่มต้นนับถอยหลังเปิดเข้าแอป และยิงดึงข้อมูลทันที
         setTimeout(function() {
             const splash = document.getElementById('screen-splash');
             const pinScreen = document.getElementById('screen-pin');
@@ -395,38 +397,50 @@
                 setTimeout(function() {
                     splash.style.display = 'none';
                     pinScreen.style.transform = 'translateX(0)';
-                    fetchAllSheetsData(); // ดึงข้อมูลจริงมารอไว้ในตะกร้าหลังบ้าน
+                    fetchAllSheetsData(); 
                 }, 600); 
             }
         }, 2000);
 
-        // ฟังก์ชันดึงข้อมูลจริงจากหลังบ้าน Google Sheets
         function fetchAllSheetsData() {
             console.log('กำลังเชื่อมต่อข้อมูล Google Sheets...');
+            apiDebugMessage = 'กำลังโหลด...';
+            
             fetch(API_URL)
                 .then(res => res.json())
                 .then(responseObj => {
-                    // แตกข้อมูลใส่ตะกร้าตามโครงสร้างที่ส่งมาจากหลังบ้าน
+                    console.log("โครงสร้างที่ได้รับจาก API:", responseObj);
+                    
+                    // บันทึกโครงสร้างคร่าวๆ ไว้ดูบนหน้าจอ
+                    let keys = Object.keys(responseObj).join(', ');
+                    
+                    // สมมติว่า API ส่งเป็น { members: [...], cares: [...] }
                     rawMembersData = responseObj.members || [];
-                    
-                    // ดึงข้อมูลกลุ่มแคร์ และกรองเอาเฉพาะ Care_Info.IsActive === true ทันทีตามสั่ง!
                     let allCares = responseObj.cares || [];
-                    rawCareData = allCares.filter(c => c.IsActive === true || c.IsActive === "TRUE" || c.IsActive === 1);
                     
-                    // ค่าเริ่มต้นของตัวกรองแคร์หลัก ให้เลือกทุกแคร์ไว้ก่อน
+                    // ถ้าโครงสร้างไม่ใช่ members/cares (เช่น ส่งมาเป็นอาร์เรย์ตรงๆ)
+                    if (Array.isArray(responseObj) && responseObj.length > 0) {
+                       apiDebugMessage = `❗️ API ส่งข้อมูลเป็น Array เดี่ยวๆ ไม่ได้แบ่งหมวด members/cares (พบ ${responseObj.length} แถว)`;
+                    } else {
+                       apiDebugMessage = `✅ ได้รับ Key: [${keys}] | Members: ${rawMembersData.length} | Cares: ${allCares.length}`;
+                    }
+                    
+                    rawCareData = allCares.filter(c => c.IsActive === true || c.IsActive === "TRUE" || c.IsActive === 1);
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
 
-                    console.log('โหลดสำเร็จ! สมาชิก:', rawMembersData.length, 'รายชื่อ | กลุ่มแคร์ที่เปิดใช้งาน (Active):', rawCareData.length, 'กลุ่ม');
                     updateDashboardView();
                 })
-                .catch(err => console.error('ดึงข้อมูลล้มเหลว:', err));
+                .catch(err => {
+                    console.error('ดึงข้อมูลล้มเหลว:', err);
+                    apiDebugMessage = `❌ Error: ${err.message}`;
+                    updateDashboardView();
+                });
         }
 
         function selectCircleMenu(type, element) {
             document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             currentActiveCircle = type;
-            
             const overviewBtn = document.getElementById('nav-overview');
             handleBottomNav('overview', overviewBtn);
         }
@@ -452,9 +466,9 @@
         function toggleCareCheckbox(careId) {
             let idx = masterFilterSettings.selectedCares.indexOf(careId);
             if (idx > -1) {
-                masterFilterSettings.selectedCares.splice(idx, 1); // เอาออก
+                masterFilterSettings.selectedCares.splice(idx, 1); 
             } else {
-                masterFilterSettings.selectedCares.push(careId); // ติ๊กเพิ่ม
+                masterFilterSettings.selectedCares.push(careId); 
             }
             updateDashboardView();
         }
@@ -474,8 +488,6 @@
             updateDashboardView();
         }
 
-
-        // ฟังก์ชันสั่งสลับวาดแต่ละหน้าจอ (Render Views)
         function updateDashboardView() {
             const homeTopSection = document.getElementById('home-top-section');
             const subPageHeader = document.getElementById('sub-page-header');
@@ -511,13 +523,16 @@
                     subPageTitle.innerText = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
                 }
 
-                // สั่งวาดหน้าจอ: Filter View (หน้ากรองข้อมูลหลัก)
                 if (currentActiveBottom === 'filter') {
                     
-                    // สร้างรายการ Checkbox กลุ่มแคร์ขึ้นมาตามข้อมูลจริงในตาราง
                     let careListHTML = '';
                     if(rawCareData.length === 0) {
-                        careListHTML = `<p style="font-size:12px; color:var(--gray-text); text-align:center;">⚠️ กำลังดึงรายชื่อกลุ่มแคร์จริงจากระบบ...</p>`;
+                        // โชว์ข้อความแจ้ง Debug ว่าหลังบ้านเกิดอะไรขึ้น
+                        careListHTML = `
+                        <div style="background:#FEF2F2; padding:10px; border-radius:8px; margin-bottom:10px;">
+                            <p style="font-size:12px; color:#DC2626; text-align:center; font-weight:bold;">⚠️ ไม่พบข้อมูลกลุ่มแคร์</p>
+                            <p style="font-size:11px; color:#DC2626; text-align:center; margin-top:5px;">${apiDebugMessage}</p>
+                        </div>`;
                     } else {
                         rawCareData.forEach(care => {
                             let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : '';
@@ -534,32 +549,32 @@
                     }
 
                     contentArea.innerHTML = `
-                        <h2 style="margin-bottom: 20px; color: var(--charcoal);"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> กรองข้อมูลหลัก</h2>
+                        <h2 style="margin-bottom: 20px; color: var(--charcoal);"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> MASTER VIEW</h2>
                         
                         <div class="filter-group">
-                            <div class="filter-label"><i class="fa-solid fa-user-tag" style="color:var(--orange);"></i> สถานะกลุ่มคน (Nxl_Status)</div>
+                            <div class="filter-label"><i class="fa-solid fa-user-tag" style="color:var(--orange);"></i> สถานภาพ</div>
                             <div class="options-grid">
-                                <button class="opt-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'selected' : ''}" onclick="setStatusMode('COMMUNITY')">Community (กลุ่ม F)</button>
-                                <button class="opt-btn ${masterFilterSettings.statusMode === 'SEND' ? 'selected' : ''}" onclick="setStatusMode('SEND')">ส่งออก (Send)</button>
-                                <button class="opt-btn ${masterFilterSettings.statusMode === 'ALL' ? 'selected' : ''}" onclick="setStatusMode('ALL')">ดูทั้งหมด</button>
+                                <button class="opt-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'selected' : ''}" onclick="setStatusMode('COMMUNITY')">Community (Friends&Family)</button>
+                                <button class="opt-btn ${masterFilterSettings.statusMode === 'SEND' ? 'selected' : ''}" onclick="setStatusMode('SEND')">Send (ส่งออก)</button>
+                                <button class="opt-btn ${masterFilterSettings.statusMode === 'ALL' ? 'selected' : ''}" onclick="setStatusMode('ALL')">ALL</button>
                             </div>
                         </div>
 
                         <div class="filter-group">
                             <div class="toggle-wrapper">
-                                <div class="filter-label" style="margin-bottom:0;"><i class="fa-solid fa-child" style="color:var(--orange);"></i> คริสตจักรเด็ก (Life-Kids)</div>
+                                <div class="filter-label" style="margin-bottom:0;"><i class="fa-solid fa-child" style="color:var(--orange);"></i> ขอบเขตกลุ่มคน</div>
                                 <label class="switch">
                                     <input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)">
                                     <span class="slider"></span>
                                 </label>
                             </div>
                             <div style="font-size: 11px; color: var(--gray-text); margin-top: 5px;">
-                                ${masterFilterSettings.includeKids ? '🟢 เปิด: รวมเด็กทุกรายการในระบบ' : '🔴 ปิด: ไม่รวมเด็ก (ระบบจะคัดกรองชื่อที่มีสถานะ Fm-Kids ออกให้)'}
+                                ${masterFilterSettings.includeKids ? '🟢 เปิด: รวมเด็ก' : '🔴 ปิด: ไม่รวมเด็ก'}
                             </div>
                         </div>
 
                         <div class="filter-group">
-                            <div class="filter-label"><i class="fa-solid fa-house-chimney-user" style="color:var(--orange);"></i> การเลือกกลุ่มแคร์ (Care_Info)</div>
+                            <div class="filter-label"><i class="fa-solid fa-house-chimney-user" style="color:var(--orange);"></i> เลือกกลุ่มแคร์</div>
                             
                             <div class="care-shortcuts">
                                 <button class="sc-btn" onclick="careSelectAll()">เลือกทั้งหมด</button>
@@ -638,7 +653,6 @@
             }
         }
 
-        // ฟังก์ชันควบคุม Popup แจ้งเตือน
         function showAlert(title, message) {
             document.getElementById('alert-title-text').innerText = title;
             document.getElementById('alert-msg-text').innerText = message;
