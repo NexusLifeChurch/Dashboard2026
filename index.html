@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community v1.0.23</title>
+    <title>NxLife Community v1.0.24</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -114,14 +114,13 @@
         .content-scroll { flex: 1; overflow-y: auto; padding: 24px 20px 100px; }
         .content-scroll::-webkit-scrollbar { display: none; }
 
+        /* ส่วนหัวและแบนเนอร์ของหน้าหลัก */
         .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; }
         .greet-text { font-size: 19px; font-weight: 700; color: var(--charcoal); line-height: 1.4; }
-        
-        /* ขยายขนาดโลโก้ให้สมดุลกับข้อความ */
         .profile-img { width: 140px; height: auto; max-height: 65px; object-fit: contain; }
 
         .banner-hero { 
-            width: 100%; height: 180px; border-radius: 8px; /* ลดความโค้งของภาพจาก 12px เป็น 8px */
+            width: 100%; height: 180px; border-radius: 8px; 
             background: linear-gradient(to bottom, transparent, rgba(15,23,42,0.7)), 
                         url('https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NxBkkPlace.jpg?raw=true') center/cover;
             display: flex; align-items: flex-end; padding: 20px; margin-bottom: 25px; box-shadow: var(--shadow-premium); 
@@ -143,6 +142,11 @@
         .menu-btn:active .icon-circle { transform: translateY(4px) scale(0.92); box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .menu-txt { font-size: 12px; font-weight: 500; color: var(--charcoal); }
 
+        /* ส่วนหัวสำหรับหน้าย่อย (ภาพรวม, รายชื่อ, ฯลฯ) */
+        #sub-page-header { display: none; align-items: center; justify-content: space-between; margin-bottom: 25px; padding: 10px 0; border-bottom: 1px solid var(--gray-border); padding-bottom: 20px; }
+        #sub-page-title { font-size: 22px; font-weight: 700; color: var(--charcoal); }
+        .sub-logo { width: 90px; height: auto; object-fit: contain; }
+
         /* Feed Cards Section */
         .feed-list { display: flex; flex-direction: column; }
         .info-card { background: white; border-radius: 16px; padding: 20px; box-shadow: var(--shadow-premium); display: flex; gap: 15px; margin-bottom: 15px; }
@@ -150,7 +154,7 @@
         .card-txt h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--charcoal); }
         .card-txt p { font-size: 13px; color: var(--gray-text); line-height: 1.5; }
 
-        /* แถบเมนูล่าง ตรึงแน่น 5 ปุ่มเต็มรูปแบบ */
+        /* แถบเมนูล่าง เรียงใหม่ 5 ปุ่ม */
         .nav-bar { position: absolute; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--gray-border); padding-bottom: 10px; }
         .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray-text); font-size: 10px; font-weight: 500; cursor: pointer; transition: 0.3s; width: 20%; }
         .nav-btn.active { color: var(--orange); }
@@ -164,7 +168,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.23</div>
+            <div class="version-tag">v1.0.24</div>
         </div>
 
         <div id="screen-pin">
@@ -192,26 +196,34 @@
 
         <div id="screen-home">
             <div class="content-scroll">
-                <div class="home-header">
-                    <div class="greet-text">ชาโลม.. ไม่ใช่ ชาบู<br>สวัสดี</div>
-                    <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NexusLife%20Logo7.png?raw=true" class="profile-img">
-                </div>
-                <div class="banner-hero">
-                    <div class="banner-txt">
-                        <h2>NEXUS LIFE</h2>
-                        <span>COMMUNITY</span>
+                
+                <div id="home-top-section">
+                    <div class="home-header">
+                        <div class="greet-text">ชาโลม.. ไม่ใช่ ชาบู<br>สวัสดี</div>
+                        <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NexusLife%20Logo7.png?raw=true" class="profile-img">
+                    </div>
+                    <div class="banner-hero">
+                        <div class="banner-txt">
+                            <h2>NEXUS LIFE</h2>
+                            <span>COMMUNITY</span>
+                        </div>
+                    </div>
+                    
+                    <div class="horizontal-menu" id="circle-hub-menu">
+                        <div class="menu-btn" onclick="selectCircleMenu('care', this)"><div class="icon-circle"><i class="fa-solid fa-people-roof"></i></div><span class="menu-txt">กลุ่มแคร์</span></div>
+                        <div class="menu-btn" onclick="selectCircleMenu('people', this)"><div class="icon-circle"><i class="fa-solid fa-user-group"></i></div><span class="menu-txt">กลุ่มคน</span></div>
+                        <div class="menu-btn" onclick="selectCircleMenu('event', this)"><div class="icon-circle"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-txt">กิจกรรม</span></div>
+                        <div class="menu-btn" onclick="selectCircleMenu('mentor', this)"><div class="icon-circle"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-txt">ผู้เลี้ยง</span></div>
+                        <div class="menu-btn" onclick="selectCircleMenu('birthday', this)"><div class="icon-circle"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-txt">วันเกิด</span></div>
                     </div>
                 </div>
-                
-                <div class="horizontal-menu" id="circle-hub-menu">
-                    <div class="menu-btn" onclick="selectCircleMenu('care', this)"><div class="icon-circle"><i class="fa-solid fa-people-roof"></i></div><span class="menu-txt">กลุ่มแคร์</span></div>
-                    <div class="menu-btn" onclick="selectCircleMenu('people', this)"><div class="icon-circle"><i class="fa-solid fa-user-group"></i></div><span class="menu-txt">กลุ่มคน</span></div>
-                    <div class="menu-btn" onclick="selectCircleMenu('event', this)"><div class="icon-circle"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-txt">กิจกรรม</span></div>
-                    <div class="menu-btn" onclick="selectCircleMenu('mentor', this)"><div class="icon-circle"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-txt">ผู้เลี้ยง</span></div>
-                    <div class="menu-btn" onclick="selectCircleMenu('birthday', this)"><div class="icon-circle"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-txt">วันเกิด</span></div>
+
+                <div id="sub-page-header">
+                    <h2 id="sub-page-title">ภาพรวม</h2>
+                    <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/NexusLife%20Logo7.png?raw=true" class="sub-logo">
                 </div>
 
-                <div class="feed-list" id="dashboard-feed-cards">
+                <div class="feed-list" id="dashboard-content-area">
                     <div class="info-card">
                         <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
                         <div class="card-txt"><h3>Family</h3><p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
@@ -221,20 +233,20 @@
                         <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
                     </div>
                 </div>
+
             </div>
             
             <div class="nav-bar">
-                <div class="nav-btn active" onclick="handleBottomNav('home', this)"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
-                <div class="nav-btn" onclick="handleBottomNav('overview', this)"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
-                <div class="nav-btn" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
-                <div class="nav-btn" onclick="handleBottomNav('directory', this)"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
-                <div class="nav-btn" onclick="handleBottomNav('profile', this)"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
+                <div class="nav-btn active" id="nav-home" onclick="handleBottomNav('home', this)"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
+                <div class="nav-btn" id="nav-overview" onclick="handleBottomNav('overview', this)"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
+                <div class="nav-btn" id="nav-directory" onclick="handleBottomNav('directory', this)"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
+                <div class="nav-btn" id="nav-filter" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
+                <div class="nav-btn" id="nav-profile" onclick="handleBottomNav('profile', this)"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
             </div>
         </div>
     </div>
 
     <script>
-        // ระบบจำสเตตัสการเลือกของผูัใช้ ณ ปัจจุบัน (สำหรับระบุเงื่อนไขการดึงข้อมูล Read-only)
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
 
@@ -249,31 +261,44 @@
             }, 600); 
         }, 2000); 
 
-        // ระบบเลือกเมนูวงกลม (Circle Hub Menu)
+        // เมื่อกดเมนูวงกลม -> เซ็ตค่าวงกลม และเด้งไปหน้า "ภาพรวม" อัตโนมัติ
         function selectCircleMenu(type, element) {
             document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             currentActiveCircle = type;
-            updateReadOnlyDashboard();
+            
+            // สั่งให้สลับไปกดปุ่ม "ภาพรวม" ที่เมนูล่าง
+            const overviewBtn = document.getElementById('nav-overview');
+            handleBottomNav('overview', overviewBtn);
         }
 
-        // ระบบเลือกแถบเมนูล่าง (Bottom Navigation Bar)
+        // เมื่อกดเมนูล่าง -> จัดการการแสดงผลหน้าจอ
         function handleBottomNav(target, element) {
             document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             currentActiveBottom = target;
-            updateReadOnlyDashboard();
+            updateDashboardView();
         }
 
-        // ฟังก์ชันประมวลผลการดึงข้อมูลแบบ Read-only ตามเงื่อนไขคู่ผสม (Matrix Condition)
-        function updateReadOnlyDashboard() {
-            const feedArea = document.getElementById('dashboard-feed-cards');
-            console.log(`Read-Only Triggered -> เมนูวงกลม: ${currentActiveCircle} | เมนูล่าง: ${currentActiveBottom}`);
-            
-            // สเต็ปถัดไปเราจะเอา Logic การดึงสถิติ/ดึงรายชื่อจาก Sheet มาใส่ในส่วนนี้ตามเงื่อนไขคู่ผสมครับ
-            if(currentActiveBottom === 'home') {
-                // กลับมาหน้าโครงสร้างฟีดเริ่มต้น
-                feedArea.innerHTML = `
+        // ฟังก์ชันอัปเดตหน้าจอ (ซ่อน/แสดง ส่วนประกอบต่างๆ)
+        function updateDashboardView() {
+            const homeTopSection = document.getElementById('home-top-section');
+            const subPageHeader = document.getElementById('sub-page-header');
+            const subPageTitle = document.getElementById('sub-page-title');
+            const contentArea = document.getElementById('dashboard-content-area');
+
+            // แปลงรหัสวงกลมเป็นชื่อภาษาไทย
+            const circleNames = {
+                'care': 'กลุ่มแคร์', 'people': 'กลุ่มคน', 'event': 'กิจกรรม',
+                'mentor': 'ผู้เลี้ยง', 'birthday': 'วันเกิด'
+            };
+            const activeCircleName = currentActiveCircle ? circleNames[currentActiveCircle] : 'ข้อมูลรวมทั้งหมด';
+
+            if (currentActiveBottom === 'home') {
+                // ถ้าเป็นหน้าหลัก -> โชว์ด้านบนทั้งหมด ซ่อนหัวหน้าย่อย
+                homeTopSection.style.display = 'block';
+                subPageHeader.style.display = 'none';
+                contentArea.innerHTML = `
                     <div class="info-card">
                         <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
                         <div class="card-txt"><h3>Family</h3><p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
@@ -284,53 +309,23 @@
                     </div>
                 `;
             } else {
-                feedArea.innerHTML = `
-                    <div class="info-card" style="border-left: 4px solid var(--orange);">
-                        <div class="card-ico"><i class="fa-solid fa-database"></i></div>
-                        <div class="card-txt">
-                            <h3>โหมดอ่านข้อมูล (Read-Only)</h3>
-                            <p>กำลังเตรียมแสดงผลข้อมูลหมวด [${currentActiveCircle || 'หน้าหลัก'}] ในรูปแบบ [${currentActiveBottom}]...</p>
-                        </div>
-                    </div>
-                `;
-            }
-        }
+                // ถ้าเป็นหน้าอื่น -> ซ่อนการทักทาย/วงกลม โชว์หัวหน้าย่อยแทน
+                homeTopSection.style.display = 'none';
+                subPageHeader.style.display = 'flex';
+                
+                // กำหนดชื่อหัวข้อหน้า
+                let viewTitle = '';
+                if(currentActiveBottom === 'overview') viewTitle = 'ภาพรวม';
+                else if(currentActiveBottom === 'directory') viewTitle = 'รายชื่อ';
+                else if(currentActiveBottom === 'filter') viewTitle = 'ตั้งค่าการกรองข้อมูล';
+                else if(currentActiveBottom === 'profile') viewTitle = 'โปรไฟล์ของคุณ';
 
-        // Logic การกดรหัส PIN
-        let pinInput = '';
-        const dots = document.querySelectorAll('.dot');
-        
-        function pressKey(num) {
-            if (pinInput.length < 4) {
-                pinInput += num;
-                renderDots();
-                if (pinInput.length === 4) setTimeout(validatePin, 300);
-            }
-        }
-        
-        function delKey() {
-            if (pinInput.length > 0) {
-                pinInput = pinInput.slice(0, -1);
-                renderDots();
-            }
-        }
-        
-        function renderDots() {
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('filled', index < pinInput.length);
-            });
-        }
-        
-        function validatePin() {
-            if (pinInput === '3456') {
-                document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
-                document.getElementById('screen-home').classList.add('visible');
-            } else {
-                alert('รหัส PIN ไม่ถูกต้อง\nกรุณาติดต่อ Admin..Poomableman');
-                pinInput = '';
-                renderDots();
-            }
-        }
-    </script>
-</body>
-</html>
+                subPageTitle.innerText = viewTitle;
+
+                // กำหนดเนื้อหาในหน้า
+                if (currentActiveBottom === 'filter') {
+                    // หน้ากรองข้อมูล (Settings)
+                    contentArea.innerHTML = `
+                        <div class="info-card" style="flex-direction: column; gap: 12px; border-left: 4px solid var(--charcoal);">
+                            <div style="background: var(--bg-app); padding: 15px; border-radius: 10px;">
+                                <p style="font-size: 15px; font-weight: 700; margin-bottom:
