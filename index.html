@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community v1.0.17</title>
+    <title>NxLife Community v1.0.19</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -157,7 +157,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.17</div>
+            <div class="version-tag">v1.0.19</div>
         </div>
 
         <div id="screen-pin">
@@ -197,4 +197,73 @@
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-user-group"></i></div><span class="menu-txt">กลุ่มคน</span></div>
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-txt">กิจกรรม</span></div>
                     <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-txt">ผู้เลี้ยง</span></div>
-                    <div class="menu-btn"><div class
+                    <div class="menu-btn"><div class="icon-circle"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-txt">วันเกิด</span></div>
+                </div>
+                <div class="feed-list">
+                    <div class="info-card">
+                        <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
+                        <div class="card-txt"><h3>Family</h3><p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
+                    </div>
+                    <div class="info-card">
+                        <div class="card-ico"><i class="fa-solid fa-user-plus"></i></div>
+                        <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-btn active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
+                <div class="nav-btn"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
+                <div class="nav-btn"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
+                <div class="nav-btn"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            const splash = document.getElementById('screen-splash');
+            const pinScreen = document.getElementById('screen-pin');
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                pinScreen.style.transform = 'translateX(0)';
+            }, 600); 
+        }, 2000); 
+
+        let pinInput = '';
+        const dots = document.querySelectorAll('.dot');
+        
+        function pressKey(num) {
+            if (pinInput.length < 4) {
+                pinInput += num;
+                renderDots();
+                if (pinInput.length === 4) setTimeout(validatePin, 300);
+            }
+        }
+        
+        function delKey() {
+            if (pinInput.length > 0) {
+                pinInput = pinInput.slice(0, -1);
+                renderDots();
+            }
+        }
+        
+        function renderDots() {
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('filled', index < pinInput.length);
+            });
+        }
+        
+        function validatePin() {
+            if (pinInput === '3456') {
+                document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
+                document.getElementById('screen-home').classList.add('visible');
+            } else {
+                alert('รหัส PIN ไม่ถูกต้อง\nกรุณาติดต่อ Admin..Poomableman');
+                pinInput = '';
+                renderDots();
+            }
+        }
+    </script>
+</body>
+</html>
