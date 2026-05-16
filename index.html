@@ -18,7 +18,7 @@
             --gray-text: #64748B;
             --gray-border: #E2E8F0;
             --shadow-premium: 0 10px 30px rgba(0,0,0,0.04);
-            --shadow-menu: 0 8px 20px rgba(2, 132, 199, 0.08); /* เงาพิเศษสำหรับเมนูวงกลม */
+            --shadow-menu: 0 8px 20px rgba(2, 132, 199, 0.08); 
             --shadow-bottom: 0 -5px 20px rgba(0,0,0,0.04);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -46,7 +46,6 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.1);
         }
 
-        /* App Version Label */
         .app-version {
             position: absolute;
             bottom: 15px;
@@ -181,7 +180,6 @@
         }
         .main-content::-webkit-scrollbar { display: none; }
 
-        /* Header */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .greeting { font-size: 20px; font-weight: 700; color: var(--navy); letter-spacing: -0.5px; }
         .header-actions { display: flex; align-items: center; gap: 15px; }
@@ -196,12 +194,10 @@
             box-shadow: var(--shadow-premium);
         }
 
-        /* Quick Actions */
         .quick-actions { display: flex; gap: 10px; margin-bottom: 24px; }
         .pill { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--gray-border); background: var(--white); transition: var(--transition); color: var(--navy); }
         .pill.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
 
-        /* Hero Banner */
         .hero { 
             width: 100%; height: 180px; 
             border-radius: 16px; 
@@ -216,19 +212,17 @@
         .hero-text h2 { font-size: 20px; font-weight: 700; z-index: 1; position: relative; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-family: 'Urbanist', sans-serif;}
         .hero-text p { font-size: 13px; opacity: 0.9; z-index: 1; position: relative; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
-        /* Upper Horizontal Menu (เพิ่มเงาพรีเมียมและเอฟเฟกต์ยุบเมื่อกด) */
         .menu-scroll { display: flex; gap: 16px; overflow-x: auto; padding: 5px 5px 15px 5px; margin-bottom: 15px; scroll-snap-type: x mandatory; }
         .menu-scroll::-webkit-scrollbar { display: none; }
         .menu-item { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 64px; scroll-snap-align: start; cursor: pointer; }
         .menu-icon { 
             width: 58px; height: 58px; border-radius: 50%; 
             background-color: var(--white); 
-            box-shadow: var(--shadow-menu); /* เพิ่มมิติเงาของปุ่มวงกลม */
+            box-shadow: var(--shadow-menu); 
             display: flex; justify-content: center; align-items: center; 
             font-size: 20px; color: var(--blue); 
             transition: var(--transition-fast); 
         }
-        /* เอฟเฟกต์ขยับและยุบปุ่มเมื่อมีการกดหรือแตะ (Over/Active) */
         .menu-item:active .menu-icon { 
             transform: scale(0.92) translateY(2px); 
             box-shadow: 0 2px 5px rgba(2, 132, 199, 0.1); 
@@ -236,7 +230,6 @@
         }
         .menu-label { font-size: 12px; font-weight: 500; color: var(--navy); }
 
-        /* Content Feed */
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--navy); }
         .feed-list { display: flex; flex-direction: column; gap: 16px; }
         .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-premium); display: flex; gap: 16px; }
@@ -245,7 +238,6 @@
         .card-content p { font-size: 13px; color: var(--gray-text); line-height: 1.5; margin-bottom: 8px; }
         .read-more { font-size: 13px; font-weight: 600; color: var(--blue); text-decoration: none; }
 
-        /* Fixed Bottom Navigation */
         .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; background: var(--white); border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: var(--shadow-bottom); display: flex; justify-content: space-around; align-items: center; padding: 0 10px 15px; z-index: 50; }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray-text); cursor: pointer; transition: var(--transition); width: 60px; }
         .nav-item i { font-size: 22px; }
@@ -268,7 +260,7 @@
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" alt="NxLife Logo" class="splash-logo-img">
             </div>
             
-            <div class="app-version">v1.0.3</div>
+            <div class="app-version">v1.0.4</div>
         </div>
 
         <div id="screen-pin">
@@ -296,7 +288,7 @@
 
             <div class="pin-forgot" onclick="showPinHint()">ลืมรหัส PIN Code</div>
             
-            <div class="app-version" style="bottom: 10px;">v1.0.3</div>
+            <div class="app-version" style="bottom: 10px;">v1.0.4</div>
         </div>
 
         <div id="screen-home">
@@ -305,134 +297,4 @@
                     <div class="greeting">ชาโลม..ไม่ใช่ชาบู สวัสดี</div>
                     <div class="header-actions">
                         <div class="bell-icon"><i class="fa-regular fa-bell"></i><div class="badge">99+</div></div>
-                        <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/NexusLife%20Logo.jpg" class="avatar" alt="Profile" onerror="this.src='https://via.placeholder.com/44x44.png?text=N'">
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-                    <div class="pill active">ดูภาพรวม</div>
-                    <div class="pill">รู้จัก NxLife</div>
-                </div>
-
-                <div class="hero">
-                    <div class="hero-text">
-                        <h2>ALPHA COURSE</h2>
-                        <p>ร่วมค้นหาความหมายของชีวิตไปด้วยกัน</p>
-                    </div>
-                </div>
-
-                <div class="menu-scroll">
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-people-roof"></i></div><span class="menu-label">กลุ่มแคร์</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-user-group"></i></div><span class="menu-label">กลุ่มคน</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-label">กิจกรรม</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-label">ผู้เลี้ยง</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-label">วันเกิด</span></div>
-                </div>
-
-                <div class="section-title">นิยามชุมชน (Glossary)</div>
-                <div class="feed-list">
-                    <div class="card">
-                        <div class="card-icon"><i class="fa-solid fa-house-chimney-user"></i></div>
-                        <div class="card-content">
-                            <h3>Family (ครอบครัว)</h3>
-                            <p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง พร้อมดูแลและเติบโตไปด้วยกัน</p>
-                            <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon" style="background:#F3F4F6; color:var(--gray-text);"><i class="fa-solid fa-user-plus"></i></div>
-                        <div class="card-content">
-                            <h3>Friend (เพื่อนใหม่)</h3>
-                            <p>ผู้มาเยือนที่กำลังทำความรู้จักชุมชนของเรา เราพร้อมต้อนรับด้วยความรักเสมอ</p>
-                            <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bottom-nav">
-                <div class="nav-item active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
-                <div class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
-                <div class="nav-item"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
-                <div class="nav-item"><i class="fa-solid fa-sliders"></i><span>ตัวกรอง</span></div>
-                <div class="nav-item"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        // === Flow Control (Splash -> PIN) ===
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("NxLife Application v1.0.3 Initiated.");
-            
-            setTimeout(() => {
-                const splash = document.getElementById('screen-splash');
-                const pinScreen = document.getElementById('screen-pin');
-                
-                if (splash) {
-                    splash.style.opacity = '0';
-                    splash.style.pointerEvents = 'none'; 
-                }
-                
-                setTimeout(() => {
-                    if (pinScreen) pinScreen.style.transform = 'translateX(0)';
-                }, 400);
-
-                setTimeout(() => {
-                    if (splash) splash.style.display = 'none';
-                }, 1200); 
-            }, 2000); 
-        });
-
-        // === PIN Logic ===
-        let currentPin = '';
-        const dots = document.querySelectorAll('.dot');
-
-        function enterPin(num) {
-            if (currentPin.length < 4) {
-                currentPin += num;
-                updateDots();
-                
-                if (currentPin.length === 4) {
-                    setTimeout(checkPin, 300);
-                }
-            }
-        }
-
-        function deletePin() {
-            if (currentPin.length > 0) {
-                currentPin = currentPin.slice(0, -1);
-                updateDots();
-            }
-        }
-
-        function updateDots() {
-            dots.forEach((dot, index) => {
-                if (index < currentPin.length) dot.classList.add('active');
-                else dot.classList.remove('active');
-            });
-        }
-
-        function checkPin() {
-            if (currentPin === '3456') {
-                loginSuccess();
-            } else {
-                alert('รหัส PIN ไม่ถูกต้อง\nกรุณาติดต่อ Admin..Poomableman');
-                currentPin = '';
-                updateDots();
-            }
-        }
-
-        function loginSuccess() {
-            document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
-            document.getElementById('screen-home').classList.add('active');
-        }
-
-        // 1. ฟังก์ชันแสดงคำใบ้รหัสเมื่อกดปุ่มลืมรหัสผ่านเท่านั้น
-        function showPinHint() {
-            alert('คำใบ้รหัสผ่านของคุณคือ: 3456');
-        }
-
-        // === Navigation UI Logic ===
+                        <img src="https://
