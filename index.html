@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community v1.0.25</title>
+    <title>NxLife Community v1.0.26</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -28,7 +28,9 @@
             font-family: 'Prompt', sans-serif;
             background-color: #E2E8F0; 
             color: var(--charcoal);
-            display: flex; justify-content: center; height: 100vh; overflow: hidden;
+            display: flex; justify-content: center; 
+            height: 100dvh; /* แก้จาก 100vh เป็น 100dvh เพื่อแก้ปัญหาขอบจอมือถือบัง */
+            overflow: hidden;
         }
 
         #app-container {
@@ -111,13 +113,16 @@
         }
         #screen-home.visible { opacity: 1; pointer-events: auto; }
 
-        .content-scroll { flex: 1; overflow-y: auto; padding: 24px 20px 100px; }
+        /* แก้ padding-bottom เพื่อไม่ให้ชนเมนูล่าง */
+        .content-scroll { flex: 1; overflow-y: auto; padding: 24px 20px 20px; }
         .content-scroll::-webkit-scrollbar { display: none; }
 
         /* ส่วนหัวและแบนเนอร์ของหน้าหลัก */
         .home-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 10px 0; }
         .greet-text { font-size: 19px; font-weight: 700; color: var(--charcoal); line-height: 1.4; }
-        .profile-img { width: 140px; height: auto; max-height: 65px; object-fit: contain; }
+        
+        /* แก้ไขโลโก้: ขยาย width และลบ max-height ออก */
+        .profile-img { width: 160px; height: auto; object-fit: contain; }
 
         .banner-hero { 
             width: 100%; height: 180px; border-radius: 8px; 
@@ -154,8 +159,8 @@
         .card-txt h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; color: var(--charcoal); }
         .card-txt p { font-size: 13px; color: var(--gray-text); line-height: 1.5; }
 
-        /* แถบเมนูล่าง เรียงใหม่ 5 ปุ่ม */
-        .nav-bar { position: absolute; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--gray-border); padding-bottom: 10px; }
+        /* แก้ไขเมนูล่าง: ลบ position:absolute ออก เพื่อป้องกันการตกขอบจอมือถือ */
+        .nav-bar { width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--gray-border); flex-shrink: 0; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px); }
         .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray-text); font-size: 10px; font-weight: 500; cursor: pointer; transition: 0.3s; width: 20%; }
         .nav-btn.active { color: var(--orange); }
         .nav-btn i { font-size: 20px; }
@@ -168,7 +173,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.25</div>
+            <div class="version-tag">v1.0.26</div>
         </div>
 
         <div id="screen-pin">
