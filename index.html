@@ -55,10 +55,10 @@
         
         .splash-content { transform: translateY(-12vh); z-index: 2; }
         
-        /* ปรับให้เต้นรอบเดียว (1 iteration) ใช้เวลา 1.2 วินาที */
+        /* ปรับให้กลับมาเต้นแบบวนลูปเรื่อยๆ (infinite) ตามคำขอ */
         .logo-heartbeat { 
             width: 210px; 
-            animation: heartbeat 1.2s ease-in-out 1; 
+            animation: heartbeat 1.4s ease-in-out infinite; 
         }
 
         @keyframes heartbeat {
@@ -156,7 +156,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">v1.0.10</div>
+            <div class="version-tag">v1.0.11</div>
         </div>
 
         <div id="screen-pin">
@@ -180,7 +180,7 @@
                 <button class="btn-key btn-del" onclick="delKey()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
             <div class="link-forgot" onclick="alert('คำใบ้คือ: 3456')">ลืมรหัส PIN Code</div>
-            <div class="version-tag">v1.0.10</div>
+            <div class="version-tag">v1.0.11</div>
         </div>
 
         <div id="screen-home">
@@ -206,4 +206,19 @@
                     </div>
                     <div class="info-card">
                         <div class="card-ico"><i class="fa-solid fa-user-plus"></i></div>
-                        <div class="card-txt">
+                        <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-btn active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
+                <div class="nav-btn"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
+                <div class="nav-btn"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
+                <div class="nav-btn"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // บังคับเปลี่ยนหน้าไปหน้า PIN ทันทีที่ครบ 2 วินาที (2000 มิลลิวินาที)
+        setTimeout(() => {
