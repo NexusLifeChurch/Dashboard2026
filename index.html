@@ -56,38 +56,55 @@
             justify-content: center;
             align-items: center;
             z-index: 30;
-            transition: opacity 0.5s ease;
+            /* เปลี่ยนความเร็วการจางหายให้ช้าลงและนุ่มนวลขึ้น */
+            transition: opacity 1.2s ease-in-out; 
         }
+        
         .splash-bg-top {
             position: absolute; top: -50px; left: -50px;
             width: 200px; height: 200px;
             background: radial-gradient(circle, var(--blue-light) 0%, transparent 70%);
             border-radius: 50%; opacity: 0.8;
         }
+        
         .splash-bg-bottom {
             position: absolute; bottom: -50px; right: -50px;
             width: 250px; height: 250px;
             background: radial-gradient(circle, var(--blue-light) 0%, transparent 70%);
             border-radius: 50%; opacity: 0.8;
         }
+
+        /* จัดตำแหน่งโลโก้ให้ค่อนไปด้านบน */
+        .splash-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: translateY(-10vh); /* ดันขึ้นด้านบน 10% ของหน้าจอ */
+            z-index: 2;
+        }
+
         .splash-logo-img {
             width: 220px; 
-            z-index: 2;
             object-fit: contain;
-            animation: float 3s ease-in-out infinite;
+            animation: heartbeat 1.5s infinite; /* อนิเมชั่นหัวใจเต้น */
         }
+
         .fallback-text {
             position: absolute;
-            z-index: 1;
+            z-index: -1;
             font-weight: bold;
-            color: var(--blue);
+            color: var(--blue-light);
             font-size: 24px;
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
+        /* อนิเมชั่นหัวใจเต้น (Heartbeat) */
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.08); } /* ตุบที่ 1 */
+            28% { transform: scale(1); }
+            42% { transform: scale(1.08); } /* ตุบที่ 2 */
+            70% { transform: scale(1); }
+            100% { transform: scale(1); }
         }
 
         /* ================================
@@ -103,7 +120,8 @@
             padding: 60px 20px 40px;
             z-index: 20;
             transform: translateX(100%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            /* เลื่อนเข้ามาอย่างนุ่มนวล */
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .pin-logo-img { height: 40px; margin-bottom: 30px; }
         .pin-title { font-size: 22px; font-weight: 600; margin-bottom: 10px; color: var(--navy); }
@@ -192,106 +210,4 @@
         .menu-label { font-size: 12px; font-weight: 500; color: var(--navy); }
 
         /* Content Feed */
-        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--navy); }
-        .feed-list { display: flex; flex-direction: column; gap: 16px; }
-        .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-premium); display: flex; gap: 16px; }
-        .card-icon { width: 48px; height: 48px; border-radius: 12px; background: var(--blue-light); display: flex; justify-content: center; align-items: center; font-size: 20px; color: var(--blue); flex-shrink: 0; }
-        .card-content h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-        .card-content p { font-size: 13px; color: var(--gray-text); line-height: 1.5; margin-bottom: 8px; }
-        .read-more { font-size: 13px; font-weight: 600; color: var(--blue); text-decoration: none; }
-
-        /* Fixed Bottom Navigation */
-        .bottom-nav { position: absolute; bottom: 0; left: 0; width: 100%; height: 80px; background: var(--white); border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: var(--shadow-bottom); display: flex; justify-content: space-around; align-items: center; padding: 0 10px 15px; z-index: 50; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray-text); cursor: pointer; transition: var(--transition); width: 60px; }
-        .nav-item i { font-size: 22px; }
-        .nav-item span { font-size: 10px; font-weight: 500; }
-        .nav-item.active { color: var(--blue); transform: translateY(-3px); }
-        .nav-item.active i { text-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); }
-
-    </style>
-</head>
-<body>
-
-    <div id="app-container">
-
-        <div id="screen-splash">
-            <div class="splash-bg-top"></div>
-            <div class="splash-bg-bottom"></div>
-            <div class="fallback-text">NxLife</div>
-            <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" alt="NxLife Logo" class="splash-logo-img" onerror="this.style.display='none'">
-        </div>
-
-        <div id="screen-pin">
-            <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" alt="NxLife Logo" class="pin-logo-img" onerror="this.style.display='none'">
-            <div class="pin-title">กรอกรหัส PIN</div>
-            <div class="pin-hint">คำใบ้: +12345</div>
-            
-            <div class="pin-dots" id="pin-dots">
-                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-            </div>
-
-            <div class="keypad">
-                <button class="key" onclick="enterPin(1)">1</button>
-                <button class="key" onclick="enterPin(2)">2</button>
-                <button class="key" onclick="enterPin(3)">3</button>
-                <button class="key" onclick="enterPin(4)">4</button>
-                <button class="key" onclick="enterPin(5)">5</button>
-                <button class="key" onclick="enterPin(6)">6</button>
-                <button class="key" onclick="enterPin(7)">7</button>
-                <button class="key" onclick="enterPin(8)">8</button>
-                <button class="key" onclick="enterPin(9)">9</button>
-                <div></div>
-                <button class="key" onclick="enterPin(0)">0</button>
-                <button class="key del" onclick="deletePin()"><i class="fa-solid fa-delete-left"></i></button>
-            </div>
-
-            <a href="#" class="pin-forgot">ลืมรหัส PIN Code</a>
-        </div>
-
-        <div id="screen-home">
-            <div class="main-content">
-                <div class="header">
-                    <div class="greeting">ชาโลม คุณผู้นำ</div>
-                    <div class="header-actions">
-                        <div class="bell-icon"><i class="fa-regular fa-bell"></i><div class="badge">99+</div></div>
-                        <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/NexusLife%20Logo.jpg" class="avatar" alt="Profile" onerror="this.src='https://via.placeholder.com/44x44.png?text=N'">
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-                    <div class="pill active">ดูภาพรวม</div>
-                    <div class="pill">รู้จัก NxLife</div>
-                </div>
-
-                <div class="hero">
-                    <div class="hero-text">
-                        <h2>ALPHA COURSE</h2>
-                        <p>ร่วมค้นหาความหมายของชีวิตไปด้วยกัน</p>
-                    </div>
-                </div>
-
-                <div class="menu-scroll">
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-people-roof"></i></div><span class="menu-label">กลุ่มแคร์</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-user-group"></i></div><span class="menu-label">กลุ่มคน</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-regular fa-calendar-check"></i></div><span class="menu-label">กิจกรรม</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-hand-holding-heart"></i></div><span class="menu-label">ผู้เลี้ยง</span></div>
-                    <div class="menu-item"><div class="menu-icon"><i class="fa-solid fa-cake-candles"></i></div><span class="menu-label">วันเกิด</span></div>
-                </div>
-
-                <div class="section-title">นิยามชุมชน (Glossary)</div>
-                <div class="feed-list">
-                    
-                    <div class="card">
-                        <div class="card-icon"><i class="fa-solid fa-house-chimney-user"></i></div>
-                        <div class="card-content">
-                            <h3>Family (ครอบครัว)</h3>
-                            <p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง พร้อมดูแลและเติบโตไปด้วยกัน</p>
-                            <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon" style="background:#F3F4F6; color:var(--gray-text);"><i class="fa-solid fa-user-plus"></i></div>
-                        <div class="card-content">
-                            <h3>Friend (เพื่อนใหม่)</h3>
-                            <p>ผู้มาเยือนที่กำลังทำความรู้จักชุมชนของเรา เราพร้อมต
+        .section-
