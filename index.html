@@ -189,6 +189,42 @@
         }
         .nav-btn.active .home-fab { transform: scale(1.08); box-shadow: 0 6px 14px rgba(192, 100, 40, 0.45); }
         .home-fab i { color: white !important; }
+
+        /* ================================
+           Filter View Elements Style
+           ================================ */
+        .filter-group { margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; box-shadow: var(--shadow-premium); }
+        .filter-label { font-size: 14px; font-weight: 700; color: var(--charcoal); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .options-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        /* ปุ่มเลือกสถานะหลัก */
+        .opt-btn {
+            background: #F1F5F9; border: 1px solid var(--gray-border); color: var(--gray-text);
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500;
+            font-family: 'Prompt', sans-serif; cursor: pointer; transition: 0.2s;
+        }
+        .opt-btn.selected { background: var(--orange-soft); border-color: var(--orange); color: var(--orange); font-weight: 600; }
+        
+        /* สวิตช์สไลด์เปิด-ปิด (Toggle Switch) */
+        .toggle-wrapper { display: flex; align-items: center; justify-content: space-between; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CBD5E1; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--orange); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .toggle-text { font-size: 13px; font-weight: 500; color: var(--gray-text); }
+        input:checked ~ .toggle-text { color: var(--orange); font-weight: 600; }
+
+        /* แผงควบคุมกลุ่มแคร์ (Checkboxes & Shortcuts) */
+        .care-shortcuts { display: flex; gap: 6px; margin-bottom: 12px; border-bottom: 1px dashed var(--gray-border); padding-bottom: 8px; }
+        .sc-btn { background: #E2E8F0; border: none; color: var(--charcoal); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
+        .sc-btn:active { background: #CBD5E1; }
+        .care-list-container { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 5px; }
+        .care-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #FAF7F2; }
+        .care-checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--charcoal); cursor: pointer; }
+        .care-checkbox-label input { width: 16px; height: 16px; accent-color: var(--orange); }
+        .only-link { font-size: 11px; color: var(--orange); font-weight: 600; cursor: pointer; text-decoration: underline; }
         
         /* ================================
            Custom Alert Popup
@@ -324,22 +360,33 @@
         
     </div>
 
-    <script>
-        // จำค่าล่าสุดของวงกลมที่เลือก
+<script>
+        // ลิงก์ Web Apps API จาก Google Sheets
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
+
+        // ความจำระบบข้อมูลแอป
+        let rawMembersData = [];    // เก็บข้อมูลดิบผู้เชื่อทั้งหมดจาก Sheet
+        let rawCareData = [];       // เก็บข้อมูลดิบกลุ่มแคร์ทั้งหมดจาก Sheet Care_Info
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
 
-        // ฐานข้อมูลไอคอนและชื่อสำหรับส่วนหัวหน้าย่อย
+        // ตะกร้าเก็บค่า Master Filter Logic สำคัญ (3 เงื่อนไขหลัก)
+        let masterFilterSettings = {
+            statusMode: 'ALL',       // ALL (ดูทั้งหมด) / COMMUNITY (F ขึ้นต้น) / SEND (ส่งออก)
+            includeKids: true,       // true (เปิด-รวมเด็ก) / false (ปิด-ไม่รวมเด็ก)
+            selectedCares: []        // รายชื่อ Care_ID เฉพาะกลุ่มที่เลือกติ๊กถูกไว้
+        };
+
         const circleContext = {
             'care': { name: 'กลุ่มแคร์', icon: 'fa-people-roof' },
             'people': { name: 'กลุ่มคน', icon: 'fa-user-group' },
             'event': { name: 'กิจกรรม', icon: 'fa-calendar-check' },
             'mentor': { name: 'ผู้เลี้ยง', icon: 'fa-hand-holding-heart' },
             'birthday': { name: 'วันเกิด', icon: 'fa-cake-candles' },
-            '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' } 
+            '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' }
         };
 
-        // เปลี่ยนหน้า Splash Screen อัตโนมัติ (นับ 2 วิแล้วเด้งเลย)
+        // เริ่มต้นนับถอยหลังเปิดเข้าแอป และยิงดึงข้อมูลทันที
         setTimeout(function() {
             const splash = document.getElementById('screen-splash');
             const pinScreen = document.getElementById('screen-pin');
@@ -348,24 +395,42 @@
                 setTimeout(function() {
                     splash.style.display = 'none';
                     pinScreen.style.transform = 'translateX(0)';
+                    fetchAllSheetsData(); // ดึงข้อมูลจริงมารอไว้ในตะกร้าหลังบ้าน
                 }, 600); 
             }
         }, 2000);
 
-        // เมื่อกดเมนูวงกลม
+        // ฟังก์ชันดึงข้อมูลจริงจากหลังบ้าน Google Sheets
+        function fetchAllSheetsData() {
+            console.log('กำลังเชื่อมต่อข้อมูล Google Sheets...');
+            fetch(API_URL)
+                .then(res => res.json())
+                .then(responseObj => {
+                    // แตกข้อมูลใส่ตะกร้าตามโครงสร้างที่ส่งมาจากหลังบ้าน
+                    rawMembersData = responseObj.members || [];
+                    
+                    // ดึงข้อมูลกลุ่มแคร์ และกรองเอาเฉพาะ Care_Info.IsActive === true ทันทีตามสั่ง!
+                    let allCares = responseObj.cares || [];
+                    rawCareData = allCares.filter(c => c.IsActive === true || c.IsActive === "TRUE" || c.IsActive === 1);
+                    
+                    // ค่าเริ่มต้นของตัวกรองแคร์หลัก ให้เลือกทุกแคร์ไว้ก่อน
+                    masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
+
+                    console.log('โหลดสำเร็จ! สมาชิก:', rawMembersData.length, 'รายชื่อ | กลุ่มแคร์ที่เปิดใช้งาน (Active):', rawCareData.length, 'กลุ่ม');
+                    updateDashboardView();
+                })
+                .catch(err => console.error('ดึงข้อมูลล้มเหลว:', err));
+        }
+
         function selectCircleMenu(type, element) {
             document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
-            
-            // จำค่าวงกลมไว้ในระบบ
             currentActiveCircle = type;
             
-            // สั่งให้สลับไปหน้า "ภาพรวม"
             const overviewBtn = document.getElementById('nav-overview');
             handleBottomNav('overview', overviewBtn);
         }
 
-        // เมื่อกดเมนูล่าง
         function handleBottomNav(target, element) {
             document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
@@ -373,7 +438,44 @@
             updateDashboardView();
         }
 
-        // ฟังก์ชันอัปเดตหน้าจอหลัก
+        // --- ส่วนควบคุมปุ่มคำสั่ง Master Filter ---
+        function setStatusMode(mode) {
+            masterFilterSettings.statusMode = mode;
+            updateDashboardView();
+        }
+
+        function toggleKidsSwitch(checkboxElement) {
+            masterFilterSettings.includeKids = checkboxElement.checked;
+            updateDashboardView();
+        }
+
+        function toggleCareCheckbox(careId) {
+            let idx = masterFilterSettings.selectedCares.indexOf(careId);
+            if (idx > -1) {
+                masterFilterSettings.selectedCares.splice(idx, 1); // เอาออก
+            } else {
+                masterFilterSettings.selectedCares.push(careId); // ติ๊กเพิ่ม
+            }
+            updateDashboardView();
+        }
+
+        function careSelectAll() {
+            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
+            updateDashboardView();
+        }
+
+        function careClearAll() {
+            masterFilterSettings.selectedCares = [];
+            updateDashboardView();
+        }
+
+        function careSelectOnly(careId) {
+            masterFilterSettings.selectedCares = [careId];
+            updateDashboardView();
+        }
+
+
+        // ฟังก์ชันสั่งสลับวาดแต่ละหน้าจอ (Render Views)
         function updateDashboardView() {
             const homeTopSection = document.getElementById('home-top-section');
             const subPageHeader = document.getElementById('sub-page-header');
@@ -382,14 +484,11 @@
             const subHeaderIcon = document.getElementById('sub-header-icon');
             const contentArea = document.getElementById('dashboard-content-area');
 
-            // ดึงข้อมูลไอคอนและชื่อหมวดจากความจำล่าสุด
             const activeCtx = circleContext[currentActiveCircle] || circleContext[''];
 
             if (currentActiveBottom === 'home') {
-                // ถ้ากลับมาหน้า Home
                 homeTopSection.style.display = 'block';
                 subPageHeader.style.display = 'none';
-                
                 contentArea.innerHTML = `
                     <div class="info-card">
                         <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
@@ -401,34 +500,74 @@
                     </div>
                 `;
             } else {
-                // ถ้าเป็นหน้าอื่นๆ
                 homeTopSection.style.display = 'none';
                 
-                // ถือว่าเป็นหน้าตั้งค่า (Filter/Profile) -> ให้ซ่อน Sub-header ไปเลย
                 if (currentActiveBottom === 'filter' || currentActiveBottom === 'profile') {
                     subPageHeader.style.display = 'none';
                 } else {
-                    // หน้าภาพรวม และ รายชื่อ -> โชว์ Sub-header
                     subPageHeader.style.display = 'flex';
                     subHeaderIcon.innerHTML = `<i class="fa-solid ${activeCtx.icon}"></i>`;
                     subPageTopic.innerText = activeCtx.name;
-                    
-                    let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
-                    subPageTitle.innerText = viewTitle;
+                    subPageTitle.innerText = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
                 }
 
-                // เนื้อหาด้านใน
+                // สั่งวาดหน้าจอ: Filter View (หน้ากรองข้อมูลหลัก)
                 if (currentActiveBottom === 'filter') {
+                    
+                    // สร้างรายการ Checkbox กลุ่มแคร์ขึ้นมาตามข้อมูลจริงในตาราง
+                    let careListHTML = '';
+                    if(rawCareData.length === 0) {
+                        careListHTML = `<p style="font-size:12px; color:var(--gray-text); text-align:center;">⚠️ กำลังดึงรายชื่อกลุ่มแคร์จริงจากระบบ...</p>`;
+                    } else {
+                        rawCareData.forEach(care => {
+                            let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : '';
+                            careListHTML += `
+                                <div class="care-item">
+                                    <label class="care-checkbox-label">
+                                        <input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')">
+                                        <span>${care.Care_Name || care.Care_ID}</span>
+                                    </label>
+                                    <span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span>
+                                </div>
+                            `;
+                        });
+                    }
+
                     contentArea.innerHTML = `
-                        <h2 style="margin-bottom: 15px; color: var(--charcoal);"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> กรองข้อมูล</h2>
-                        <div class="info-card" style="flex-direction: column; gap: 12px; border-left: 4px solid var(--charcoal);">
-                            <div style="background: var(--bg-app); padding: 15px; border-radius: 10px;">
-                                <p style="font-size: 15px; font-weight: 700; margin-bottom: 5px; color: var(--charcoal);">สถานะการเป็นสมาชิก</p>
-                                <p style="font-size: 13px; color: var(--gray-text);">เลือกรูปแบบ: Community / Send / Bye / Family / Friend</p>
+                        <h2 style="margin-bottom: 20px; color: var(--charcoal);"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> กรองข้อมูลหลัก</h2>
+                        
+                        <div class="filter-group">
+                            <div class="filter-label"><i class="fa-solid fa-user-tag" style="color:var(--orange);"></i> สถานะกลุ่มคน (Nxl_Status)</div>
+                            <div class="options-grid">
+                                <button class="opt-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'selected' : ''}" onclick="setStatusMode('COMMUNITY')">Community (กลุ่ม F)</button>
+                                <button class="opt-btn ${masterFilterSettings.statusMode === 'SEND' ? 'selected' : ''}" onclick="setStatusMode('SEND')">ส่งออก (Send)</button>
+                                <button class="opt-btn ${masterFilterSettings.statusMode === 'ALL' ? 'selected' : ''}" onclick="setStatusMode('ALL')">ดูทั้งหมด</button>
                             </div>
-                            <div style="background: var(--bg-app); padding: 15px; border-radius: 10px;">
-                                <p style="font-size: 15px; font-weight: 700; margin-bottom: 5px; color: var(--charcoal);">ขอบเขตกลุ่มคน</p>
-                                <p style="font-size: 13px; color: var(--gray-text);">เงื่อนไข: รวมคริสตจักรเด็ก / ไม่รวม</p>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="toggle-wrapper">
+                                <div class="filter-label" style="margin-bottom:0;"><i class="fa-solid fa-child" style="color:var(--orange);"></i> คริสตจักรเด็ก (Life-Kids)</div>
+                                <label class="switch">
+                                    <input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div style="font-size: 11px; color: var(--gray-text); margin-top: 5px;">
+                                ${masterFilterSettings.includeKids ? '🟢 เปิด: รวมเด็กทุกรายการในระบบ' : '🔴 ปิด: ไม่รวมเด็ก (ระบบจะคัดกรองชื่อที่มีสถานะ Fm-Kids ออกให้)'}
+                            </div>
+                        </div>
+
+                        <div class="filter-group">
+                            <div class="filter-label"><i class="fa-solid fa-house-chimney-user" style="color:var(--orange);"></i> การเลือกกลุ่มแคร์ (Care_Info)</div>
+                            
+                            <div class="care-shortcuts">
+                                <button class="sc-btn" onclick="careSelectAll()">เลือกทั้งหมด</button>
+                                <button class="sc-btn" onclick="careClearAll()">ไม่เลือกทั้งหมด</button>
+                            </div>
+
+                            <div class="care-list-container">
+                                ${careListHTML}
                             </div>
                         </div>
                     `;
@@ -448,7 +587,14 @@
                         <div class="info-card" style="border-left: 4px solid var(--orange);">
                             <div class="card-txt">
                                 <h3 style="color: var(--orange); margin-bottom: 8px;">แสดงผล: ${activeCtx.name}</h3>
-                                <p>พื้นที่สำหรับแสดงผลข้อมูลในมุมมอง <b>${viewTitle}</b></p>
+                                <p style="font-size: 13px; margin-bottom: 10px;">มุมมองปัจจุบัน: <b>${viewTitle}</b></p>
+                                
+                                <div style="font-size: 11px; color: var(--gray-text); background: var(--bg-app); padding: 10px; border-radius: 8px; line-height: 1.6;">
+                                    📌 <b>สถานะ Master Filter ล่าสุดที่จำไว้:</b><br>
+                                    • โหมดสถานะสมาชิก = <span style="color:var(--orange); font-weight:700;">${masterFilterSettings.statusMode}</span><br>
+                                    • สถานะรวมกลุ่มเด็ก = <span style="color:var(--orange); font-weight:700;">${masterFilterSettings.includeKids ? 'รวมเด็ก' : 'ไม่รวมเด็ก'}</span><br>
+                                    • จำนวนกลุ่มแคร์ที่ถูกกรองไว้ = <span style="color:var(--orange); font-weight:700;">${masterFilterSettings.selectedCares.length} / ${rawCareData.length} กลุ่ม</span>
+                                </div>
                             </div>
                         </div>
                     `;
@@ -480,17 +626,18 @@
                 dot.classList.toggle('filled', index < pinInput.length);
             });
         }
+        
         function validatePin() {
             if (pinInput === '3456') {
                 document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
                 document.getElementById('screen-home').classList.add('visible');
             } else {
-                // เปลี่ยนจาก alert() เป็น showAlert() ของเราเอง
                 showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin..Poomableman');
                 pinInput = '';
                 renderDots();
             }
-        }  
+        }
+
         // ฟังก์ชันควบคุม Popup แจ้งเตือน
         function showAlert(title, message) {
             document.getElementById('alert-title-text').innerText = title;
