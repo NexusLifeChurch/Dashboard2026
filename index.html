@@ -11,8 +11,8 @@
     <style>
         :root {
             --navy: #0F172A;
-            --blue: #0284C7; /* เปลี่ยนเป็นโทนสีฟ้า Premium Sky Blue */
-            --blue-light: #E0F2FE; /* สีฟ้าอ่อนสำหรับพื้นหลังไอคอน */
+            --blue: #0284C7; 
+            --blue-light: #E0F2FE; 
             --white: #FFFFFF;
             --bg-color: #FAFAFB;
             --gray-text: #64748B;
@@ -44,8 +44,6 @@
             box-shadow: 0 0 40px rgba(0,0,0,0.1);
         }
 
-        h1, h2, h3, h4, h5 { font-family: 'Urbanist', 'Prompt', sans-serif; }
-
         /* ================================
            Screen 1: Splash Screen
            ================================ */
@@ -73,10 +71,17 @@
             border-radius: 50%; opacity: 0.8;
         }
         .splash-logo-img {
-            width: 220px; /* ขนาด Logo หน้าแรก */
+            width: 220px; 
             z-index: 2;
             object-fit: contain;
             animation: float 3s ease-in-out infinite;
+        }
+        .fallback-text {
+            position: absolute;
+            z-index: 1;
+            font-weight: bold;
+            color: var(--blue);
+            font-size: 24px;
         }
 
         @keyframes float {
@@ -150,7 +155,6 @@
         .bell-icon { position: relative; font-size: 20px; color: var(--navy); }
         .badge { position: absolute; top: -5px; right: -8px; background-color: #EF4444; color: white; font-size: 10px; font-weight: 700; padding: 2px 5px; border-radius: 10px; border: 2px solid var(--bg-color); }
         
-        /* Profile Image */
         .avatar { 
             width: 44px; height: 44px; 
             border-radius: 50%; 
@@ -164,19 +168,19 @@
         .pill { padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--gray-border); background: var(--white); transition: var(--transition); color: var(--navy); }
         .pill.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
 
-        /* Hero Banner with Custom Image */
+        /* Hero Banner */
         .hero { 
             width: 100%; height: 180px; 
             border-radius: 16px; 
             background: linear-gradient(to bottom, rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.8)), 
-                        url('https://github.com/NexusLifeChurch/NxLife_Mbr_Regist/blob/main/images/Logo/banner_alpha.jpg?raw=true') center/cover no-repeat;
+                        url('https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/banner_alpha.jpg') center/cover no-repeat;
             color: white; 
             display: flex; align-items: flex-end; 
             padding: 20px; margin-bottom: 30px; 
             position: relative; overflow: hidden; 
             box-shadow: var(--shadow-premium); 
         }
-        .hero-text h2 { font-size: 20px; font-weight: 700; z-index: 1; position: relative; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .hero-text h2 { font-size: 20px; font-weight: 700; z-index: 1; position: relative; text-shadow: 0 2px 4px rgba(0,0,0,0.5); font-family: 'Urbanist', sans-serif;}
         .hero-text p { font-size: 13px; opacity: 0.9; z-index: 1; position: relative; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 
         /* Upper Horizontal Menu */
@@ -187,7 +191,7 @@
         .menu-item:active .menu-icon { transform: scale(0.9); background-color: var(--blue-light); }
         .menu-label { font-size: 12px; font-weight: 500; color: var(--navy); }
 
-        /* Content Feed (Glossary) */
+        /* Content Feed */
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--navy); }
         .feed-list { display: flex; flex-direction: column; gap: 16px; }
         .card { background: var(--white); border-radius: 16px; padding: 20px; box-shadow: var(--shadow-premium); display: flex; gap: 16px; }
@@ -213,11 +217,12 @@
         <div id="screen-splash">
             <div class="splash-bg-top"></div>
             <div class="splash-bg-bottom"></div>
-            <img src="https://github.com/NexusLifeChurch/NxLife_Mbr_Regist/blob/main/images/Logo/life_logo.png?raw=true" alt="NxLife Logo" class="splash-logo-img">
+            <div class="fallback-text">NxLife</div>
+            <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" alt="NxLife Logo" class="splash-logo-img" onerror="this.style.display='none'">
         </div>
 
         <div id="screen-pin">
-            <img src="https://github.com/NexusLifeChurch/NxLife_Mbr_Regist/blob/main/images/Logo/life_logo.png?raw=true" alt="NxLife Logo" class="pin-logo-img">
+            <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" alt="NxLife Logo" class="pin-logo-img" onerror="this.style.display='none'">
             <div class="pin-title">กรอกรหัส PIN</div>
             <div class="pin-hint">คำใบ้: +12345</div>
             
@@ -235,7 +240,8 @@
                 <button class="key" onclick="enterPin(7)">7</button>
                 <button class="key" onclick="enterPin(8)">8</button>
                 <button class="key" onclick="enterPin(9)">9</button>
-                <div></div> <button class="key" onclick="enterPin(0)">0</button>
+                <div></div>
+                <button class="key" onclick="enterPin(0)">0</button>
                 <button class="key del" onclick="deletePin()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
 
@@ -248,7 +254,7 @@
                     <div class="greeting">ชาโลม คุณผู้นำ</div>
                     <div class="header-actions">
                         <div class="bell-icon"><i class="fa-regular fa-bell"></i><div class="badge">99+</div></div>
-                        <img src="https://github.com/NexusLifeChurch/NxLife_Mbr_Regist/blob/main/images/Logo/NexusLife%20Logo.jpg?raw=true" class="avatar" alt="Profile">
+                        <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/NexusLife%20Logo.jpg" class="avatar" alt="Profile" onerror="this.src='https://via.placeholder.com/44x44.png?text=N'">
                     </div>
                 </div>
 
@@ -273,7 +279,7 @@
                 </div>
 
                 <div class="section-title">นิยามชุมชน (Glossary)</div>
-                <div class="feed-list" id="feed-data">
+                <div class="feed-list">
                     
                     <div class="card">
                         <div class="card-icon"><i class="fa-solid fa-house-chimney-user"></i></div>
@@ -288,89 +294,4 @@
                         <div class="card-icon" style="background:#F3F4F6; color:var(--gray-text);"><i class="fa-solid fa-user-plus"></i></div>
                         <div class="card-content">
                             <h3>Friend (เพื่อนใหม่)</h3>
-                            <p>ผู้มาเยือนที่กำลังทำความรู้จักชุมชนของเรา เราพร้อมต้อนรับด้วยความรักเสมอ</p>
-                            <a href="#" class="read-more">อ่านต่อ <i class="fa-solid fa-arrow-right-long ms-1"></i></a>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="bottom-nav">
-                <div class="nav-item active"><i class="fa-solid fa-house"></i><span>หน้าหลัก</span></div>
-                <div class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
-                <div class="nav-item"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
-                <div class="nav-item"><i class="fa-solid fa-sliders"></i><span>ตัวกรอง</span></div>
-                <div class="nav-item"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
-            </div>
-        </div>
-
-    </div>
-
-    <script>
-        // === Flow Control ===
-        setTimeout(() => {
-            document.getElementById('screen-splash').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('screen-splash').style.display = 'none';
-                document.getElementById('screen-pin').style.transform = 'translateX(0)';
-            }, 500);
-        }, 2000); 
-
-        // === PIN Logic (เปลี่ยนเป็น 4 หลัก) ===
-        let currentPin = '';
-        const dots = document.querySelectorAll('.dot');
-
-        function enterPin(num) {
-            if (currentPin.length < 4) {
-                currentPin += num;
-                updateDots();
-                
-                if (currentPin.length === 4) {
-                    setTimeout(checkPin, 300); // ดีเลย์เล็กน้อยเพื่อให้จุดสุดท้ายแสดงสีก่อนตรวจสอบ
-                }
-            }
-        }
-
-        function deletePin() {
-            if (currentPin.length > 0) {
-                currentPin = currentPin.slice(0, -1);
-                updateDots();
-            }
-        }
-
-        function updateDots() {
-            dots.forEach((dot, index) => {
-                if (index < currentPin.length) dot.classList.add('active');
-                else dot.classList.remove('active');
-            });
-        }
-
-        function checkPin() {
-            // ตรวจสอบรหัส 3456
-            if (currentPin === '3456') {
-                loginSuccess();
-            } else {
-                // แจ้งเตือนเมื่อรหัสผิดและล้างข้อมูล
-                alert('รหัส PIN ไม่ถูกต้อง\nกรุณาติดต่อ Admin..Poomableman');
-                currentPin = '';
-                updateDots();
-            }
-        }
-
-        function loginSuccess() {
-            document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
-            document.getElementById('screen-home').style.opacity = '1';
-        }
-
-        // === Navigation UI Logic ===
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                navItems.forEach(n => n.classList.remove('active'));
-                item.classList.add('active');
-            });
-        });
-    </script>
-</body>
-</html>
+                            <p>ผู้มาเยือนที่กำลังทำความรู้จักชุมชนของเรา เราพร้อมต
