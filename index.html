@@ -433,6 +433,14 @@
             updateDashboardView();
         }
 
+        // ฟังก์ชัน Reset กลับเป็นค่าเริ่มต้นตามที่พี่สั่งเป๊ะๆ
+        function resetFilterToDefault() {
+            masterFilterSettings.statusMode = 'COMMUNITY';
+            masterFilterSettings.includeKids = false;
+            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
+            updateDashboardView();
+        }
+
         function updateDashboardView() {
             const homeTopSection = document.getElementById('home-top-section');
             const subPageHeader = document.getElementById('sub-page-header');
@@ -458,9 +466,6 @@
                 
                 let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
 
-                // ==========================================
-                // ระบบสร้าง Header พร้อมป้ายกำกับ Filter (ใหม่!)
-                // ==========================================
                 if (currentActiveBottom === 'filter' || currentActiveBottom === 'profile') {
                     subPageHeader.style.display = 'none';
                 } else {
@@ -490,7 +495,6 @@
 
                 if (currentActiveBottom === 'filter') {
                     
-                    // Render Care List
                     let careListHTML = '';
                     if(rawCareData.length === 0) {
                         careListHTML = `
@@ -514,15 +518,15 @@
                     }
 
                     contentArea.innerHTML = `
-                        <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <h2 style="font-size: 24px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                     <i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล
                                 </h2>
-                                <p style="font-size: 13px; color: var(--gray-text);">จัดการการแสดงผลและกรองข้อมูลสมาชิก</p>
+                                <p style="font-size: 13px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p>
                             </div>
-                            <button style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 600; font-family: 'Prompt'; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i> ส่งออกข้อมูล
+                            <button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 600; font-family: 'Prompt'; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(192,100,40,0.05);">
+                                <i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น
                             </button>
                         </div>
                         
@@ -537,12 +541,9 @@
                             </div>
                         </div>
 
-                        <div class="clean-card">
+                        <div class="clean-card" style="padding: 16px 20px;">
                             <div class="toggle-wrapper">
-                                <div>
-                                    <div class="section-title"><i class="fa-solid fa-users" style="color: var(--orange);"></i> รวมคริสตจักรเด็ก</div>
-                                    <div class="section-desc" style="margin-bottom:0;">รวมข้อมูลสมาชิกจากคริสตจักรเด็กในการคำนวณยอดรวม</div>
-                                </div>
+                                <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div>
                                 <label class="switch">
                                     <input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)">
                                     <span class="slider"></span>
@@ -554,8 +555,8 @@
                             <div class="section-header">
                                 <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div>
                                 <div class="care-shortcuts">
-                                    <button class="sc-btn" onclick="careSelectAll()"><i class="fa-solid fa-check"></i> เลือกทั้งหมด</button>
-                                    <button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-trash-can"></i> ล้างการเลือก</button>
+                                    <button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button>
+                                    <button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button>
                                 </div>
                             </div>
                             
@@ -573,7 +574,6 @@
                         </div>
                     `;
                 } else {
-                    // ลบกล่องข้อมูลเดิมทิ้ง เคลียร์พื้นที่รอใส่กราฟ Dashboard!
                     contentArea.innerHTML = `
                         <div class="clean-card" style="border-top: 4px solid var(--orange); text-align: center; padding: 40px 20px;">
                             <i class="fa-solid fa-chart-pie" style="font-size: 40px; color: #E2E8F0; margin-bottom: 15px;"></i>
