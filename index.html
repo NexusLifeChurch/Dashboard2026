@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.053</title>
+    <title>NxLife Community version #1.0.054</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.053</div>
+            <div class="version-tag">version #1.0.054</div>
         </div>
 
         <div id="screen-pin">
@@ -333,6 +333,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 ทำให้เว็บโต้ตอบได้
 กดปุ่มแล้วมีอะไรเกิดขึ้น
 ================================ -->
+
 <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
@@ -370,38 +371,23 @@ CSS  ตกแต่งหน้าตาเว็บ
         }, 2000);
 
         // ==========================================
-        // 🛡️ Smart Parser: เครื่องมือดึงข้อมูลอัจฉริยะแบบปลอดภัยสุดๆ
+        // 🛡️ Bulletproof Extractor: ระบบสกัดข้อมูลรถถัง
         // ==========================================
-        function parseDataSafely(dataArray, keyMappings) {
-            if (!dataArray || !Array.isArray(dataArray) || dataArray.length === 0) return [];
-            let result = [];
-            
-            if (Array.isArray(dataArray[0])) {
-                // กรณีเป็น Array 2D (ตารางดิบ)
-                let headers = dataArray[0].map(h => String(h).toLowerCase().replace(/[_ ]/g, ''));
-                for(let i = 1; i < dataArray.length; i++) {
-                    let obj = {};
-                    for(let key in keyMappings) {
-                        let possible = keyMappings[key].map(k => k.toLowerCase().replace(/[_ ]/g, ''));
-                        let idx = headers.findIndex(h => possible.includes(h));
-                        obj[key] = idx > -1 ? dataArray[i][idx] : '';
-                    }
-                    result.push(obj);
-                }
-            } else {
-                // กรณีเป็น Array of Objects
-                for(let i = 0; i < dataArray.length; i++) {
-                    let row = dataArray[i];
-                    let obj = {};
-                    for(let key in keyMappings) {
-                        let possible = keyMappings[key].map(k => k.toLowerCase().replace(/[_ ]/g, ''));
-                        let foundKey = Object.keys(row).find(k => possible.includes(String(k).toLowerCase().replace(/[_ ]/g, '')));
-                        obj[key] = foundKey !== undefined ? row[foundKey] : '';
-                    }
-                    result.push(obj);
-                }
-            }
-            return result;
+        function extractProp(obj, exactName) {
+            if (obj[exactName] !== undefined) return String(obj[exactName]);
+            for (let k in obj) { if (String(k).toLowerCase() === exactName.toLowerCase()) return String(obj[k]); }
+            let fuzzy = exactName.toLowerCase().replace(/[_ ]/g, '');
+            for (let k in obj) { if (String(k).toLowerCase().replace(/[_ ]/g, '') === fuzzy) return String(obj[k]); }
+            return '';
+        }
+
+        function getColIndex(headers, exactName) {
+            let idx = headers.indexOf(exactName);
+            if(idx > -1) return idx;
+            idx = headers.findIndex(h => String(h).toLowerCase() === exactName.toLowerCase());
+            if(idx > -1) return idx;
+            let fuzzy = exactName.toLowerCase().replace(/[_ ]/g, '');
+            return headers.findIndex(h => String(h).toLowerCase().replace(/[_ ]/g, '') === fuzzy);
         }
 
         function fetchAllSheetsData() {
@@ -409,48 +395,67 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .then(res => res.json())
                 .then(responseObj => {
                     
-                    // 1. จัดระเบียบ Members (ดึง Care_ID, Nxl_Status, Gender ออกมาเป๊ะๆ)
-                    rawMembersData = parseDataSafely(responseObj.members || [], {
-                        Care_ID: ['Care_ID', 'CareID'],
-                        Nxl_Status: ['Nxl_Status', 'NxlStatus'],
-                        Gender: ['Gender', 'เพศ', 'Sex']
-                    });
+                    // 1. จัดระเบียบตารางสมาชิก (Members) ให้ดึงข้อมูลมาเป๊ะๆ 100%
+                    let mRaw = responseObj.members || [];
+                    rawMembersData = [];
+                    if (mRaw.length > 0) {
+                        if (Array.isArray(mRaw[0])) {
+                            let headers = mRaw[0];
+                            let iCare = getColIndex(headers, 'Care_ID');
+                            let iStatus = getColIndex(headers, 'Nxl_Status');
+                            let iGender = getColIndex(headers, 'Gender');
+                            if(iGender === -1) iGender = getColIndex(headers, 'เพศ');
 
-                    // 2. จัดระเบียบ Care_Info
-                    let caresRaw = [];
-                    if (responseObj.cares && Array.isArray(responseObj.cares)) {
-                        caresRaw = responseObj.cares;
-                    } else if (responseObj.careMap) {
-                        if (Array.isArray(responseObj.careMap)) caresRaw = responseObj.careMap;
-                        else if (typeof responseObj.careMap === 'object') {
-                            for (let k in responseObj.careMap) {
-                                let v = responseObj.careMap[k];
-                                if (typeof v === 'object') caresRaw.push({Care_ID: k, ...v});
-                                else caresRaw.push({Care_ID: k, CareName: v, Is_Active: true});
+                            for (let i = 1; i < mRaw.length; i++) {
+                                rawMembersData.push({
+                                    Care_ID: iCare > -1 ? String(mRaw[i][iCare] || '').trim() : '',
+                                    Nxl_Status: iStatus > -1 ? String(mRaw[i][iStatus] || '').trim() : '',
+                                    Gender: iGender > -1 ? String(mRaw[i][iGender] || '').trim() : ''
+                                });
+                            }
+                        } else {
+                            for (let i = 0; i < mRaw.length; i++) {
+                                let g = extractProp(mRaw[i], 'Gender');
+                                if (!g) g = extractProp(mRaw[i], 'เพศ');
+                                rawMembersData.push({
+                                    Care_ID: extractProp(mRaw[i], 'Care_ID').trim(),
+                                    Nxl_Status: extractProp(mRaw[i], 'Nxl_Status').trim(),
+                                    Gender: g.trim()
+                                });
                             }
                         }
                     }
 
-                    let parsedCares = parseDataSafely(caresRaw, {
-                        Care_ID: ['Care_ID', 'CareID'],
-                        CareName: ['CareName', 'Care_Name'],
-                        Is_Active: ['Is_Active', 'isActive']
-                    });
+                    // 2. จัดระเบียบตารางกลุ่มแคร์ (Care_Info)
+                    let cRaw = responseObj.cares || responseObj.careMap || [];
+                    let tempCares = [];
+                    if (!Array.isArray(cRaw)) {
+                        for (let k in cRaw) {
+                            if (typeof cRaw[k] === 'object') tempCares.push({Care_ID: k, ...cRaw[k]});
+                            else tempCares.push({Care_ID: k, CareName: cRaw[k], Is_Active: true});
+                        }
+                    } else {
+                        tempCares = cRaw;
+                    }
 
-                    rawCareData = parsedCares.map(c => {
-                        let activeStr = String(c.Is_Active).trim().toUpperCase();
-                        let isActive = c.Is_Active === '' ? true : (activeStr === 'TRUE' || activeStr === '1');
+                    rawCareData = tempCares.map(c => {
+                        let cId = extractProp(c, 'Care_ID');
+                        let cName = extractProp(c, 'CareName');
+                        if(!cName) cName = extractProp(c, 'Care_Name');
+                        let cActiveRaw = extractProp(c, 'Is_Active');
+                        if (cActiveRaw === '') cActiveRaw = 'TRUE'; 
+                        let actStr = cActiveRaw.toUpperCase();
+
                         return {
-                            Care_ID: String(c.Care_ID).trim(),
-                            CareName: String(c.CareName || c.Care_ID).trim(),
-                            Is_Active: isActive
+                            Care_ID: cId.trim(),
+                            CareName: (cName || cId).trim(),
+                            Is_Active: (actStr === 'TRUE' || actStr === '1' || cActiveRaw === true)
                         };
                     }).filter(c => c.Is_Active && c.Care_ID !== '');
                     
-                    // 3. ตั้งค่า Default Filter เป็นทุกแคร์ ทันทีที่โหลดเสร็จ
+                    // 3. ทันทีที่โหลดเสร็จ ให้ Filter ดึงแคร์ทั้งหมดไปแสดง และบังคับไปหน้า Home
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
-                    // 4. บังคับให้โหลดเสร็จแล้วเด้งมาที่หน้า Home
                     let homeBtn = document.querySelector('.home-fab');
                     if (homeBtn && homeBtn.parentElement) {
                         handleBottomNav('home', homeBtn.parentElement);
@@ -467,7 +472,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         // ==========================================
         function getFilteredData() {
             return rawMembersData.filter(m => {
-                let upStatus = String(m.Nxl_Status).toUpperCase();
+                let upStatus = m.Nxl_Status.toUpperCase();
                 
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
@@ -629,7 +634,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         donutLabel = 'สัดส่วน ชาย/หญิง';
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
 
-                        // 1. กราฟแท่ง: แยกยอดตาม Nxl_Status เป๊ะๆ
+                        // กราฟแท่ง: นับตาม Nxl_Status ตรงๆ เช่น Fm-Reg, Fr-NxC
                         let statusMap = {};
                         filteredData.forEach(m => {
                             let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ';
@@ -637,12 +642,13 @@ CSS  ตกแต่งหน้าตาเว็บ
                         });
                         for (let k in statusMap) barStats.push({name: k, count: statusMap[k]});
 
-                        // 2. โดนัท: สัดส่วน ชาย/หญิง (จากคอลัมน์ Gender)
-                        let male = 0, female = 0;
+                        // โดนัท: สัดส่วน ชาย/หญิง
+                        let male = 0, female = 0, unk = 0;
                         filteredData.forEach(m => {
-                            let g = String(m.Gender).toUpperCase().trim();
-                            if(['ชาย', 'M', 'MALE', 'MAN'].includes(g)) male++;
-                            else if(['หญิง', 'F', 'FEMALE', 'WOMAN'].includes(g)) female++;
+                            let g = m.Gender.toUpperCase();
+                            if(['ชาย', 'M', 'MALE'].includes(g)) male++;
+                            else if(['หญิง', 'F', 'FEMALE'].includes(g)) female++;
+                            else unk++;
                         });
                         let totalGen = male + female;
                         donutPercent = totalGen > 0 ? Math.round((male / totalGen) * 100) : 0;
@@ -655,7 +661,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         donutLabel = 'สัดส่วน Family';
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
 
-                        // 1. กราฟแท่ง: ยอดคนรายแคร์ (โชว์ CareName)
+                        // กราฟแท่ง: ยอดคนรายแคร์ (แสดง CareName)
                         masterFilterSettings.selectedCares.forEach(cid => {
                             let careObj = rawCareData.find(c => c.Care_ID === cid);
                             let careName = careObj ? careObj.CareName : cid;
@@ -663,9 +669,13 @@ CSS  ตกแต่งหน้าตาเว็บ
                             if(count > 0) barStats.push({ name: careName, count: count, id: cid });
                         });
 
-                        // 2. โดนัท: สัดส่วน Family / Friend
-                        let fmCount = filteredData.filter(m => String(m.Nxl_Status).toUpperCase().startsWith('FM')).length;
-                        let frCount = filteredData.filter(m => String(m.Nxl_Status).toUpperCase().startsWith('FR')).length;
+                        // โดนัท: สัดส่วน Family / Friend โดยดึง Prefix จาก Nxl_Status
+                        let fmCount = 0, frCount = 0;
+                        filteredData.forEach(m => {
+                            let prefix = m.Nxl_Status.split('-')[0].toUpperCase();
+                            if(prefix === 'FM') fmCount++;
+                            else if(prefix === 'FR') frCount++;
+                        });
                         let totalFmFr = fmCount + frCount;
                         donutPercent = totalFmFr > 0 ? Math.round((fmCount / totalFmFr) * 100) : 0;
                         donutSub = `Family: ${fmCount} | Friend: ${frCount}`;
@@ -732,7 +742,6 @@ CSS  ตกแต่งหน้าตาเว็บ
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
     </script>
-
     
 </body>
 </html>
