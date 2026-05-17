@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.049</title>
+    <title>NxLife Community version #1.0.050</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.049</div>
+            <div class="version-tag">version #1.0.050</div>
         </div>
 
         <div id="screen-pin">
@@ -360,11 +360,10 @@
             }
         }, 2000);
 
-        // เครื่องมือค้นหาถ้าส่งมาเป็น Object
         function getSafeVal(obj, targetKey) {
-            let searchKey = targetKey.toLowerCase().replace(/_/g, '');
+            let searchKey = targetKey.toLowerCase().replace(/_/g, '').trim();
             for (let k in obj) {
-                if (k.toLowerCase().replace(/_/g, '') === searchKey) {
+                if (String(k).toLowerCase().replace(/_/g, '').trim() === searchKey) {
                     return obj[k] !== null && obj[k] !== undefined ? String(obj[k]).trim() : '';
                 }
             }
@@ -376,15 +375,12 @@
                 .then(res => res.json())
                 .then(responseObj => {
                     
-                    // ==========================================
-                    // 🛡️ ระบบแปลงตารางอัจฉริยะ (ดักจับ Array 2D)
-                    // ==========================================
+                    // 🛡️ ทำลายบั๊กยอด 0: ดักจับช่องว่างและแปลงโครงสร้างตาราง
                     let mRaw = responseObj.members || [];
                     let mParsed = [];
                     if (mRaw.length > 0) {
                         if (Array.isArray(mRaw[0])) {
-                            // กรณีที่ 1: API ส่งมาเป็นตารางดิบๆ (Array of Arrays)
-                            let headers = mRaw[0].map(h => String(h).replace(/_/g,'').toLowerCase());
+                            let headers = mRaw[0].map(h => String(h).replace(/_/g,'').toLowerCase().trim());
                             let idxCare = headers.indexOf('careid');
                             let idxStatus = headers.indexOf('nxlstatus');
                             
@@ -395,7 +391,6 @@
                                 });
                             }
                         } else {
-                            // กรณีที่ 2: API ส่งมาเป็น Object ปกติ
                             mParsed = mRaw.map(m => ({
                                 _safeCareId: getSafeVal(m, 'careid'),
                                 _safeStatus: getSafeVal(m, 'nxlstatus')
@@ -404,7 +399,6 @@
                     }
                     rawMembersData = mParsed;
 
-                    // จัดระเบียบตารางกลุ่มแคร์
                     let tempCares = [];
                     if (responseObj.careMap && typeof responseObj.careMap === 'object') {
                         let cmap = responseObj.careMap;
@@ -423,7 +417,6 @@
                         tempCares = responseObj.cares;
                     }
 
-                    // กรองเฉพาะแคร์ที่ Active
                     rawCareData = tempCares.map(c => {
                         let cId = getSafeVal(c, 'careid') || getSafeVal(c, '_mapkey');
                         let cName = getSafeVal(c, 'carename') || cId;
@@ -439,7 +432,7 @@
                     
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
-                    // 🛑 บังคับให้เริ่มที่หน้า Home เสมอ เมื่อโหลดเสร็จ!
+                    // ล็อกให้เริ่มที่หน้า Home ก่อนเสมอ
                     let homeBtn = document.querySelector('.home-fab');
                     if (homeBtn && homeBtn.parentElement) {
                         handleBottomNav('home', homeBtn.parentElement);
@@ -461,9 +454,9 @@
 
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    statusMatch = upStatus.startsWith('F'); // Fm, Fr
+                    statusMatch = upStatus.startsWith('F'); 
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    statusMatch = upStatus.startsWith('S') || upStatus.includes('RTN'); // Send, Rtn
+                    statusMatch = upStatus.startsWith('S') || upStatus.includes('RTN'); 
                 }
 
                 let kidsMatch = true;
@@ -518,6 +511,10 @@
         // 📊 สั่งวาดหน้าจอทั้งหมด
         // ==========================================
         function updateDashboardView() {
+            // 🛑 จำตำแหน่ง Scroll ของหน้า Filter ไว้
+            let careListContainer = document.querySelector('.care-list-container');
+            let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
+
             const homeTopSection = document.getElementById('home-top-section');
             const subPageHeader = document.getElementById('sub-page-header');
             const contentArea = document.getElementById('dashboard-content-area');
@@ -594,28 +591,77 @@
                             </div>
                             <div class="care-list-container">${careListHTML}</div>
                         </div>`;
-                
+                    
+                    // 🛑 คืนค่า Scroll กลับไปที่เดิมหลังจากวาดหน้าจอเสร็จ
+                    let newCareList = document.querySelector('.care-list-container');
+                    if (newCareList) newCareList.scrollTop = savedScrollPos;
+
                 } 
                 else if (currentActiveBottom === 'overview') {
                     const filteredData = getFilteredData();
                     const total = filteredData.length;
                     
-                    const fmCount = filteredData.filter(m => m._safeStatus.toUpperCase().startsWith('FM')).length;
-                    const frCount = filteredData.filter(m => m._safeStatus.toUpperCase().startsWith('FR')).length;
-                    const fmPercent = total > 0 ? Math.round((fmCount / (fmCount + frCount || 1)) * 100) : 0;
+                    let donutPercent = 0;
+                    let donutLabel = '';
+                    let donutSub = '';
+                    let barTitle = '';
+                    let barStats = [];
 
-                    let careStats = [];
-                    masterFilterSettings.selectedCares.forEach(cid => {
-                        let careObj = rawCareData.find(c => c.Care_ID === cid);
-                        let careName = careObj ? careObj.CareName : cid;
+                    // 🎯 เช็กโหมดว่าเป็น "กลุ่มคน" หรือ "กลุ่มแคร์"
+                    if (currentActiveCircle === 'people') {
+                        // --- โหมด: กลุ่มคน (People) ---
+                        donutLabel = 'แคร์อันดับ 1';
+                        barTitle = 'สถิติจำนวนคนรายสถานภาพ';
+
+                        // 1. คำนวณกราฟแท่ง (นับตาม Nxl_Status)
+                        let statusMap = {};
+                        filteredData.forEach(m => {
+                            let st = m._safeStatus ? m._safeStatus : 'ไม่ระบุ';
+                            statusMap[st] = (statusMap[st] || 0) + 1;
+                        });
+                        for (let k in statusMap) barStats.push({name: k, count: statusMap[k]});
+
+                        // 2. คำนวณโดนัท (หา Care ที่คนเยอะสุด)
+                        let careMap = {};
+                        filteredData.forEach(m => {
+                            let cid = m._safeCareId ? m._safeCareId : 'ไม่ระบุ';
+                            careMap[cid] = (careMap[cid] || 0) + 1;
+                        });
+                        let sortedCares = Object.keys(careMap).sort((a,b) => careMap[b] - careMap[a]);
                         
-                        const count = filteredData.filter(m => m._safeCareId === cid).length;
-                        if(count > 0) careStats.push({ name: careName, count: count, id: cid });
-                    });
-                    
-                    careStats.sort((a,b) => b.count - a.count);
+                        if (sortedCares.length > 0 && total > 0) {
+                            let topCount = careMap[sortedCares[0]];
+                            donutPercent = Math.round((topCount / total) * 100);
+                            let topObj = rawCareData.find(c => c.Care_ID === sortedCares[0]);
+                            let topName = topObj ? topObj.CareName : sortedCares[0];
+                            donutSub = `Top: ${topName}`;
+                        } else {
+                            donutSub = 'ไม่มีข้อมูล';
+                        }
 
-                    let barHTML = careStats.map((s, index) => `
+                    } else {
+                        // --- โหมด: กลุ่มแคร์ (Care) หรืออื่นๆ ---
+                        donutLabel = 'สัดส่วน Family';
+                        barTitle = 'สถิติจำนวนคนรายกลุ่มแคร์';
+
+                        // 1. คำนวณกราฟแท่ง (นับคนตามรายแคร์)
+                        masterFilterSettings.selectedCares.forEach(cid => {
+                            let careObj = rawCareData.find(c => c.Care_ID === cid);
+                            let careName = careObj ? careObj.CareName : cid;
+                            const count = filteredData.filter(m => m._safeCareId === cid).length;
+                            if(count > 0) barStats.push({ name: careName, count: count, id: cid });
+                        });
+
+                        // 2. คำนวณโดนัท (สัดส่วน Family เทียบกับคนทั้งหมดในมุมมอง)
+                        const fmCount = filteredData.filter(m => m._safeStatus.toUpperCase().startsWith('FM')).length;
+                        const frCount = filteredData.filter(m => m._safeStatus.toUpperCase().startsWith('FR')).length;
+                        donutPercent = total > 0 ? Math.round((fmCount / total) * 100) : 0;
+                        donutSub = `Family: ${fmCount} | Friend: ${frCount}`;
+                    }
+                    
+                    barStats.sort((a,b) => b.count - a.count);
+
+                    let barHTML = barStats.map((s, index) => `
                         <div style="margin-bottom:12px;">
                             <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
                                 <span>${s.name}</span><span style="font-weight:700;">${s.count} คน</span>
@@ -634,18 +680,18 @@
                                 <div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div>
                             </div>
                             <div class="clean-card" style="flex:1.5; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
-                                <div style="width:60px; height:60px; border-radius:50%; background:conic-gradient(var(--orange) ${fmPercent}%, #E2E8F0 0); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
-                                    <div style="width:45px; height:45px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">${fmPercent}%</div>
+                                <div style="width:60px; height:60px; border-radius:50%; background:conic-gradient(var(--orange) ${donutPercent}%, #E2E8F0 0); display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
+                                    <div style="width:45px; height:45px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">${donutPercent}%</div>
                                 </div>
                                 <div>
-                                    <div style="font-size:13px; font-weight:700;">สัดส่วน Family</div>
-                                    <div style="font-size:11px; color:var(--gray-text);">Family: ${fmCount} | Friend: ${frCount}</div>
+                                    <div style="font-size:13px; font-weight:700;">${donutLabel}</div>
+                                    <div style="font-size:11px; color:var(--gray-text); line-height:1.3; margin-top:2px;">${donutSub}</div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="clean-card">
-                            <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> สถิติจำนวนคนรายกลุ่มแคร์</div>
+                            <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div>
                             <div style="max-height:280px; overflow-y:auto; padding-right:5px;">
                                 ${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลตามตัวกรองนี้</p>'}
                             </div>
@@ -653,7 +699,7 @@
                     `;
 
                     setTimeout(() => {
-                        careStats.forEach((s, index) => {
+                        barStats.forEach((s, index) => {
                             const bar = document.getElementById(`bar-idx-${index}`);
                             if(bar) bar.style.width = (s.count / total * 100) + '%';
                         });
