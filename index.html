@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.057</title>
+    <title>NxLife Community version #1.0.058</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.057</div>
+            <div class="version-tag">version #1.0.058</div>
         </div>
 
         <div id="screen-pin">
@@ -376,7 +376,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         }, 2000);
 
         // ==============================================================
-        // 🛡️ Smart Lookup Extractor (ดักจับชื่อคอลัมน์ทุกรูปแบบ ไร้ช่องโหว่)
+        // 🛡️ Smart Lookup Extractor
         // ==============================================================
         function getProp(obj, possibleKeys) {
             if (!obj) return '';
@@ -418,28 +418,35 @@ CSS  ตกแต่งหน้าตาเว็บ
                         return { Care_ID: cid, CareName: cname || cid, Is_Active: isActive };
                     }).filter(c => c.Care_ID !== '' && c.Is_Active);
 
-                    // แผนที่ค้นหาชื่อแคร์ความเร็วสูง
+                    // เก็บรายการแคร์ที่ถูกต้องทั้งหมดไว้เช็กยอดตกหล่น
+                    let validCareIds = new Set(dbCares.map(c => c.Care_ID));
                     let careNameMap = {};
                     dbCares.forEach(c => { careNameMap[c.Care_ID.toLowerCase()] = c.CareName; });
 
-                    // 2. ถอดข้อมูลตารางสมาชิก (Members) พร้อมทำการผูกสัมพันธ์ข้อมูล (Data-JOIN) ทันที
+                    // 2. ถอดข้อมูลตารางสมาชิก (Members)
                     let rawMembers = responseObj.members || [];
+                    let hasUnmappedCares = false;
+
                     dbMembers = rawMembers.map(m => {
                         let cid = String(getProp(m, ['Care_ID', 'CareID', 'care_id', 'careId']) || '').trim();
                         let status = String(getProp(m, ['Nxl_Status', 'NxlStatus', 'nxl_status', 'status']) || '').trim();
                         let gen = String(getProp(m, ['Gender', 'เพศ', 'Sex', 'gender']) || '').trim();
                         let fullName = String(getProp(m, ['FullName_Display', 'fullname']) || '').trim();
                         
+                        // 🛑 ดักจับข้อมูลตกหล่น: ถ้าไม่มีแคร์ หรือแคร์ Inactive ให้ยัดลงกลุ่มพิเศษ
+                        if (cid === '' || !validCareIds.has(cid)) {
+                            cid = 'UNMAPPED_CARE';
+                            hasUnmappedCares = true;
+                        }
+
                         let upStatus = status.toUpperCase();
                         let upGen = gen.toUpperCase();
 
-                        // กรองระบุเพศแบบไร้ข้อผิดพลาด
                         let normGender = 'ไม่ระบุ';
                         if (['ชาย', 'M', 'MALE', 'MAN'].includes(upGen)) normGender = 'ชาย';
                         else if (['หญิง', 'F', 'FEMALE', 'WOMAN'].includes(upGen)) normGender = 'หญิง';
                         else if (gen !== '') normGender = 'อื่นๆ';
 
-                        // แบ่งคลาส Classify ตามคำนำหน้าของสเตตัส (Family / Friend / Send)
                         let classify = 'อื่นๆ';
                         if (upStatus.startsWith('FM')) classify = 'Family';
                         else if (upStatus.startsWith('FR')) classify = 'Friend';
@@ -447,7 +454,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                         return {
                             Care_ID: cid,
-                            CareName: careNameMap[cid.toLowerCase()] || cid || 'ไม่ระบุกลุ่มแคร์', // JOIN สำเร็จ!
+                            CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : (careNameMap[cid.toLowerCase()] || cid),
                             Nxl_Status: status,
                             Classify: classify,
                             Gender: normGender,
@@ -459,17 +466,21 @@ CSS  ตกแต่งหน้าตาเว็บ
                         };
                     });
 
+                    // 🛑 สร้างกลุ่มแคร์พิเศษ เพื่อรองรับ 7 คนที่ตกหล่น
+                    if (hasUnmappedCares) {
+                        dbCares.push({ Care_ID: 'UNMAPPED_CARE', CareName: 'ไม่ระบุแคร์/อื่นๆ', Is_Active: true });
+                    }
+
                     // 3. ตั้งค่าให้ตัวกรองเลือกทุกแคร์ตั้งแต่เปิดแอปทันที
                     masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
 
-                    // แสดงผลข้อมูลหน้าแรกทันที
                     updateDashboardView();
                 })
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
         // ==========================================
-        // 🧠 ระบบกรองข้อมูลกลาง (ทำงานเรียบง่ายและเสถียรมาก)
+        // 🧠 ระบบกรองข้อมูลกลาง
         // ==========================================
         function getFilteredData() {
             return dbMembers.filter(m => {
@@ -482,7 +493,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                 let kidsMatch = true;
                 if (!masterFilterSettings.includeKids) {
-                    kidsMatch = !m.IsKids; // ปลดล็อกปัญหาคริสตจักรเด็กได้ถาวร
+                    kidsMatch = !m.IsKids;
                 }
 
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
@@ -491,7 +502,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         }
 
         // ==========================================
-        // 🎨 ฟังก์ชันเสกสัดส่วนวงกลมหลายสี (Dynamic Conic Gradient)
+        // 🎨 ฟังก์ชันเสกสัดส่วนวงกลมหลายสี
         // ==========================================
         function generateDonutGradient(segments) {
             let currentTotal = 0;
@@ -597,7 +608,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 if (currentActiveBottom === 'filter') {
                     let careListHTML = '';
                     if(dbCares.length === 0) { 
-                        careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 14px; font-weight: 600; color: var(--gray-text);">กำลังดึงข้อมูลกลุ่มแคร์สำเร็จรูป...</div></div>`; 
+                        careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 14px; font-weight: 600; color: var(--gray-text);">กำลังดึงข้อมูลกลุ่มแคร์...</div></div>`; 
                     } else { 
                         dbCares.forEach(care => { 
                             let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; 
@@ -605,7 +616,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                                 <div class="care-item">
                                     <label class="care-checkbox-label">
                                         <input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')">
-                                        <span>${care.CareName}</span> </label>
+                                        <span>${care.CareName}</span>
+                                    </label>
                                     <span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span>
                                 </div>`; 
                         }); 
@@ -652,7 +664,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                         // ==================================================
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
 
-                        // 4.3 กราฟแท่ง: ดึงจำนวนคนแยกตามมิติ Members.Nxl_Status จริงๆ ไม่มั่วแล้ว
                         let statusMap = {};
                         filteredData.forEach(m => {
                             let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ';
@@ -660,7 +671,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         });
                         for (let k in statusMap) barStats.push({ name: k, count: statusMap[k] });
 
-                        // 5. โดนัท: สัดส่วน ชาย / หญิง / อื่นๆ / ไม่ระบุ ตรงตัวเป๊ะ
+                        // คำนวณเพศ
                         let maleCount = filteredData.filter(m => m.Gender === 'ชาย').length;
                         let femaleCount = filteredData.filter(m => m.Gender === 'หญิง').length;
                         let otherCount = filteredData.filter(m => m.Gender === 'อื่นๆ').length;
@@ -673,25 +684,26 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                         donutLabel = 'สัดส่วน ชาย/หญิง';
                         donutGradientStr = generateDonutGradient([
-                            { percent: pMale, color: 'var(--orange)' },
-                            { percent: pFemale, color: '#F472B6' }, // สีชมพูแทนเพศหญิง
-                            { percent: pOther, color: '#A78BFA' },  // สีม่วงแทนอื่นๆ
-                            { percent: pUnk, color: '#94A3B8' }    // สีเทาไม่ระบุ
+                            { percent: pMale, color: '#3B82F6' },   // ฟ้า
+                            { percent: pFemale, color: '#F472B6' }, // ชมพู
+                            { percent: pOther, color: '#A78BFA' },  // ม่วง
+                            { percent: pUnk, color: '#94A3B8' }     // เทา
                         ]);
 
+                        // 🛑 แก้ปัญหาจัดเลย์เอาต์ข้อความเบียดกัน: ใช้ DIV เพื่อปัดขึ้นบรรทัดใหม่
                         donutLegendHTML = `
-                            <span style="color:var(--orange); font-weight:600;">● ชาย: ${maleCount} (${pMale}%)</span> | 
-                            <span style="color:#F472B6; font-weight:600;">● หญิง: ${femaleCount} (${pFemale}%)</span><br>
-                            ${otherCount > 0 ? `<span style="color:#A78BFA; font-weight:600;">● อื่นๆ: ${otherCount} (${pOther}%)</span> | ` : ''}
-                            <span style="color:#94A3B8; font-weight:600;">● ไม่ระบุ: ${unkCount} (${pUnk}%)</span>`;
+                            <div style="color:#3B82F6; font-weight:600; font-size:12px; margin-bottom:4px;">● ชาย: ${maleCount} (${pMale}%)</div>
+                            <div style="color:#F472B6; font-weight:600; font-size:12px; margin-bottom:4px;">● หญิง: ${femaleCount} (${pFemale}%)</div>
+                            ${otherCount > 0 ? `<div style="color:#A78BFA; font-weight:600; font-size:12px; margin-bottom:4px;">● อื่นๆ: ${otherCount} (${pOther}%)</div>` : ''}
+                            ${unkCount > 0 ? `<div style="color:#94A3B8; font-weight:600; font-size:12px;">● ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}
+                        `;
 
                     } else {
                         // ==================================================
-                        // 🏡 โหมดหน้าสรุป: กลุ่มแคร์ (Care) หรือ ภาพรวมทั้งหมด
+                        // 🏡 โหมดหน้าสรุป: กลุ่มแคร์ (Care)
                         // ==================================================
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
 
-                        // 1. กราฟแท่ง: สรุปยอดรายแคร์โชว์ CareName ภาษาไทยกริ๊บๆ
                         masterFilterSettings.selectedCares.forEach(cid => {
                             let careObj = dbCares.find(c => c.Care_ID === cid);
                             let careName = careObj ? careObj.CareName : cid;
@@ -699,7 +711,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                             if(count > 0) barStats.push({ name: careName, count: count });
                         });
 
-                        // 4. โดนัท: คัดสัดส่วนตาม Classify (Family / Friend / Send / อื่นๆ) เป็น %
                         let famCount = filteredData.filter(m => m.Classify === 'Family').length;
                         let friCount = filteredData.filter(m => m.Classify === 'Friend').length;
                         let sndCount = filteredData.filter(m => m.Classify === 'Send').length;
@@ -713,16 +724,18 @@ CSS  ตกแต่งหน้าตาเว็บ
                         donutLabel = 'สัดส่วนสถานภาพ';
                         donutGradientStr = generateDonutGradient([
                             { percent: pFam, color: 'var(--orange)' },
-                            { percent: pFri, color: '#34D399' }, // เขียวมินต์ Friend
-                            { percent: pSnd, color: '#60A5FA' }, // ฟ้าใส Send
-                            { percent: pOth, color: '#94A3B8' }  // slate อื่นๆ
+                            { percent: pFri, color: '#34D399' }, 
+                            { percent: pSnd, color: '#60A5FA' }, 
+                            { percent: pOth, color: '#94A3B8' }  
                         ]);
 
+                        // 🛑 แก้ปัญหาจัดเลย์เอาต์ข้อความเบียดกัน: ใช้ DIV เพื่อปัดขึ้นบรรทัดใหม่
                         donutLegendHTML = `
-                            <span style="color:var(--orange); font-weight:600;">● Family: ${famCount} (${pFam}%)</span> | 
-                            <span style="color:#34D399; font-weight:600;">● Friend: ${friCount} (${pFri}%)</span><br>
-                            <span style="color:#60A5FA; font-weight:600;">● Send: ${sndCount} (${pSnd}%)</span>
-                            ${othCount > 0 ? ` | <span style="color:#94A3B8; font-weight:600;">● อื่นๆ: ${othCount} (${pOth}%)</span>` : ''}`;
+                            <div style="color:var(--orange); font-weight:600; font-size:12px; margin-bottom:4px;">● Family: ${famCount} (${pFam}%)</div>
+                            <div style="color:#34D399; font-weight:600; font-size:12px; margin-bottom:4px;">● Friend: ${friCount} (${pFri}%)</div>
+                            <div style="color:#60A5FA; font-weight:600; font-size:12px; margin-bottom:4px;">● Send: ${sndCount} (${pSnd}%)</div>
+                            ${othCount > 0 ? `<div style="color:#94A3B8; font-weight:600; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}
+                        `;
                     }
                     
                     barStats.sort((a,b) => b.count - a.count);
@@ -737,6 +750,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             </div>
                         </div>`).join('');
 
+                    // 🛑 ปรับขนาดความหนาของวงแหวนโดนัทให้หนาขึ้นและชัดเจนขึ้น
                     contentArea.innerHTML = `
                         <div style="display:flex; gap:12px; margin-bottom:16px;">
                             <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
@@ -745,11 +759,11 @@ CSS  ตกแต่งหน้าตาเว็บ
                                 <div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div>
                             </div>
                             <div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
-                                <div style="width:65px; height:65px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow: inset 0 0 0 8px white;">
-                                    <div style="width:45px; height:45px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:var(--charcoal);">${total}</div>
+                                <div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
+                                    <div style="width:48px; height:48px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--charcoal);">${total}</div>
                                 </div>
                                 <div style="font-size:11px; color:var(--gray-text); line-height:1.4;">
-                                    <div style="font-weight:700; color:var(--charcoal); font-size:13px; margin-bottom:2px;">${donutLabel}</div>
+                                    <div style="font-weight:700; color:var(--charcoal); font-size:13px; margin-bottom:4px;">${donutLabel}</div>
                                     ${donutLegendHTML}
                                 </div>
                             </div>
@@ -774,7 +788,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         <div class="clean-card" style="border-top:4px solid var(--orange); text-align:center; padding:40px 20px;">
                             <i class="fa-solid fa-list-check" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i>
                             <h3 style="color:var(--charcoal); font-size:16px;">หน้ารายชื่อสมาชิก (${getFilteredData().length} คน)</h3>
-                            <p style="font-size:13px; color:var(--gray-text);">ระบบล้างจัดระเบียบฐานข้อมูลสำเร็จรูปเรียบร้อยแล้ว พร้อมรับคำสั่งออกแบบรายชื่อขั้นตอนต่อไปครับ</p>
+                            <p style="font-size:13px; color:var(--gray-text);">พร้อมสำหรับสเต็ปการวาดการ์ดรายชื่อแล้วครับ</p>
                         </div>`;
                 }
             }
@@ -785,7 +799,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
         function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
         function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
-        function validatePin() { if (pinInput === '5555') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
+        function validatePin() { if (pinInput === '3456') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
     </script>
