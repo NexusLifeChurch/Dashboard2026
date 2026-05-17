@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.047</title>
+    <title>NxLife Community version #1.0.048</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -40,7 +40,7 @@
 
         .version-tag {
             position: absolute; bottom: 15px; width: 100%; text-align: center;
-            font-size: 10px; color: #a0a7b0; 
+            font-size: 10px; color: #94A3B8; 
             font-family: 'Urbanist', sans-serif; letter-spacing: 1px; z-index: 100;
         }
 
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.047</div>
+            <div class="version-tag">version #1.0.048</div>
         </div>
 
         <div id="screen-pin">
@@ -360,18 +360,28 @@
             }
         }, 2000);
 
+        // ==========================================
+        // 🛡️ เครื่องมือค้นหาอัจฉริยะ (ดักจับทุกการสะกดคำของ Google)
+        // ==========================================
+        function getSafeVal(obj, targetKey) {
+            let searchKey = targetKey.toLowerCase().replace(/_/g, '');
+            for (let k in obj) {
+                if (k.toLowerCase().replace(/_/g, '') === searchKey) {
+                    return obj[k] !== null && obj[k] !== undefined ? String(obj[k]).trim() : '';
+                }
+            }
+            return '';
+        }
+
         function fetchAllSheetsData() {
             fetch(API_URL)
                 .then(res => res.json())
                 .then(responseObj => {
-                    // ==========================================
-                    // 🛡️ Data Normalizer (จัดระเบียบให้ตรง Schema V1.6)
-                    // ==========================================
                     
-                    // 1. จัดระเบียบตารางสมาชิก (ซ่อมแซมคอลัมน์ที่ Google แอบลบขีดล่างทิ้ง)
+                    // 1. ล้างข้อมูลตารางสมาชิกให้ชัวร์ 100%
                     rawMembersData = (responseObj.members || []).map(m => {
-                        m.Care_ID = m.Care_ID !== undefined ? m.Care_ID : (m.CareID || '');
-                        m.Nxl_Status = m.Nxl_Status !== undefined ? m.Nxl_Status : (m.NxlStatus || '');
+                        m._safeCareId = getSafeVal(m, 'careid');
+                        m._safeStatus = getSafeVal(m, 'nxlstatus');
                         return m;
                     });
 
@@ -394,21 +404,22 @@
                         tempCares = responseObj.cares;
                     }
 
-                    // สร้าง rawCareData ที่คลีนและพร้อมใช้งาน 100%
+                    // 3. กรองและจัดเก็บเฉพาะแคร์ที่เปิดใช้งาน
                     rawCareData = tempCares.map(c => {
-                        let cId = c.Care_ID !== undefined ? c.Care_ID : (c.CareID || c._mapKey || '');
-                        let cName = c.CareName !== undefined ? c.CareName : (c.Care_Name || cId);
-                        let cActive = c.Is_Active !== undefined ? c.Is_Active : (c.isActive !== undefined ? c.isActive : true);
+                        let cId = getSafeVal(c, 'careid') || getSafeVal(c, '_mapkey');
+                        let cName = getSafeVal(c, 'carename') || cId;
+                        let cActiveRaw = getSafeVal(c, 'isactive');
                         
-                        let activeStr = String(cActive).trim().toUpperCase();
-                        return {
-                            Care_ID: String(cId).trim(),
-                            CareName: String(cName).trim(),
-                            Is_Active: (activeStr === 'TRUE' || cActive === 1 || cActive === true)
-                        };
-                    }).filter(c => c.Is_Active === true);
+                        let isActive = true;
+                        if (cActiveRaw) {
+                            let up = cActiveRaw.toUpperCase();
+                            isActive = (up === 'TRUE' || up === '1');
+                        }
+                        
+                        return { Care_ID: cId, CareName: cName, Is_Active: isActive };
+                    }).filter(c => c.Is_Active);
                     
-                    // เริ่มต้น: ติ๊กเลือกกลุ่มแคร์ที่ Active ทั้งหมด
+                    // ตั้งค่าเริ่มต้น
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
                     updateDashboardView();
@@ -417,28 +428,29 @@
         }
 
         // ==========================================
-        // 🧠 ระบบสมองกล (Filter Engine ที่คลีนตาม Schema เป๊ะ)
+        // 🧠 ระบบสมองกลคำนวณ (ใช้คีย์ที่ปลอดภัยแล้ว)
         // ==========================================
         function getFilteredData() {
             return rawMembersData.filter(m => {
-                let mStatus = String(m.Nxl_Status).trim();
-                let mCareId = String(m.Care_ID).trim();
+                let mStatus = m._safeStatus;
+                let mCareId = m._safeCareId;
+                let upStatus = mStatus.toUpperCase();
 
-                // 1. กรองประเภทสมาชิก (อิงคำนำหน้า F และ S)
+                // 1. กรองสถานะ
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    statusMatch = mStatus.startsWith('F'); // ครอบคลุม Fm และ Fr
+                    statusMatch = upStatus.startsWith('F'); 
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    statusMatch = mStatus.startsWith('S') || mStatus.includes('Rtn'); // ครอบคลุม Send และ Fr-Rtn
+                    statusMatch = upStatus.startsWith('S') || upStatus.includes('RTN'); 
                 }
 
-                // 2. กรองคริสตจักรเด็ก
+                // 2. กรองเด็ก
                 let kidsMatch = true;
                 if (!masterFilterSettings.includeKids) {
-                    kidsMatch = (mStatus !== 'Fm-Kids');
+                    kidsMatch = !upStatus.includes('KIDS');
                 }
 
-                // 3. กรองกลุ่มแคร์ (เทียบ Care_ID ตรงๆ เลย)
+                // 3. กรองกลุ่มแคร์
                 let careMatch = masterFilterSettings.selectedCares.includes(mCareId);
 
                 return statusMatch && kidsMatch && careMatch;
@@ -472,10 +484,7 @@
             updateDashboardView();
         }
         
-        function careSelectAll() { 
-            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
-            updateDashboardView(); 
-        }
+        function careSelectAll() { masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); updateDashboardView(); }
         function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
         function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
         function resetFilterToDefault() {
@@ -571,8 +580,8 @@
                     const filteredData = getFilteredData();
                     const total = filteredData.length;
                     
-                    const fmCount = filteredData.filter(m => String(m.Nxl_Status).trim().startsWith('Fm')).length;
-                    const frCount = filteredData.filter(m => String(m.Nxl_Status).trim().startsWith('Fr')).length;
+                    const fmCount = filteredData.filter(m => m._safeStatus.toUpperCase().startsWith('FM')).length;
+                    const frCount = filteredData.filter(m => m._safeStatus.toUpperCase().startsWith('FR')).length;
                     const fmPercent = total > 0 ? Math.round((fmCount / (fmCount + frCount || 1)) * 100) : 0;
 
                     let careStats = [];
@@ -580,7 +589,7 @@
                         let careObj = rawCareData.find(c => c.Care_ID === cid);
                         let careName = careObj ? careObj.CareName : cid;
                         
-                        const count = filteredData.filter(m => m.Care_ID === cid).length;
+                        const count = filteredData.filter(m => m._safeCareId === cid).length;
                         if(count > 0) careStats.push({ name: careName, count: count, id: cid });
                     });
                     
