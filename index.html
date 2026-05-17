@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.046</title>
+    <title>NxLife Community version #1.0.047</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -40,7 +40,7 @@
 
         .version-tag {
             position: absolute; bottom: 15px; width: 100%; text-align: center;
-            font-size: 10px; color: #CBD5E1; 
+            font-size: 10px; color: #a0a7b0; 
             font-family: 'Urbanist', sans-serif; letter-spacing: 1px; z-index: 100;
         }
 
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.046</div>
+            <div class="version-tag">version #1.0.047</div>
         </div>
 
         <div id="screen-pin">
@@ -364,26 +364,52 @@
             fetch(API_URL)
                 .then(res => res.json())
                 .then(responseObj => {
-                    rawMembersData = responseObj.members || [];
+                    // ==========================================
+                    // 🛡️ Data Normalizer (จัดระเบียบให้ตรง Schema V1.6)
+                    // ==========================================
                     
-                    let allCares = [];
-                    if (responseObj.careMap) {
-                        if (typeof responseObj.careMap === 'object' && !Array.isArray(responseObj.careMap)) {
-                            allCares = Object.values(responseObj.careMap);
-                        } else {
-                            allCares = responseObj.careMap;
+                    // 1. จัดระเบียบตารางสมาชิก (ซ่อมแซมคอลัมน์ที่ Google แอบลบขีดล่างทิ้ง)
+                    rawMembersData = (responseObj.members || []).map(m => {
+                        m.Care_ID = m.Care_ID !== undefined ? m.Care_ID : (m.CareID || '');
+                        m.Nxl_Status = m.Nxl_Status !== undefined ? m.Nxl_Status : (m.NxlStatus || '');
+                        return m;
+                    });
+
+                    // 2. จัดระเบียบตารางกลุ่มแคร์
+                    let tempCares = [];
+                    if (responseObj.careMap && typeof responseObj.careMap === 'object') {
+                        let cmap = responseObj.careMap;
+                        if (Array.isArray(cmap)) { tempCares = cmap; } 
+                        else {
+                            for (let key in cmap) {
+                                if (typeof cmap[key] === 'object') {
+                                    cmap[key]._mapKey = key; 
+                                    tempCares.push(cmap[key]);
+                                } else {
+                                    tempCares.push({ Care_ID: key, CareName: cmap[key], Is_Active: true });
+                                }
+                            }
                         }
+                    } else if (responseObj.cares) {
+                        tempCares = responseObj.cares;
                     }
 
-                    // อิงตามรูป Sheet `Care_Info`: ใช้ `Is_Active`
-                    rawCareData = allCares.filter(c => {
-                        if (c.Is_Active === undefined) return true;
-                        let strVal = String(c.Is_Active).trim().toUpperCase();
-                        return strVal === 'TRUE' || c.Is_Active === 1 || c.Is_Active === true;
-                    });
+                    // สร้าง rawCareData ที่คลีนและพร้อมใช้งาน 100%
+                    rawCareData = tempCares.map(c => {
+                        let cId = c.Care_ID !== undefined ? c.Care_ID : (c.CareID || c._mapKey || '');
+                        let cName = c.CareName !== undefined ? c.CareName : (c.Care_Name || cId);
+                        let cActive = c.Is_Active !== undefined ? c.Is_Active : (c.isActive !== undefined ? c.isActive : true);
+                        
+                        let activeStr = String(cActive).trim().toUpperCase();
+                        return {
+                            Care_ID: String(cId).trim(),
+                            CareName: String(cName).trim(),
+                            Is_Active: (activeStr === 'TRUE' || cActive === 1 || cActive === true)
+                        };
+                    }).filter(c => c.Is_Active === true);
                     
-                    // อิงตามรูป Sheet: ใช้ `Care_ID` (เช่น 25-Life in Christ)
-                    masterFilterSettings.selectedCares = rawCareData.map(c => String(c.Care_ID).trim()); 
+                    // เริ่มต้น: ติ๊กเลือกกลุ่มแคร์ที่ Active ทั้งหมด
+                    masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
                     updateDashboardView();
                 })
@@ -391,19 +417,19 @@
         }
 
         // ==========================================
-        // 🧠 ระบบสมองกลที่ตรงตาม Sheet ภาพเป๊ะ
+        // 🧠 ระบบสมองกล (Filter Engine ที่คลีนตาม Schema เป๊ะ)
         // ==========================================
         function getFilteredData() {
             return rawMembersData.filter(m => {
-                let mStatus = m.Nxl_Status ? String(m.Nxl_Status).trim() : '';
-                let mCareId = m.Care_ID ? String(m.Care_ID).trim() : '';
+                let mStatus = String(m.Nxl_Status).trim();
+                let mCareId = String(m.Care_ID).trim();
 
-                // 1. กรองประเภทสมาชิก
+                // 1. กรองประเภทสมาชิก (อิงคำนำหน้า F และ S)
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    statusMatch = mStatus.startsWith('F');
+                    statusMatch = mStatus.startsWith('F'); // ครอบคลุม Fm และ Fr
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    statusMatch = mStatus.startsWith('S') || mStatus.includes('Rtn');
+                    statusMatch = mStatus.startsWith('S') || mStatus.includes('Rtn'); // ครอบคลุม Send และ Fr-Rtn
                 }
 
                 // 2. กรองคริสตจักรเด็ก
@@ -412,11 +438,8 @@
                     kidsMatch = (mStatus !== 'Fm-Kids');
                 }
 
-                // 3. กรองกลุ่มแคร์ (เทียบ Care_ID ตรงๆ เลย เพราะ ID เดียวกันทั้ง 2 ชีต)
-                let careMatch = false;
-                if (masterFilterSettings.selectedCares.length > 0) {
-                    careMatch = masterFilterSettings.selectedCares.includes(mCareId);
-                }
+                // 3. กรองกลุ่มแคร์ (เทียบ Care_ID ตรงๆ เลย)
+                let careMatch = masterFilterSettings.selectedCares.includes(mCareId);
 
                 return statusMatch && kidsMatch && careMatch;
             });
@@ -443,29 +466,22 @@
         function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
         
         function toggleCareCheckbox(id) {
-            let cleanId = String(id).trim();
-            let idx = masterFilterSettings.selectedCares.indexOf(cleanId);
+            let idx = masterFilterSettings.selectedCares.indexOf(id);
             if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1);
-            else masterFilterSettings.selectedCares.push(cleanId);
+            else masterFilterSettings.selectedCares.push(id);
             updateDashboardView();
         }
         
         function careSelectAll() { 
-            masterFilterSettings.selectedCares = rawCareData.map(c => String(c.Care_ID).trim()); 
+            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
             updateDashboardView(); 
         }
-        
         function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
-        
-        function careSelectOnly(id) {
-            masterFilterSettings.selectedCares = [String(id).trim()];
-            updateDashboardView();
-        }
-
+        function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
         function resetFilterToDefault() {
             masterFilterSettings.statusMode = 'COMMUNITY';
             masterFilterSettings.includeKids = false;
-            masterFilterSettings.selectedCares = rawCareData.map(c => String(c.Care_ID).trim());
+            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
             updateDashboardView();
         }
 
@@ -512,19 +528,14 @@
                         careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 16px; font-weight: 700; color: var(--charcoal);">ยังไม่พบข้อมูลกลุ่มแคร์</div></div>`; 
                     } else { 
                         rawCareData.forEach(care => { 
-                            let cId = String(care.Care_ID).trim();
-                            // เปลี่ยนเป็น `CareName` ตามรูป Sheet (ไม่มีขีดกลาง)
-                            let cName = care.CareName || cId;
-                            
-                            let isChecked = masterFilterSettings.selectedCares.includes(cId) ? 'checked' : ''; 
-                            
+                            let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; 
                             careListHTML += `
                                 <div class="care-item">
                                     <label class="care-checkbox-label">
-                                        <input type="checkbox" ${isChecked} data-id="${cId}" onchange="toggleCareCheckbox(this.getAttribute('data-id'))">
-                                        <span>${cName}</span>
+                                        <input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')">
+                                        <span>${care.CareName}</span>
                                     </label>
-                                    <span class="only-link" data-id="${cId}" onclick="careSelectOnly(this.getAttribute('data-id'))">Only</span>
+                                    <span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span>
                                 </div>
                             `; 
                         }); 
@@ -560,25 +571,18 @@
                     const filteredData = getFilteredData();
                     const total = filteredData.length;
                     
-                    const fmCount = filteredData.filter(m => m.Nxl_Status && String(m.Nxl_Status).trim().startsWith('Fm')).length;
-                    const frCount = filteredData.filter(m => m.Nxl_Status && String(m.Nxl_Status).trim().startsWith('Fr')).length;
+                    const fmCount = filteredData.filter(m => String(m.Nxl_Status).trim().startsWith('Fm')).length;
+                    const frCount = filteredData.filter(m => String(m.Nxl_Status).trim().startsWith('Fr')).length;
                     const fmPercent = total > 0 ? Math.round((fmCount / (fmCount + frCount || 1)) * 100) : 0;
 
                     let careStats = [];
-                    if (rawCareData.length > 0) {
-                        masterFilterSettings.selectedCares.forEach(cid => {
-                            let careObj = rawCareData.find(c => String(c.Care_ID).trim() === cid);
-                            // ใช้ `CareName` ตาม Sheet
-                            let careName = careObj ? (careObj.CareName || cid) : cid;
-                            
-                            const count = filteredData.filter(m => {
-                                let mCid = m.Care_ID ? String(m.Care_ID).trim() : '';
-                                return mCid === cid;
-                            }).length;
-                            
-                            if(count > 0) careStats.push({ name: careName, count: count, id: cid });
-                        });
-                    } 
+                    masterFilterSettings.selectedCares.forEach(cid => {
+                        let careObj = rawCareData.find(c => c.Care_ID === cid);
+                        let careName = careObj ? careObj.CareName : cid;
+                        
+                        const count = filteredData.filter(m => m.Care_ID === cid).length;
+                        if(count > 0) careStats.push({ name: careName, count: count, id: cid });
+                    });
                     
                     careStats.sort((a,b) => b.count - a.count);
 
