@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.041</title>
+    <title>NxLife Community version #1.0.042</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.041</div>
+            <div class="version-tag">version #1.0.042</div>
         </div>
 
         <div id="screen-pin">
@@ -365,6 +365,7 @@
                 .then(res => res.json())
                 .then(responseObj => {
                     rawMembersData = responseObj.members || [];
+                    
                     let allCares = [];
                     if (responseObj.careMap) {
                         if (typeof responseObj.careMap === 'object' && !Array.isArray(responseObj.careMap)) {
@@ -373,8 +374,19 @@
                             allCares = responseObj.careMap;
                         }
                     }
-                    rawCareData = allCares.filter(c => c.IsActive === true || c.IsActive === "TRUE" || c.IsActive === 1);
-                    masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
+                    
+                    // แก้ไขชื่อคอลัมน์ให้ตรงเป๊ะเป็น "Is_Active" ตามที่พี่บอกครับ!
+                    rawCareData = allCares.filter(c => {
+                        let activeFlag = c.Is_Active; // <--- แก้ตรงนี้ครับ
+                        
+                        if (activeFlag === undefined) return true; 
+                        
+                        let strVal = String(activeFlag).trim().toUpperCase();
+                        return strVal === 'TRUE' || activeFlag === 1 || activeFlag === true;
+                    });
+                    
+                    masterFilterSettings.selectedCares = rawCareData.map(c => String(c.Care_ID).trim()); 
+
                     updateDashboardView();
                 })
                 .catch(err => console.error('Error:', err));
@@ -385,23 +397,31 @@
         // ==========================================
         function getFilteredData() {
             return rawMembersData.filter(m => {
-                // 1. กรองประเภทสมาชิก (Status Mode)
+                let mStatus = m.Nxl_Status ? String(m.Nxl_Status).trim() : '';
+                let mCareId = m.Care_ID ? String(m.Care_ID).trim() : '';
+
+                // 1. กรองประเภทสมาชิก
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    statusMatch = m.Nxl_Status && m.Nxl_Status.startsWith('F');
+                    statusMatch = mStatus.startsWith('F');
                 } else if (masterFilterSettings.statusMode === 'SEND') {
                     const sendList = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
-                    statusMatch = sendList.includes(m.Nxl_Status);
+                    statusMatch = sendList.includes(mStatus);
                 }
 
                 // 2. กรองคริสตจักรเด็ก
                 let kidsMatch = true;
                 if (!masterFilterSettings.includeKids) {
-                    kidsMatch = (m.Nxl_Status !== 'Fm-Kids');
+                    kidsMatch = (mStatus !== 'Fm-Kids');
                 }
 
                 // 3. กรองกลุ่มแคร์
-                let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
+                let careMatch = false;
+                if (rawCareData.length === 0) {
+                    careMatch = true;
+                } else {
+                    careMatch = masterFilterSettings.selectedCares.includes(mCareId);
+                }
 
                 return statusMatch && kidsMatch && careMatch;
             });
@@ -427,17 +447,18 @@
         function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
         function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
         function toggleCareCheckbox(id) {
-            let idx = masterFilterSettings.selectedCares.indexOf(id);
+            let cleanId = String(id).trim();
+            let idx = masterFilterSettings.selectedCares.indexOf(cleanId);
             if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1);
-            else masterFilterSettings.selectedCares.push(id);
+            else masterFilterSettings.selectedCares.push(cleanId);
             updateDashboardView();
         }
-        function careSelectAll() { masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); updateDashboardView(); }
+        function careSelectAll() { masterFilterSettings.selectedCares = rawCareData.map(c => String(c.Care_ID).trim()); updateDashboardView(); }
         function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
         function resetFilterToDefault() {
             masterFilterSettings.statusMode = 'COMMUNITY';
             masterFilterSettings.includeKids = false;
-            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
+            masterFilterSettings.selectedCares = rawCareData.map(c => String(c.Care_ID).trim());
             updateDashboardView();
         }
 
@@ -458,7 +479,6 @@
             } else {
                 homeTopSection.style.display = 'none';
                 
-                // วาด Header Badges (V.36)
                 if (currentActiveBottom !== 'filter' && currentActiveBottom !== 'profile') {
                     subPageHeader.style.display = 'flex';
                     subPageHeader.style.justifyContent = 'space-between';
@@ -475,15 +495,14 @@
                                 <span style="background: var(--orange); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.statusMode}</span>
                                 <span style="background: ${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
                             </div>
-                            <span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${rawCareData.length}</span>
+                            <span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${rawCareData.length > 0 ? rawCareData.length : '?'}</span>
                         </div>`;
                 } else { subPageHeader.style.display = 'none'; }
 
-                // 🎯 หน้าแสดงผล: MASTER VIEW (Filter)
                 if (currentActiveBottom === 'filter') {
                     let careListHTML = '';
-                    if(rawCareData.length === 0) { careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 16px; font-weight: 700; color: var(--charcoal);">ยังไม่พบกลุ่มดูแล</div></div>`; } 
-                    else { rawCareData.forEach(care => { let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.Care_Name || care.Care_ID}</span></label></div>`; }); }
+                    if(rawCareData.length === 0) { careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 16px; font-weight: 700; color: var(--charcoal);">ยังไม่พบข้อมูลกลุ่มแคร์</div></div>`; } 
+                    else { rawCareData.forEach(care => { let isChecked = masterFilterSettings.selectedCares.includes(String(care.Care_ID).trim()) ? 'checked' : ''; careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.Care_Name || care.Care_ID}</span></label></div>`; }); }
 
                     contentArea.innerHTML = `
                         <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
@@ -495,24 +514,33 @@
                         <div class="clean-card"><div class="section-header"><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div><div class="care-shortcuts"><button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button><button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button></div></div><div class="care-list-container">${careListHTML}</div></div>`;
                 
                 } 
-                // 🎯 หน้าแสดงผล: OVERVIEW (สถิติและกราฟ)
                 else if (currentActiveBottom === 'overview') {
                     const filteredData = getFilteredData();
                     const total = filteredData.length;
                     
-                    // คำนวณสัดส่วน Fm/Fr (Donut Chart Logic)
-                    const fmCount = filteredData.filter(m => m.Nxl_Status && m.Nxl_Status.startsWith('Fm')).length;
-                    const frCount = filteredData.filter(m => m.Nxl_Status && m.Nxl_Status.startsWith('Fr')).length;
-                    const fmPercent = total > 0 ? Math.round((fmCount / total) * 100) : 0;
+                    const fmCount = filteredData.filter(m => m.Nxl_Status && String(m.Nxl_Status).trim().startsWith('Fm')).length;
+                    const frCount = filteredData.filter(m => m.Nxl_Status && String(m.Nxl_Status).trim().startsWith('Fr')).length;
+                    const fmPercent = total > 0 ? Math.round((fmCount / (fmCount + frCount || 1)) * 100) : 0;
 
-                    // คำนวณรายแคร์ (Bar Chart Logic)
                     let careStats = [];
-                    masterFilterSettings.selectedCares.forEach(cid => {
-                        const count = filteredData.filter(m => m.Care_ID === cid).length;
-                        const careName = rawCareData.find(c => c.Care_ID === cid)?.Care_Name || cid;
-                        if(count > 0) careStats.push({ name: careName, count: count });
-                    });
-                    careStats.sort((a,b) => b.count - a.count); // เรียงจากมากไปน้อย
+                    if (rawCareData.length > 0) {
+                        masterFilterSettings.selectedCares.forEach(cid => {
+                            const count = filteredData.filter(m => String(m.Care_ID).trim() === cid).length;
+                            const careName = rawCareData.find(c => String(c.Care_ID).trim() === cid)?.Care_Name || cid;
+                            if(count > 0) careStats.push({ name: careName, count: count });
+                        });
+                    } else {
+                        let careMapTemp = {};
+                        filteredData.forEach(m => {
+                            let cid = m.Care_ID ? String(m.Care_ID).trim() : 'ไม่ระบุกลุ่ม';
+                            careMapTemp[cid] = (careMapTemp[cid] || 0) + 1;
+                        });
+                        for (let key in careMapTemp) {
+                            careStats.push({ name: key, count: careMapTemp[key] });
+                        }
+                    }
+                    
+                    careStats.sort((a,b) => b.count - a.count);
 
                     let barHTML = careStats.map(s => `
                         <div style="margin-bottom:12px;">
@@ -520,7 +548,7 @@
                                 <span>${s.name}</span><span style="font-weight:700;">${s.count} คน</span>
                             </div>
                             <div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;">
-                                <div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-${s.name}"></div>
+                                <div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-${s.name.replace(/\s/g,'')}"></div>
                             </div>
                         </div>
                     `).join('');
@@ -551,22 +579,20 @@
                         </div>
                     `;
 
-                    // สั่งให้กราฟแท่งค่อยๆ ยืดออกหลังจากวาดหน้าจอเสร็จ
                     setTimeout(() => {
                         careStats.forEach(s => {
-                            const bar = document.getElementById(`bar-${s.name}`);
+                            const barId = `bar-${s.name.replace(/\s/g,'')}`;
+                            const bar = document.getElementById(barId);
                             if(bar) bar.style.width = (s.count / total * 100) + '%';
                         });
                     }, 100);
 
                 } else {
-                    // หน้ารายชื่อ หรือ อื่นๆ
                     contentArea.innerHTML = `<div class="clean-card" style="border-top:4px solid var(--orange); text-align:center; padding:40px 20px;"><i class="fa-solid fa-list-check" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i><h3 style="color:var(--charcoal); font-size:16px;">หน้ารายชื่อสมาชิก</h3><p style="font-size:13px; color:var(--gray-text);">กำลังเตรียมการแสดงผลรายชื่อ <b>${getFilteredData().length} คน</b> แบบแยกการ์ด</p></div>`;
                 }
             }
         }
 
-        // --- ระบบ PIN เดิม ---
         let pinInput = '';
         const dots = document.querySelectorAll('.dot');
         function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
