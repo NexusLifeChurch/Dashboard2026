@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.055</title>
+    <title>NxLife Community version #1.0.056</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.055</div>
+            <div class="version-tag">version #1.0.056</div>
         </div>
 
         <div id="screen-pin">
@@ -336,7 +336,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
-        // ฐานข้อมูลกลางที่ผ่านการ JOIN แล้ว
+        // ฐานข้อมูลกลางที่ผ่านการ JOIN แล้ว 100%
         let dbMembers = [];    
         let dbCares = [];       
         let currentActiveCircle = ''; 
@@ -370,28 +370,33 @@ CSS  ตกแต่งหน้าตาเว็บ
             }
         }, 2000);
 
-        // เครื่องมือแปลง Array of Arrays ให้เป็น Objects (ป้องกันคอลัมน์สลับตำแหน่ง)
-        function parseToObjects(rawArray) {
-            if (!rawArray || rawArray.length === 0) return [];
-            if (Array.isArray(rawArray[0])) {
-                let headers = rawArray[0].map(h => String(h).trim());
-                let result = [];
-                for (let i = 1; i < rawArray.length; i++) {
+        // ==============================================================
+        // 🛡️ Ultimate Normalizer: เครื่องมือล้างข้อมูลให้สะอาดหมดจด
+        // เปลี่ยนคอลัมน์ทุกอย่างให้กลายเป็นพิมพ์เล็กและไม่มีอักขระพิเศษ
+        // ==============================================================
+        function normalizeData(rawData) {
+            if (!rawData || rawData.length === 0) return [];
+            let result = [];
+            if (Array.isArray(rawData[0])) {
+                // ถ้า API ส่งมาเป็นตาราง 2D (Array of Arrays)
+                let headers = rawData[0].map(h => String(h).toLowerCase().replace(/[^a-z0-9ก-๙]/g, ''));
+                for (let i = 1; i < rawData.length; i++) {
                     let obj = {};
-                    headers.forEach((h, idx) => { obj[h] = rawArray[i][idx]; });
+                    headers.forEach((h, idx) => { obj[h] = rawData[i][idx]; });
                     result.push(obj);
                 }
-                return result;
+            } else {
+                // ถ้า API ส่งมาเป็น Object
+                for (let i = 0; i < rawData.length; i++) {
+                    let obj = {};
+                    for (let k in rawData[i]) {
+                        let h = String(k).toLowerCase().replace(/[^a-z0-9ก-๙]/g, '');
+                        obj[h] = rawData[i][k];
+                    }
+                    result.push(obj);
+                }
             }
-            return rawArray; // ถ้าเป็น Object อยู่แล้วให้คืนค่าเดิม
-        }
-
-        // ค้นหาคีย์ไม่ว่า Sheet จะส่งมาแบบไหน
-        function findVal(obj, keyList) {
-            for (let i = 0; i < keyList.length; i++) {
-                if (obj[keyList[i]] !== undefined) return String(obj[keyList[i]]).trim();
-            }
-            return '';
+            return result;
         }
 
         function fetchAllSheetsData() {
@@ -399,76 +404,76 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .then(res => res.json())
                 .then(responseObj => {
                     
-                    // ==============================================================
-                    // 1. นำเข้าข้อมูล Care_Info และสร้าง Dictionary ไว้ให้ Members ค้นหา
-                    // ==============================================================
+                    // --------------------------------------------------
+                    // 1. นำเข้าและล้างข้อมูล Care_Info
+                    // --------------------------------------------------
                     let caresRaw = [];
                     if (responseObj.cares) {
-                        caresRaw = parseToObjects(responseObj.cares);
+                        caresRaw = normalizeData(responseObj.cares);
                     } else if (responseObj.careMap) {
-                        if (Array.isArray(responseObj.careMap)) caresRaw = responseObj.careMap;
-                        else {
+                        if (Array.isArray(responseObj.careMap)) {
+                            caresRaw = normalizeData(responseObj.careMap);
+                        } else {
                             for (let k in responseObj.careMap) {
-                                let v = responseObj.careMap[k];
-                                if (typeof v === 'object') caresRaw.push({Care_ID: k, ...v});
-                                else caresRaw.push({Care_ID: k, CareName: v, Is_Active: true});
+                                if (typeof responseObj.careMap[k] === 'object') {
+                                    let norm = {};
+                                    for (let x in responseObj.careMap[k]) {
+                                        norm[String(x).toLowerCase().replace(/[^a-z0-9ก-๙]/g, '')] = responseObj.careMap[k][x];
+                                    }
+                                    norm.careid = k;
+                                    caresRaw.push(norm);
+                                } else {
+                                    caresRaw.push({ careid: k, carename: responseObj.careMap[k], isactive: true });
+                                }
                             }
                         }
                     }
 
-                    // ล้างข้อมูลแคร์ให้สะอาด
+                    // สร้าง dbCares ที่สะอาดและเชื่อถือได้
                     dbCares = caresRaw.map(c => {
-                        let cId = findVal(c, ['Care_ID', 'CareID', 'care_id']);
-                        let cName = findVal(c, ['CareName', 'Care_Name', 'care_name']);
-                        let actRaw = findVal(c, ['Is_Active', 'isActive', 'is_active']);
+                        let cId = String(c.careid || '').trim();
+                        let cName = String(c.carename || cId).trim();
+                        let actRaw = c.isactive !== undefined ? c.isactive : true;
+                        let isActive = (String(actRaw).toUpperCase() === 'TRUE' || actRaw === 1 || actRaw === '1' || actRaw === true);
                         
-                        let isActive = true; // ปกติให้ True ไว้ก่อน
-                        if (actRaw !== '') isActive = (actRaw.toUpperCase() === 'TRUE' || actRaw === '1');
+                        return { Care_ID: cId, CareName: cName, Is_Active: isActive };
+                    }).filter(c => c.Is_Active && c.Care_ID !== '');
 
-                        return {
-                            Care_ID: cId,
-                            CareName: cName || cId,
-                            Is_Active: isActive
-                        };
-                    }).filter(c => c.Is_Active && c.Care_ID !== ''); // เก็บเฉพาะกลุ่มที่ยัง Active
-
-                    // สร้าง Dictionary เพื่อความรวดเร็วในการ JOIN
                     let careDict = {};
-                    dbCares.forEach(c => { careDict[c.Care_ID] = c; });
+                    dbCares.forEach(c => { careDict[c.Care_ID] = c.CareName; });
 
-                    // ==============================================================
-                    // 2. นำเข้าข้อมูล Members และ JOIN ข้อมูลทั้งหมดทันที!
-                    // ==============================================================
-                    let membersRaw = parseToObjects(responseObj.members || []);
+                    // --------------------------------------------------
+                    // 2. นำเข้าข้อมูล Members และ JOIN ข้อมูลทันที
+                    // --------------------------------------------------
+                    let membersRaw = normalizeData(responseObj.members || []);
                     
                     dbMembers = membersRaw.map(m => {
-                        let cId = findVal(m, ['Care_ID', 'CareID', 'care_id']);
-                        let nStatus = findVal(m, ['Nxl_Status', 'NxlStatus', 'nxl_status']);
-                        let gender = findVal(m, ['Gender', 'เพศ', 'Sex']);
+                        let cId = String(m.careid || '').trim();
+                        let nStatus = String(m.nxlstatus || '').trim();
+                        let gender = String(m.gender || m.เพศ || '').trim();
 
                         let upStatus = nStatus.toUpperCase();
                         let upGender = gender.toUpperCase();
 
-                        // สร้าง Object ที่มีข้อมูลครบถ้วนพร้อมใช้งาน
+                        // สร้าง Object ที่มีข้อมูลครบถ้วนพร้อมใช้งาน (Data JOINed)
                         return {
                             Original_Care_ID: cId,
-                            CareName: careDict[cId] ? careDict[cId].CareName : cId, // JOIN ชื่อแคร์
+                            CareName: careDict[cId] || cId, // ได้ CareName จริงๆ มาเลย
                             Nxl_Status: nStatus,
                             Gender: gender,
                             
-                            // ฝังผลลัพธ์เพื่อใช้ Filter / กราฟ ให้เร็วที่สุด
                             IsFamily: upStatus.startsWith('FM'),
                             IsFriend: upStatus.startsWith('FR'),
                             IsSend: upStatus.startsWith('SEND') || upStatus.includes('RTN'),
                             IsKids: upStatus.includes('KIDS'),
-                            IsMale: ['ชาย', 'M', 'MALE'].includes(upGender),
-                            IsFemale: ['หญิง', 'F', 'FEMALE'].includes(upGender)
+                            IsMale: ['ชาย', 'M', 'MALE', 'MAN'].includes(upGender),
+                            IsFemale: ['หญิง', 'F', 'FEMALE', 'WOMAN'].includes(upGender)
                         };
                     });
 
-                    // ==============================================================
+                    // --------------------------------------------------
                     // 3. เริ่มต้นระบบ: ติ๊กเลือกทุกแคร์ และบังคับเปิดหน้า Home
-                    // ==============================================================
+                    // --------------------------------------------------
                     masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
 
                     let homeBtn = document.querySelector('.home-fab');
@@ -483,11 +488,10 @@ CSS  ตกแต่งหน้าตาเว็บ
         }
 
         // ==========================================
-        // 🧠 ระบบสมองกล (Filter แบบไม่ต้องคิดเยอะ เพราะ JOIN มาแล้ว)
+        // 🧠 ระบบสมองกล (Filter Engine แบบเสถียร 100%)
         // ==========================================
         function getFilteredData() {
             return dbMembers.filter(m => {
-                // 1. เช็กสถานภาพ
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
                     statusMatch = m.IsFamily || m.IsFriend;
@@ -495,13 +499,11 @@ CSS  ตกแต่งหน้าตาเว็บ
                     statusMatch = m.IsSend;
                 }
 
-                // 2. เช็กเด็ก
                 let kidsMatch = true;
                 if (!masterFilterSettings.includeKids) {
                     kidsMatch = !m.IsKids;
                 }
 
-                // 3. เช็กแคร์
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Original_Care_ID);
 
                 return statusMatch && kidsMatch && careMatch;
@@ -650,23 +652,23 @@ CSS  ตกแต่งหน้าตาเว็บ
                         donutLabel = 'สัดส่วน ชาย/หญิง';
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
 
-                        // กราฟแท่ง: นับยอดตาม Nxl_Status ตรงๆ (เช่น Fm-Reg, Fr-NxC)
+                        // กราฟแท่ง: นับยอดตาม Nxl_Status ตรงๆ (จากที่ดึงมาเป๊ะๆ)
                         let statusMap = {};
                         filteredData.forEach(m => {
-                            let st = m.Nxl_Status || 'ไม่ระบุ';
+                            let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ';
                             statusMap[st] = (statusMap[st] || 0) + 1;
                         });
                         for (let k in statusMap) barStats.push({name: k, count: statusMap[k]});
 
-                        // โดนัท: สัดส่วน ชาย/หญิง
+                        // โดนัท: สัดส่วน ชาย/หญิง (รวมยอดไม่ระบุให้ด้วย)
                         let male = 0, female = 0;
                         filteredData.forEach(m => {
                             if(m.IsMale) male++;
                             else if(m.IsFemale) female++;
                         });
-                        let totalGen = male + female;
-                        donutPercent = totalGen > 0 ? Math.round((male / totalGen) * 100) : 0;
-                        donutSub = `ชาย: ${male} | หญิง: ${female}`;
+                        let unk = total - (male + female);
+                        donutPercent = total > 0 ? Math.round((male / total) * 100) : 0;
+                        donutSub = `ชาย: ${male} | หญิง: ${female} ${unk > 0 ? `| ไม่ระบุ: ${unk}` : ''}`;
 
                     } else {
                         // ==================================================
@@ -675,7 +677,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         donutLabel = 'สัดส่วน Family';
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
 
-                        // กราฟแท่ง: ยอดคนรายแคร์ (แสดง CareName)
+                        // กราฟแท่ง: ยอดคนรายแคร์ (แสดง CareName ที่ JOIN มาแล้ว)
                         masterFilterSettings.selectedCares.forEach(cid => {
                             let careObj = dbCares.find(c => c.Care_ID === cid);
                             let careName = careObj ? careObj.CareName : cid;
@@ -689,8 +691,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             if (m.IsFamily) fmCount++;
                             if (m.IsFriend) frCount++;
                         });
-                        let totalFmFr = fmCount + frCount;
-                        donutPercent = totalFmFr > 0 ? Math.round((fmCount / totalFmFr) * 100) : 0;
+                        donutPercent = total > 0 ? Math.round((fmCount / total) * 100) : 0;
                         donutSub = `Family: ${fmCount} | Friend: ${frCount}`;
                     }
                     
