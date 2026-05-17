@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.040</title>
+    <title>NxLife Community version #1.0.041</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.040</div>
+            <div class="version-tag">version #1.0.041</div>
         </div>
 
         <div id="screen-pin">
@@ -331,9 +331,7 @@
         let rawCareData = [];       
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
-        let apiDebugMessage = ''; 
 
-        // ตะกร้าเก็บค่า Master Filter
         let masterFilterSettings = {
             statusMode: 'COMMUNITY', 
             includeKids: false,      
@@ -367,7 +365,6 @@
                 .then(res => res.json())
                 .then(responseObj => {
                     rawMembersData = responseObj.members || [];
-                    
                     let allCares = [];
                     if (responseObj.careMap) {
                         if (typeof responseObj.careMap === 'object' && !Array.isArray(responseObj.careMap)) {
@@ -376,24 +373,48 @@
                             allCares = responseObj.careMap;
                         }
                     }
-                    
                     rawCareData = allCares.filter(c => c.IsActive === true || c.IsActive === "TRUE" || c.IsActive === 1);
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
-
                     updateDashboardView();
                 })
-                .catch(err => {
-                    console.error('ดึงข้อมูลล้มเหลว:', err);
-                    updateDashboardView();
-                });
+                .catch(err => console.error('Error:', err));
         }
 
+        // ==========================================
+        // 🧠 ระบบสมองกล (Filter & Calculate Engine)
+        // ==========================================
+        function getFilteredData() {
+            return rawMembersData.filter(m => {
+                // 1. กรองประเภทสมาชิก (Status Mode)
+                let statusMatch = true;
+                if (masterFilterSettings.statusMode === 'COMMUNITY') {
+                    statusMatch = m.Nxl_Status && m.Nxl_Status.startsWith('F');
+                } else if (masterFilterSettings.statusMode === 'SEND') {
+                    const sendList = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
+                    statusMatch = sendList.includes(m.Nxl_Status);
+                }
+
+                // 2. กรองคริสตจักรเด็ก
+                let kidsMatch = true;
+                if (!masterFilterSettings.includeKids) {
+                    kidsMatch = (m.Nxl_Status !== 'Fm-Kids');
+                }
+
+                // 3. กรองกลุ่มแคร์
+                let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
+
+                return statusMatch && kidsMatch && careMatch;
+            });
+        }
+
+        // ==========================================
+        // UI Navigation & Control
+        // ==========================================
         function selectCircleMenu(type, element) {
             document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
             currentActiveCircle = type;
-            const overviewBtn = document.getElementById('nav-overview');
-            handleBottomNav('overview', overviewBtn);
+            handleBottomNav('overview', document.getElementById('nav-overview'));
         }
 
         function handleBottomNav(target, element) {
@@ -403,37 +424,16 @@
             updateDashboardView();
         }
 
-        function setStatusMode(mode) {
-            masterFilterSettings.statusMode = mode;
+        function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
+        function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
+        function toggleCareCheckbox(id) {
+            let idx = masterFilterSettings.selectedCares.indexOf(id);
+            if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1);
+            else masterFilterSettings.selectedCares.push(id);
             updateDashboardView();
         }
-
-        function toggleKidsSwitch(checkboxElement) {
-            masterFilterSettings.includeKids = checkboxElement.checked;
-            updateDashboardView();
-        }
-
-        function toggleCareCheckbox(careId) {
-            let idx = masterFilterSettings.selectedCares.indexOf(careId);
-            if (idx > -1) {
-                masterFilterSettings.selectedCares.splice(idx, 1); 
-            } else {
-                masterFilterSettings.selectedCares.push(careId); 
-            }
-            updateDashboardView();
-        }
-
-        function careSelectAll() {
-            masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID);
-            updateDashboardView();
-        }
-
-        function careClearAll() {
-            masterFilterSettings.selectedCares = [];
-            updateDashboardView();
-        }
-
-        // ฟังก์ชัน Reset กลับเป็นค่าเริ่มต้นตามที่พี่สั่งเป๊ะๆ
+        function careSelectAll() { masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); updateDashboardView(); }
+        function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
         function resetFilterToDefault() {
             masterFilterSettings.statusMode = 'COMMUNITY';
             masterFilterSettings.includeKids = false;
@@ -441,193 +441,140 @@
             updateDashboardView();
         }
 
+        // ==========================================
+        // 📊 สั่งวาดหน้าจอทั้งหมด
+        // ==========================================
         function updateDashboardView() {
             const homeTopSection = document.getElementById('home-top-section');
             const subPageHeader = document.getElementById('sub-page-header');
             const contentArea = document.getElementById('dashboard-content-area');
-
             const activeCtx = circleContext[currentActiveCircle] || circleContext[''];
+            const viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
 
             if (currentActiveBottom === 'home') {
                 homeTopSection.style.display = 'block';
                 subPageHeader.style.display = 'none';
-                contentArea.innerHTML = `
-                    <div class="clean-card">
-                        <div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--orange);"></i> Family</div>
-                        <p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p>
-                    </div>
-                    <div class="clean-card">
-                        <div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--orange);"></i> Friend</div>
-                        <p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p>
-                    </div>
-                `;
+                contentArea.innerHTML = `<div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--orange);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div><div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--orange);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>`;
             } else {
                 homeTopSection.style.display = 'none';
                 
-                let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
-
-                if (currentActiveBottom === 'filter' || currentActiveBottom === 'profile') {
-                    subPageHeader.style.display = 'none';
-                } else {
+                // วาด Header Badges (V.36)
+                if (currentActiveBottom !== 'filter' && currentActiveBottom !== 'profile') {
                     subPageHeader.style.display = 'flex';
                     subPageHeader.style.justifyContent = 'space-between';
-                    
                     subPageHeader.innerHTML = `
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px;">
-                                <i class="fa-solid ${activeCtx.icon}"></i>
-                            </div>
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px;"><i class="fa-solid ${activeCtx.icon}"></i></div>
                             <div style="display: flex; flex-direction: column;">
                                 <div style="font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px;">${activeCtx.name}</div>
                                 <div style="font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1;">${viewTitle}</div>
                             </div>
                         </div>
-
                         <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                             <div style="display: flex; gap: 4px;">
                                 <span style="background: var(--orange); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.statusMode}</span>
                                 <span style="background: ${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
                             </div>
                             <span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${rawCareData.length}</span>
-                        </div>
-                    `;
-                }
-
-                if (currentActiveBottom === 'filter') {
-                    
-                    let careListHTML = '';
-                    if(rawCareData.length === 0) {
-                        careListHTML = `
-                        <div style="text-align: center; padding: 20px 0;">
-                            <i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i>
-                            <div style="font-size: 16px; font-weight: 700; color: var(--charcoal);">ยังไม่พบกลุ่มดูแล</div>
-                            <div style="font-size: 13px; color: var(--gray-text);">ยังไม่มีข้อมูลกลุ่มดูแลในระบบ หรือกำลังโหลด...</div>
                         </div>`;
-                    } else {
-                        rawCareData.forEach(care => {
-                            let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : '';
-                            careListHTML += `
-                                <div class="care-item">
-                                    <label class="care-checkbox-label">
-                                        <input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')">
-                                        <span>${care.Care_Name || care.Care_ID}</span>
-                                    </label>
-                                </div>
-                            `;
-                        });
-                    }
+                } else { subPageHeader.style.display = 'none'; }
+
+                // 🎯 หน้าแสดงผล: MASTER VIEW (Filter)
+                if (currentActiveBottom === 'filter') {
+                    let careListHTML = '';
+                    if(rawCareData.length === 0) { careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 16px; font-weight: 700; color: var(--charcoal);">ยังไม่พบกลุ่มดูแล</div></div>`; } 
+                    else { rawCareData.forEach(care => { let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.Care_Name || care.Care_ID}</span></label></div>`; }); }
 
                     contentArea.innerHTML = `
                         <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h2 style="font-size: 24px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                                    <i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล
-                                </h2>
-                                <p style="font-size: 13px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p>
-                            </div>
-                            <button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 600; font-family: 'Prompt'; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(192,100,40,0.05);">
-                                <i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น
-                            </button>
+                            <div><h2 style="font-size: 24px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px;"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล</h2><p style="font-size: 13px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p></div>
+                            <button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 600; font-family: 'Prompt'; cursor: pointer; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button>
                         </div>
-                        
-                        <div class="clean-card">
-                            <div class="section-title"><i class="fa-regular fa-id-badge" style="color: var(--orange);"></i> ประเภทสมาชิก</div>
-                            <div class="section-desc">เลือกประเภทสมาชิกที่ต้องการแสดง</div>
-                            
-                            <div class="seg-control">
-                                <div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div>
-                                <div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div>
-                                <div class="seg-btn ${masterFilterSettings.statusMode === 'SEND' ? 'active' : ''}" onclick="setStatusMode('SEND')">Send</div>
-                            </div>
-                        </div>
+                        <div class="clean-card"><div class="section-title"><i class="fa-regular fa-id-badge" style="color: var(--orange);"></i> ประเภทสมาชิก</div><div class="seg-control"><div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div><div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div><div class="seg-btn ${masterFilterSettings.statusMode === 'SEND' ? 'active' : ''}" onclick="setStatusMode('SEND')">Send</div></div></div>
+                        <div class="clean-card" style="padding: 16px 20px;"><div class="toggle-wrapper"><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div><label class="switch"><input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)"><span class="slider"></span></label></div></div>
+                        <div class="clean-card"><div class="section-header"><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div><div class="care-shortcuts"><button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button><button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button></div></div><div class="care-list-container">${careListHTML}</div></div>`;
+                
+                } 
+                // 🎯 หน้าแสดงผล: OVERVIEW (สถิติและกราฟ)
+                else if (currentActiveBottom === 'overview') {
+                    const filteredData = getFilteredData();
+                    const total = filteredData.length;
+                    
+                    // คำนวณสัดส่วน Fm/Fr (Donut Chart Logic)
+                    const fmCount = filteredData.filter(m => m.Nxl_Status && m.Nxl_Status.startsWith('Fm')).length;
+                    const frCount = filteredData.filter(m => m.Nxl_Status && m.Nxl_Status.startsWith('Fr')).length;
+                    const fmPercent = total > 0 ? Math.round((fmCount / total) * 100) : 0;
 
-                        <div class="clean-card" style="padding: 16px 20px;">
-                            <div class="toggle-wrapper">
-                                <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div>
-                                <label class="switch">
-                                    <input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)">
-                                    <span class="slider"></span>
-                                </label>
+                    // คำนวณรายแคร์ (Bar Chart Logic)
+                    let careStats = [];
+                    masterFilterSettings.selectedCares.forEach(cid => {
+                        const count = filteredData.filter(m => m.Care_ID === cid).length;
+                        const careName = rawCareData.find(c => c.Care_ID === cid)?.Care_Name || cid;
+                        if(count > 0) careStats.push({ name: careName, count: count });
+                    });
+                    careStats.sort((a,b) => b.count - a.count); // เรียงจากมากไปน้อย
+
+                    let barHTML = careStats.map(s => `
+                        <div style="margin-bottom:12px;">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
+                                <span>${s.name}</span><span style="font-weight:700;">${s.count} คน</span>
+                            </div>
+                            <div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;">
+                                <div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-${s.name}"></div>
                             </div>
                         </div>
+                    `).join('');
 
-                        <div class="clean-card">
-                            <div class="section-header">
-                                <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div>
-                                <div class="care-shortcuts">
-                                    <button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button>
-                                    <button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button>
+                    contentArea.innerHTML = `
+                        <div style="display:flex; gap:12px; margin-bottom:16px;">
+                            <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
+                                <div style="font-size:12px; color:var(--gray-text);">สมาชิกทั้งหมด</div>
+                                <div style="font-size:32px; font-weight:800; color:var(--orange);">${total}</div>
+                                <div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div>
+                            </div>
+                            <div class="clean-card" style="flex:1.5; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
+                                <div style="width:60px; height:60px; border-radius:50%; background:conic-gradient(var(--orange) ${fmPercent}%, #E2E8F0 0); display:flex; align-items:center; justify-content:center; position:relative;">
+                                    <div style="width:45px; height:45px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800;">${fmPercent}%</div>
+                                </div>
+                                <div>
+                                    <div style="font-size:13px; font-weight:700;">สัดส่วน Family</div>
+                                    <div style="font-size:11px; color:var(--gray-text);">Family: ${fmCount} | Friend: ${frCount}</div>
                                 </div>
                             </div>
-                            
-                            <div class="care-list-container">
-                                ${careListHTML}
+                        </div>
+
+                        <div class="clean-card">
+                            <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> สถิติจำนวนคนรายกลุ่มแคร์</div>
+                            <div style="max-height:280px; overflow-y:auto; padding-right:5px;">
+                                ${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลตามตัวกรองนี้</p>'}
                             </div>
                         </div>
                     `;
-                } else if (currentActiveBottom === 'profile') {
-                    contentArea.innerHTML = `
-                        <h2 style="margin-bottom: 15px; color: var(--charcoal);"><i class="fa-regular fa-user" style="color: var(--orange);"></i> โปรไฟล์</h2>
-                        <div class="clean-card">
-                            <h3 class="section-title">ตั้งค่าบัญชีผู้ใช้</h3>
-                            <p class="section-desc">รายละเอียดสิทธิ์การเข้าถึงข้อมูลต่างๆ</p>
-                        </div>
-                    `;
+
+                    // สั่งให้กราฟแท่งค่อยๆ ยืดออกหลังจากวาดหน้าจอเสร็จ
+                    setTimeout(() => {
+                        careStats.forEach(s => {
+                            const bar = document.getElementById(`bar-${s.name}`);
+                            if(bar) bar.style.width = (s.count / total * 100) + '%';
+                        });
+                    }, 100);
+
                 } else {
-                    contentArea.innerHTML = `
-                        <div class="clean-card" style="border-top: 4px solid var(--orange); text-align: center; padding: 40px 20px;">
-                            <i class="fa-solid fa-chart-pie" style="font-size: 40px; color: #E2E8F0; margin-bottom: 15px;"></i>
-                            <h3 style="color: var(--charcoal); font-size: 16px; margin-bottom: 8px;">พื้นที่แสดงข้อมูล ${activeCtx.name} (${viewTitle})</h3>
-                            <p style="font-size: 13px; color: var(--gray-text);">ระบบพร้อมเชื่อมต่อข้อมูลสถิติและสร้างกราฟในขั้นตอนต่อไป</p>
-                        </div>
-                    `;
+                    // หน้ารายชื่อ หรือ อื่นๆ
+                    contentArea.innerHTML = `<div class="clean-card" style="border-top:4px solid var(--orange); text-align:center; padding:40px 20px;"><i class="fa-solid fa-list-check" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i><h3 style="color:var(--charcoal); font-size:16px;">หน้ารายชื่อสมาชิก</h3><p style="font-size:13px; color:var(--gray-text);">กำลังเตรียมการแสดงผลรายชื่อ <b>${getFilteredData().length} คน</b> แบบแยกการ์ด</p></div>`;
                 }
             }
         }
 
+        // --- ระบบ PIN เดิม ---
         let pinInput = '';
         const dots = document.querySelectorAll('.dot');
-        
-        function pressKey(num) {
-            if (pinInput.length < 4) {
-                pinInput += num;
-                renderDots();
-                if (pinInput.length === 4) setTimeout(validatePin, 300);
-            }
-        }
-        
-        function delKey() {
-            if (pinInput.length > 0) {
-                pinInput = pinInput.slice(0, -1);
-                renderDots();
-            }
-        }
-        
-        function renderDots() {
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('filled', index < pinInput.length);
-            });
-        }
-        
-        function validatePin() {
-            if (pinInput === '3456') {
-                document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
-                document.getElementById('screen-home').classList.add('visible');
-            } else {
-                showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin..Poomableman');
-                pinInput = '';
-                renderDots();
-            }
-        }
-
-        function showAlert(title, message) {
-            document.getElementById('alert-title-text').innerText = title;
-            document.getElementById('alert-msg-text').innerText = message;
-            document.getElementById('custom-alert').classList.add('show');
-        }
-        function closeAlert() {
-            document.getElementById('custom-alert').classList.remove('show');
-        }
+        function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
+        function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
+        function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
+        function validatePin() { if (pinInput === '3456') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
+        function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
+        function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
     </script>
 </body>
 </html>
