@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.039</title>
+    <title>NxLife Community version #1.0.040</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.039</div>
+            <div class="version-tag">version #1.0.040</div>
         </div>
 
         <div id="screen-pin">
@@ -333,11 +333,11 @@
         let currentActiveBottom = 'home';
         let apiDebugMessage = ''; 
 
-        // ตะกร้าเก็บค่า Master Filter (เปลี่ยนค่า Default ตามคำสั่ง)
+        // ตะกร้าเก็บค่า Master Filter
         let masterFilterSettings = {
-            statusMode: 'COMMUNITY', // ค่าเริ่มต้นเป็น Community
-            includeKids: false,      // ค่าเริ่มต้นเป็น ไม่รวมเด็ก (false)
-            selectedCares: []        // ค่าเริ่มต้น ALL จะถูกจัดการตอนดึงข้อมูลเสร็จ
+            statusMode: 'COMMUNITY', 
+            includeKids: false,      
+            selectedCares: []        
         };
 
         const circleContext = {
@@ -368,10 +368,8 @@
                 .then(responseObj => {
                     rawMembersData = responseObj.members || [];
                     
-                    // แก้ไขการดึงข้อมูลแคร์ จากตัวแปร careMap ที่พบใน API
                     let allCares = [];
                     if (responseObj.careMap) {
-                        // เช็คว่าถ้าเป็น Object (ไม่ใช่ Array) ให้แปลงเป็น Array ก่อน
                         if (typeof responseObj.careMap === 'object' && !Array.isArray(responseObj.careMap)) {
                             allCares = Object.values(responseObj.careMap);
                         } else {
@@ -380,7 +378,7 @@
                     }
                     
                     rawCareData = allCares.filter(c => c.IsActive === true || c.IsActive === "TRUE" || c.IsActive === 1);
-                    masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); // Default เลือกทั้งหมด
+                    masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
                     updateDashboardView();
                 })
@@ -438,9 +436,6 @@
         function updateDashboardView() {
             const homeTopSection = document.getElementById('home-top-section');
             const subPageHeader = document.getElementById('sub-page-header');
-            const subPageTopic = document.getElementById('sub-page-topic');
-            const subPageTitle = document.getElementById('sub-page-title');
-            const subHeaderIcon = document.getElementById('sub-header-icon');
             const contentArea = document.getElementById('dashboard-content-area');
 
             const activeCtx = circleContext[currentActiveCircle] || circleContext[''];
@@ -461,13 +456,36 @@
             } else {
                 homeTopSection.style.display = 'none';
                 
+                let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
+
+                // ==========================================
+                // ระบบสร้าง Header พร้อมป้ายกำกับ Filter (ใหม่!)
+                // ==========================================
                 if (currentActiveBottom === 'filter' || currentActiveBottom === 'profile') {
                     subPageHeader.style.display = 'none';
                 } else {
                     subPageHeader.style.display = 'flex';
-                    subHeaderIcon.innerHTML = `<i class="fa-solid ${activeCtx.icon}"></i>`;
-                    subPageTopic.innerText = activeCtx.name;
-                    subPageTitle.innerText = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
+                    subPageHeader.style.justifyContent = 'space-between';
+                    
+                    subPageHeader.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px;">
+                                <i class="fa-solid ${activeCtx.icon}"></i>
+                            </div>
+                            <div style="display: flex; flex-direction: column;">
+                                <div style="font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px;">${activeCtx.name}</div>
+                                <div style="font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1;">${viewTitle}</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                            <div style="display: flex; gap: 4px;">
+                                <span style="background: var(--orange); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.statusMode}</span>
+                                <span style="background: ${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
+                            </div>
+                            <span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${rawCareData.length}</span>
+                        </div>
+                    `;
                 }
 
                 if (currentActiveBottom === 'filter') {
@@ -495,7 +513,6 @@
                         });
                     }
 
-                    // หน้าตาเหมือนภาพเป๊ะ
                     contentArea.innerHTML = `
                         <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
@@ -556,18 +573,12 @@
                         </div>
                     `;
                 } else {
-                    let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
+                    // ลบกล่องข้อมูลเดิมทิ้ง เคลียร์พื้นที่รอใส่กราฟ Dashboard!
                     contentArea.innerHTML = `
-                        <div class="clean-card" style="border-left: 4px solid var(--orange);">
-                            <h3 style="color: var(--orange); margin-bottom: 8px; font-size: 16px;">แสดงผล: ${activeCtx.name}</h3>
-                            <p style="font-size: 13px; margin-bottom: 10px;">มุมมองปัจจุบัน: <b>${viewTitle}</b></p>
-                            
-                            <div style="font-size: 12px; color: var(--gray-text); background: #F8FAFC; padding: 12px; border-radius: 8px; line-height: 1.6;">
-                                📌 <b>สถานะ Master Filter ปัจจุบัน:</b><br>
-                                • โหมด = <span style="color:var(--orange); font-weight:700;">${masterFilterSettings.statusMode}</span><br>
-                                • คริสตจักรเด็ก = <span style="color:var(--orange); font-weight:700;">${masterFilterSettings.includeKids ? 'รวม' : 'ไม่รวม'}</span><br>
-                                • กลุ่มแคร์ = <span style="color:var(--orange); font-weight:700;">${masterFilterSettings.selectedCares.length} / ${rawCareData.length} กลุ่ม</span>
-                            </div>
+                        <div class="clean-card" style="border-top: 4px solid var(--orange); text-align: center; padding: 40px 20px;">
+                            <i class="fa-solid fa-chart-pie" style="font-size: 40px; color: #E2E8F0; margin-bottom: 15px;"></i>
+                            <h3 style="color: var(--charcoal); font-size: 16px; margin-bottom: 8px;">พื้นที่แสดงข้อมูล ${activeCtx.name} (${viewTitle})</h3>
+                            <p style="font-size: 13px; color: var(--gray-text);">ระบบพร้อมเชื่อมต่อข้อมูลสถิติและสร้างกราฟในขั้นตอนต่อไป</p>
                         </div>
                     `;
                 }
