@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.052</title>
+    <title>NxLife Community version #1.0.053</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.052</div>
+            <div class="version-tag">version #1.0.053</div>
         </div>
 
         <div id="screen-pin">
@@ -333,7 +333,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 ทำให้เว็บโต้ตอบได้
 กดปุ่มแล้วมีอะไรเกิดขึ้น
 ================================ -->
- <script>
+<script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
         let rawMembersData = [];    
@@ -369,82 +369,88 @@ CSS  ตกแต่งหน้าตาเว็บ
             }
         }, 2000);
 
+        // ==========================================
+        // 🛡️ Smart Parser: เครื่องมือดึงข้อมูลอัจฉริยะแบบปลอดภัยสุดๆ
+        // ==========================================
+        function parseDataSafely(dataArray, keyMappings) {
+            if (!dataArray || !Array.isArray(dataArray) || dataArray.length === 0) return [];
+            let result = [];
+            
+            if (Array.isArray(dataArray[0])) {
+                // กรณีเป็น Array 2D (ตารางดิบ)
+                let headers = dataArray[0].map(h => String(h).toLowerCase().replace(/[_ ]/g, ''));
+                for(let i = 1; i < dataArray.length; i++) {
+                    let obj = {};
+                    for(let key in keyMappings) {
+                        let possible = keyMappings[key].map(k => k.toLowerCase().replace(/[_ ]/g, ''));
+                        let idx = headers.findIndex(h => possible.includes(h));
+                        obj[key] = idx > -1 ? dataArray[i][idx] : '';
+                    }
+                    result.push(obj);
+                }
+            } else {
+                // กรณีเป็น Array of Objects
+                for(let i = 0; i < dataArray.length; i++) {
+                    let row = dataArray[i];
+                    let obj = {};
+                    for(let key in keyMappings) {
+                        let possible = keyMappings[key].map(k => k.toLowerCase().replace(/[_ ]/g, ''));
+                        let foundKey = Object.keys(row).find(k => possible.includes(String(k).toLowerCase().replace(/[_ ]/g, '')));
+                        obj[key] = foundKey !== undefined ? row[foundKey] : '';
+                    }
+                    result.push(obj);
+                }
+            }
+            return result;
+        }
+
         function fetchAllSheetsData() {
             fetch(API_URL)
                 .then(res => res.json())
                 .then(responseObj => {
                     
-                    // ==========================================
-                    // 🛡️ 1. จัดระเบียบตารางสมาชิก (Members)
-                    // ==========================================
-                    let mRaw = responseObj.members || [];
-                    let mParsed = [];
-                    if (mRaw.length > 0) {
-                        if (Array.isArray(mRaw[0])) {
-                            // กรณีมาเป็น Array 2D
-                            let headers = mRaw[0].map(h => String(h).toLowerCase().replace(/_/g, ''));
-                            let iCare = headers.findIndex(h => h.includes('careid'));
-                            let iStatus = headers.findIndex(h => h.includes('nxlstatus'));
-                            let iGender = headers.findIndex(h => h.includes('gender') || h.includes('เพศ'));
-                            
-                            for(let i = 1; i < mRaw.length; i++) {
-                                mParsed.push({
-                                    Care_ID: iCare > -1 ? String(mRaw[i][iCare] || '').trim() : '',
-                                    Nxl_Status: iStatus > -1 ? String(mRaw[i][iStatus] || '').trim() : '',
-                                    Gender: iGender > -1 ? String(mRaw[i][iGender] || '').trim() : ''
-                                });
-                            }
-                        } else {
-                            // กรณีมาเป็น Objects
-                            mParsed = mRaw.map(row => {
-                                let obj = { Care_ID: '', Nxl_Status: '', Gender: '' };
-                                for (let k in row) {
-                                    let kl = String(k).toLowerCase().replace(/_/g, '');
-                                    if (kl.includes('careid')) obj.Care_ID = String(row[k] || '').trim();
-                                    if (kl.includes('nxlstatus')) obj.Nxl_Status = String(row[k] || '').trim();
-                                    if (kl.includes('gender') || kl.includes('เพศ')) obj.Gender = String(row[k] || '').trim();
-                                }
-                                return obj;
-                            });
-                        }
-                    }
-                    rawMembersData = mParsed;
+                    // 1. จัดระเบียบ Members (ดึง Care_ID, Nxl_Status, Gender ออกมาเป๊ะๆ)
+                    rawMembersData = parseDataSafely(responseObj.members || [], {
+                        Care_ID: ['Care_ID', 'CareID'],
+                        Nxl_Status: ['Nxl_Status', 'NxlStatus'],
+                        Gender: ['Gender', 'เพศ', 'Sex']
+                    });
 
-                    // ==========================================
-                    // 🛡️ 2. จัดระเบียบตารางกลุ่มแคร์ (Care_Info)
-                    // ==========================================
-                    let tempCares = [];
-                    if (responseObj.careMap && typeof responseObj.careMap === 'object' && !Array.isArray(responseObj.careMap)) {
-                        for (let key in responseObj.careMap) {
-                            if (typeof responseObj.careMap[key] === 'object') {
-                                tempCares.push(responseObj.careMap[key]);
-                            } else {
-                                tempCares.push({ Care_ID: key, CareName: responseObj.careMap[key], Is_Active: true });
+                    // 2. จัดระเบียบ Care_Info
+                    let caresRaw = [];
+                    if (responseObj.cares && Array.isArray(responseObj.cares)) {
+                        caresRaw = responseObj.cares;
+                    } else if (responseObj.careMap) {
+                        if (Array.isArray(responseObj.careMap)) caresRaw = responseObj.careMap;
+                        else if (typeof responseObj.careMap === 'object') {
+                            for (let k in responseObj.careMap) {
+                                let v = responseObj.careMap[k];
+                                if (typeof v === 'object') caresRaw.push({Care_ID: k, ...v});
+                                else caresRaw.push({Care_ID: k, CareName: v, Is_Active: true});
                             }
                         }
-                    } else if (responseObj.careMap && Array.isArray(responseObj.careMap)) {
-                        tempCares = responseObj.careMap;
-                    } else if (responseObj.cares) {
-                        tempCares = responseObj.cares;
                     }
 
-                    // สร้างและกรองเฉพาะแคร์ที่ Active
-                    rawCareData = tempCares.map(c => {
-                        let cId = c.Care_ID || c.CareID || c.care_id || c.id || c.ID || '';
-                        let cName = c.CareName || c.Care_Name || c.care_name || c.name || c.Name || cId;
-                        let cActive = c.Is_Active !== undefined ? c.Is_Active : (c.isActive !== undefined ? c.isActive : true);
-                        
+                    let parsedCares = parseDataSafely(caresRaw, {
+                        Care_ID: ['Care_ID', 'CareID'],
+                        CareName: ['CareName', 'Care_Name'],
+                        Is_Active: ['Is_Active', 'isActive']
+                    });
+
+                    rawCareData = parsedCares.map(c => {
+                        let activeStr = String(c.Is_Active).trim().toUpperCase();
+                        let isActive = c.Is_Active === '' ? true : (activeStr === 'TRUE' || activeStr === '1');
                         return {
-                            Care_ID: String(cId).trim(),
-                            CareName: String(cName).trim(),
-                            Is_Active: String(cActive).toUpperCase() === 'TRUE' || cActive === 1 || cActive === true
+                            Care_ID: String(c.Care_ID).trim(),
+                            CareName: String(c.CareName || c.Care_ID).trim(),
+                            Is_Active: isActive
                         };
                     }).filter(c => c.Is_Active && c.Care_ID !== '');
                     
-                    // เซ็ตค่า Default: เลือกทุกแคร์
+                    // 3. ตั้งค่า Default Filter เป็นทุกแคร์ ทันทีที่โหลดเสร็จ
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
-                    // 🛑 บังคับให้โหลดเสร็จแล้วเด้งมาที่หน้า Home
+                    // 4. บังคับให้โหลดเสร็จแล้วเด้งมาที่หน้า Home
                     let homeBtn = document.querySelector('.home-fab');
                     if (homeBtn && homeBtn.parentElement) {
                         handleBottomNav('home', homeBtn.parentElement);
@@ -463,7 +469,6 @@ CSS  ตกแต่งหน้าตาเว็บ
             return rawMembersData.filter(m => {
                 let upStatus = String(m.Nxl_Status).toUpperCase();
                 
-                // 1. กรองสถานภาพ
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
                     statusMatch = upStatus.startsWith('FM') || upStatus.startsWith('FR'); 
@@ -471,13 +476,11 @@ CSS  ตกแต่งหน้าตาเว็บ
                     statusMatch = upStatus.startsWith('SEND') || upStatus.includes('RTN'); 
                 }
 
-                // 2. กรองเด็ก
                 let kidsMatch = true;
                 if (!masterFilterSettings.includeKids) {
                     kidsMatch = !upStatus.includes('KIDS');
                 }
 
-                // 3. กรองกลุ่มแคร์
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
 
                 return statusMatch && kidsMatch && careMatch;
@@ -621,12 +624,12 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                     if (currentActiveCircle === 'people') {
                         // ==================================================
-                        // 4. โหมด: กลุ่มคน (People)
+                        // 🎯 โหมด: กลุ่มคน (People)
                         // ==================================================
                         donutLabel = 'สัดส่วน ชาย/หญิง';
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
 
-                        // 4.3 กราฟแท่ง: นับตาม Nxl_Status เป๊ะๆ
+                        // 1. กราฟแท่ง: แยกยอดตาม Nxl_Status เป๊ะๆ
                         let statusMap = {};
                         filteredData.forEach(m => {
                             let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ';
@@ -634,12 +637,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                         });
                         for (let k in statusMap) barStats.push({name: k, count: statusMap[k]});
 
-                        // 4.1 โดนัท: สัดส่วนชาย/หญิง
+                        // 2. โดนัท: สัดส่วน ชาย/หญิง (จากคอลัมน์ Gender)
                         let male = 0, female = 0;
                         filteredData.forEach(m => {
                             let g = String(m.Gender).toUpperCase().trim();
-                            if(g === 'M' || g === 'MALE' || g === 'ชาย') male++;
-                            else if(g === 'F' || g === 'FEMALE' || g === 'หญิง') female++;
+                            if(['ชาย', 'M', 'MALE', 'MAN'].includes(g)) male++;
+                            else if(['หญิง', 'F', 'FEMALE', 'WOMAN'].includes(g)) female++;
                         });
                         let totalGen = male + female;
                         donutPercent = totalGen > 0 ? Math.round((male / totalGen) * 100) : 0;
@@ -647,11 +650,12 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                     } else {
                         // ==================================================
-                        // 3. โหมด: กลุ่มแคร์ (Care) หรืออื่นๆ
+                        // 🎯 โหมด: กลุ่มแคร์ (Care) หรืออื่นๆ
                         // ==================================================
+                        donutLabel = 'สัดส่วน Family';
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
 
-                        // กราฟแท่งรายแคร์ (โชว์ชื่อ CareName)
+                        // 1. กราฟแท่ง: ยอดคนรายแคร์ (โชว์ CareName)
                         masterFilterSettings.selectedCares.forEach(cid => {
                             let careObj = rawCareData.find(c => c.Care_ID === cid);
                             let careName = careObj ? careObj.CareName : cid;
@@ -659,17 +663,11 @@ CSS  ตกแต่งหน้าตาเว็บ
                             if(count > 0) barStats.push({ name: careName, count: count, id: cid });
                         });
 
-                        // 3.1 โดนัท: จัดกลุ่มอิงตามคลาส Nxl_Status
-                        let fmCount = 0, frCount = 0;
-                        filteredData.forEach(m => {
-                            let pfx = String(m.Nxl_Status).toUpperCase().split('-')[0];
-                            if(pfx === 'FM') fmCount++;
-                            else if(pfx === 'FR') frCount++;
-                        });
-                        
+                        // 2. โดนัท: สัดส่วน Family / Friend
+                        let fmCount = filteredData.filter(m => String(m.Nxl_Status).toUpperCase().startsWith('FM')).length;
+                        let frCount = filteredData.filter(m => String(m.Nxl_Status).toUpperCase().startsWith('FR')).length;
                         let totalFmFr = fmCount + frCount;
                         donutPercent = totalFmFr > 0 ? Math.round((fmCount / totalFmFr) * 100) : 0;
-                        donutLabel = 'สัดส่วน Family';
                         donutSub = `Family: ${fmCount} | Friend: ${frCount}`;
                     }
                     
@@ -733,7 +731,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         function validatePin() { if (pinInput === '3456') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
-    </script>  
+    </script>
 
     
 </body>
