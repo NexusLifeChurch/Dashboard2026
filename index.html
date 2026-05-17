@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.048</title>
+    <title>NxLife Community version #1.0.049</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -225,7 +225,7 @@
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.048</div>
+            <div class="version-tag">version #1.0.049</div>
         </div>
 
         <div id="screen-pin">
@@ -360,9 +360,7 @@
             }
         }, 2000);
 
-        // ==========================================
-        // 🛡️ เครื่องมือค้นหาอัจฉริยะ (ดักจับทุกการสะกดคำของ Google)
-        // ==========================================
+        // เครื่องมือค้นหาถ้าส่งมาเป็น Object
         function getSafeVal(obj, targetKey) {
             let searchKey = targetKey.toLowerCase().replace(/_/g, '');
             for (let k in obj) {
@@ -378,14 +376,35 @@
                 .then(res => res.json())
                 .then(responseObj => {
                     
-                    // 1. ล้างข้อมูลตารางสมาชิกให้ชัวร์ 100%
-                    rawMembersData = (responseObj.members || []).map(m => {
-                        m._safeCareId = getSafeVal(m, 'careid');
-                        m._safeStatus = getSafeVal(m, 'nxlstatus');
-                        return m;
-                    });
+                    // ==========================================
+                    // 🛡️ ระบบแปลงตารางอัจฉริยะ (ดักจับ Array 2D)
+                    // ==========================================
+                    let mRaw = responseObj.members || [];
+                    let mParsed = [];
+                    if (mRaw.length > 0) {
+                        if (Array.isArray(mRaw[0])) {
+                            // กรณีที่ 1: API ส่งมาเป็นตารางดิบๆ (Array of Arrays)
+                            let headers = mRaw[0].map(h => String(h).replace(/_/g,'').toLowerCase());
+                            let idxCare = headers.indexOf('careid');
+                            let idxStatus = headers.indexOf('nxlstatus');
+                            
+                            for(let i = 1; i < mRaw.length; i++) {
+                                mParsed.push({
+                                    _safeCareId: idxCare > -1 ? String(mRaw[i][idxCare] || '').trim() : '',
+                                    _safeStatus: idxStatus > -1 ? String(mRaw[i][idxStatus] || '').trim() : ''
+                                });
+                            }
+                        } else {
+                            // กรณีที่ 2: API ส่งมาเป็น Object ปกติ
+                            mParsed = mRaw.map(m => ({
+                                _safeCareId: getSafeVal(m, 'careid'),
+                                _safeStatus: getSafeVal(m, 'nxlstatus')
+                            }));
+                        }
+                    }
+                    rawMembersData = mParsed;
 
-                    // 2. จัดระเบียบตารางกลุ่มแคร์
+                    // จัดระเบียบตารางกลุ่มแคร์
                     let tempCares = [];
                     if (responseObj.careMap && typeof responseObj.careMap === 'object') {
                         let cmap = responseObj.careMap;
@@ -404,7 +423,7 @@
                         tempCares = responseObj.cares;
                     }
 
-                    // 3. กรองและจัดเก็บเฉพาะแคร์ที่เปิดใช้งาน
+                    // กรองเฉพาะแคร์ที่ Active
                     rawCareData = tempCares.map(c => {
                         let cId = getSafeVal(c, 'careid') || getSafeVal(c, '_mapkey');
                         let cName = getSafeVal(c, 'carename') || cId;
@@ -415,42 +434,43 @@
                             let up = cActiveRaw.toUpperCase();
                             isActive = (up === 'TRUE' || up === '1');
                         }
-                        
                         return { Care_ID: cId, CareName: cName, Is_Active: isActive };
                     }).filter(c => c.Is_Active);
                     
-                    // ตั้งค่าเริ่มต้น
                     masterFilterSettings.selectedCares = rawCareData.map(c => c.Care_ID); 
 
-                    updateDashboardView();
+                    // 🛑 บังคับให้เริ่มที่หน้า Home เสมอ เมื่อโหลดเสร็จ!
+                    let homeBtn = document.querySelector('.home-fab');
+                    if (homeBtn && homeBtn.parentElement) {
+                        handleBottomNav('home', homeBtn.parentElement);
+                    } else {
+                        currentActiveBottom = 'home';
+                        updateDashboardView();
+                    }
                 })
                 .catch(err => console.error('Error:', err));
         }
 
         // ==========================================
-        // 🧠 ระบบสมองกลคำนวณ (ใช้คีย์ที่ปลอดภัยแล้ว)
+        // 🧠 ระบบสมองกล (Filter Engine)
         // ==========================================
         function getFilteredData() {
             return rawMembersData.filter(m => {
-                let mStatus = m._safeStatus;
+                let upStatus = m._safeStatus.toUpperCase();
                 let mCareId = m._safeCareId;
-                let upStatus = mStatus.toUpperCase();
 
-                // 1. กรองสถานะ
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    statusMatch = upStatus.startsWith('F'); 
+                    statusMatch = upStatus.startsWith('F'); // Fm, Fr
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    statusMatch = upStatus.startsWith('S') || upStatus.includes('RTN'); 
+                    statusMatch = upStatus.startsWith('S') || upStatus.includes('RTN'); // Send, Rtn
                 }
 
-                // 2. กรองเด็ก
                 let kidsMatch = true;
                 if (!masterFilterSettings.includeKids) {
                     kidsMatch = !upStatus.includes('KIDS');
                 }
 
-                // 3. กรองกลุ่มแคร์
                 let careMatch = masterFilterSettings.selectedCares.includes(mCareId);
 
                 return statusMatch && kidsMatch && careMatch;
@@ -469,7 +489,7 @@
 
         function handleBottomNav(target, element) {
             document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
+            if(element) element.classList.add('active');
             currentActiveBottom = target;
             updateDashboardView();
         }
