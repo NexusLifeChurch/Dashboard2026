@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.078</title>
+    <title>NxLife Community version #1.0.079</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.078</div>
+            <div class="version-tag">version #1.0.079</div>
         </div>
 
         <div id="screen-pin">
@@ -387,15 +387,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                         else if (m.IsFemale) normGender = 'หญิง';
                         else if (m.Gender !== '') normGender = 'อื่นๆ';
 
-                        // 🛑 ดึงค่ามาแบบดิบๆ เชื่อใจ Dropdown 100% (ไม่มีการแปลงตัวพิมพ์ใหญ่อีกต่อไป)
-                        let exactClassify = String(m.Classify || 'อื่นๆ').trim();
-
                         return {
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
-                            Nxl_Status: m.Nxl_Status,
-                            Classify: exactClassify, 
+                            Nxl_Status: String(m.Nxl_Status || '').trim(), // เก็บค่าดั้งเดิมไว้ใช้งาน
+                            Classify: String(m.Classify || 'ไม่ระบุ').trim(), // เก็บค่าดั้งเดิมไว้ใช้งาน
                             Gender: normGender, 
                             FullName_Display: m.FullName_Display,
                             Url_Image: m.Url_Image || '', 
@@ -410,18 +407,18 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
+        // 🛑 รื้อระบบกรองใหม่ทั้งหมด: ใช้ Array เช็กค่า Nxl_Status สะกดเป๊ะๆ ตามที่พี่สั่ง
         function getFilteredData() {
             return dbMembers.filter(m => {
                 let statusMatch = true;
+                let nxl = m.Nxl_Status;
                 
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    // 🛑 เทียบตรงๆ เป๊ะทุกตัวอักษร
-                    statusMatch = (m.Classify === 'Family' || m.Classify === 'Friends');
+                    const commStatuses = ['Fm-Reg', 'Fm-UnReg', 'Fm-Kids', 'Fr-', 'Fr-NxC', 'Fr-OTH', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
+                    statusMatch = commStatuses.includes(nxl);
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    // 🛑 เทียบตรงๆ เป๊ะทุกตัวอักษร
-                    let isSnd = (m.Classify === 'Send');
-                    let isRtn = String(m.Nxl_Status).includes('Rtn');
-                    statusMatch = (isSnd || isRtn);
+                    const sendStatuses = ['Send-OTH', 'Send-NxC', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
+                    statusMatch = sendStatuses.includes(nxl);
                 }
                 
                 let kidsMatch = masterFilterSettings.includeKids ? true : !m.IsKids;
@@ -473,9 +470,6 @@ CSS  ตกแต่งหน้าตาเว็บ
         function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
         function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
 
-        // ==========================================
-        // 🔮 ระบบ Popup โปรไฟล์
-        // ==========================================
         function setupProfilePopup() {
             if(!document.getElementById('profile-popup')) {
                 let div = document.createElement('div'); div.id = 'profile-popup';
@@ -584,43 +578,59 @@ CSS  ตกแต่งหน้าตาเว็บ
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        let famCount = 0, friCount = 0, sndCount = 0, othCount = 0;
-                        filteredData.forEach(m => {
-                            if (masterFilterSettings.statusMode === 'SEND') {
-                                sndCount++; // ในโหมด SEND กวาดลงกล่อง Send 100%
-                            } else {
-                                // 🛑 เช็กตัวอักษรเป๊ะๆ 
-                                if (m.Classify === 'Family') famCount++;
-                                else if (m.Classify === 'Friends') friCount++;
-                                else if (m.Classify === 'Send') sndCount++;
-                                else othCount++;
-                            }
-                        });
+                        // 🛑 รื้อระบบนับกราฟ! สร้างระบบนับกลุ่มไดนามิกจากข้อมูลดิบ ไม่ Hardcode ตัวอักษร
+                        let segments = []; 
+                        let legendItems = [];
+                        const palette = ['#E67C22', '#5D6D7E', '#A67B5B', '#34495E', '#16A085', '#2980B9', '#8E44AD', '#D35400', '#C0392B', '#7F8C8D'];
 
-                        let pFam = total > 0 ? Math.round((famCount / total) * 100) : 0; 
-                        let pFri = total > 0 ? Math.round((friCount / total) * 100) : 0; 
-                        let pSnd = total > 0 ? Math.round((sndCount / total) * 100) : 0; 
-                        let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
-                        
-                        let segments = []; let legendItems = [];
-                        
-                        if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                            donutLabel = 'สัดส่วน COMMUNITY';
-                            if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
-                            if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
-                        } else if (masterFilterSettings.statusMode === 'SEND') {
-                            donutLabel = 'กลุ่ม SEND';
-                            if(pSnd > 0) { segments.push({ percent: pSnd, color: '#A67B5B' }); legendItems.push(`<div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>`); }
+                        if (masterFilterSettings.statusMode === 'ALL') {
+                            donutLabel = 'สัดส่วน Classify';
+                            let groupCounts = {};
+                            filteredData.forEach(m => {
+                                let key = m.Classify ? String(m.Classify).trim() : 'ไม่ระบุ';
+                                groupCounts[key] = (groupCounts[key] || 0) + 1;
+                            });
+                            
+                            let keys = Object.keys(groupCounts).sort((a,b) => groupCounts[b] - groupCounts[a]);
+                            keys.forEach((key, idx) => {
+                                let count = groupCounts[key];
+                                let percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                                let color = palette[idx % palette.length];
+                                
+                                let upKey = key.toUpperCase();
+                                if (upKey === 'FAMILY') color = 'var(--orange)';
+                                else if (upKey === 'FRIENDS' || upKey === 'FRIEND') color = '#5D6D7E';
+                                else if (upKey === 'SEND' || upKey === 'ส่งออก') color = '#A67B5B';
+                                else if (upKey === 'BYE') color = '#E74C3C';
+
+                                if(count > 0) {
+                                    segments.push({ percent: percent, color: color });
+                                    legendItems.push(`<div style="color:${color}; font-weight:700; font-size:12px;">● ${key}: ${count} (${percent}%)</div>`);
+                                }
+                            });
                         } else {
-                            donutLabel = 'สัดส่วนสถานภาพ';
-                            if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
-                            if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
-                            if(pSnd > 0) { segments.push({ percent: pSnd, color: '#A67B5B' }); legendItems.push(`<div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>`); }
-                            if(othCount > 0) { segments.push({ percent: pOth, color: '#BCAAA4' }); legendItems.push(`<div style="color:#BCAAA4; font-weight:700; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>`); }
+                            donutLabel = 'สัดส่วน Nxl_Status';
+                            let groupCounts = {};
+                            filteredData.forEach(m => {
+                                let key = m.Nxl_Status ? String(m.Nxl_Status).trim() : 'ไม่ระบุ';
+                                groupCounts[key] = (groupCounts[key] || 0) + 1;
+                            });
+                            
+                            let keys = Object.keys(groupCounts).sort((a,b) => groupCounts[b] - groupCounts[a]);
+                            keys.forEach((key, idx) => {
+                                let count = groupCounts[key];
+                                let percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                                let color = palette[idx % palette.length];
+
+                                if(count > 0) {
+                                    segments.push({ percent: percent, color: color });
+                                    legendItems.push(`<div style="color:${color}; font-weight:700; font-size:12px;">● ${key}: ${count} (${percent}%)</div>`);
+                                }
+                            });
                         }
 
                         donutGradientStr = generateDonutGradient(segments);
-                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;">${legendItems.join('')}</div>`;
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px; max-height:120px; overflow-y:auto; padding-right:5px;">${legendItems.join('')}</div>`;
                     }
                     
                     if (currentActiveCircle === 'people') barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
