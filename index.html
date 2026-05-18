@@ -3,19 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.080</title>
+    <title>NxLife Community version #1.0.130</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!--  ================================
-ส่วนของ Style  
-CSS  ตกแต่งหน้าตาเว็บ
-สี ฟอนต์ ระยะห่าง อนิเมชัน
-================================ -->  
 <style>
         :root {
             --charcoal: #334155;     
-            --orange: #C06428;       
+            --orange: #C06428;        
             --orange-soft: #FDF3EC;  
             --white: #FFFFFF;
             --bg-app: #FAF7F2;       
@@ -222,6 +217,12 @@ CSS  ตกแต่งหน้าตาเว็บ
         .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
+    <meta name="apple-mobile-web-app-title" content="NxLife"> <link rel="apple-touch-icon" href="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo7.jpg?raw=true"> 
+    <meta name="mobile-web-app-capable" content="yes"> 
+    <meta name="theme-color" content="#f97316"> <link rel="manifest" href='data:application/manifest+json;utf8,{"name":"NxLife Dashboard","short_name":"NxLife","display":"standalone","background_color":"#F8FAFC","theme_color":"#f97316","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/4144/4144103.png","sizes":"512x512","type":"image/png"}]}'>
+    
 </head>
 <body>
 
@@ -230,7 +231,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.080</div>
+            <div class="version-tag">version #1.0.130</div>
         </div>
 
         <div id="screen-pin">
@@ -262,8 +263,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                 <div id="home-top-section">
                     <div class="home-header">
                         <div class="greet-text">
-                          <strong>ชาโลม..</strong><br>
-                          🍜 ไม่ใช่ ชาบู
+                            <strong>ชาโลม..</strong><br>
+                            🍜 ไม่ใช่ ชาบู
                         </div>
                         <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Logo%20NxLife2.png?raw=true" class="profile-img">
                     </div>
@@ -328,12 +329,6 @@ CSS  ตกแต่งหน้าตาเว็บ
         </div>
         
     </div>
-<!-- ================================
-ส่วนของ Script  JavaScript
-ทำให้เว็บโต้ตอบได้
-กดปุ่มแล้วมีอะไรเกิดขึ้น
-================================ -->
-
 <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
@@ -354,6 +349,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         };
 
         window.addEventListener('DOMContentLoaded', () => {
+            setupFullScreenPhoto();
             fetchAllSheetsData();
             setupProfilePopup(); 
         });
@@ -470,6 +466,44 @@ CSS  ตกแต่งหน้าตาเว็บ
         function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
         function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
 
+        // ==========================================
+        // ระบบใหม่: รูปขยายเต็มจอ
+        // ==========================================
+        function setupFullScreenPhoto() {
+            if(!document.getElementById('fs-photo-overlay')) {
+                let div = document.createElement('div');
+                div.id = 'fs-photo-overlay';
+                div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;';
+                div.innerHTML = `
+                    <button onclick="closeFullScreenPhoto()" style="position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:10001;"><i class="fa-solid fa-xmark"></i></button>
+                    <img id="fs-photo-img" style="max-width:90%; max-height:80%; object-fit:contain; border-radius:8px;">
+                    <a id="fs-download-btn" target="_blank" download style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--orange); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); z-index:10001;"><i class="fa-solid fa-download"></i></a>
+                `;
+                document.body.appendChild(div);
+                div.addEventListener('click', function(e) {
+                    if (e.target === div || e.target === document.getElementById('fs-photo-img')) closeFullScreenPhoto();
+                });
+            }
+        }
+        
+        function openFullScreenPhoto(url, name) {
+            if(!url || url.trim() === '') return;
+            let overlay = document.getElementById('fs-photo-overlay');
+            let img = document.getElementById('fs-photo-img');
+            let btn = document.getElementById('fs-download-btn');
+            img.src = url; btn.href = url; btn.download = (name || 'Member') + '_Nexus.jpg';
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        }
+        
+        function closeFullScreenPhoto() {
+            let overlay = document.getElementById('fs-photo-overlay');
+            if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
+        }
+
+        // ==========================================
+        // ระบบใหม่: เพิ่ม Member_ID ใน Profile
+        // ==========================================
         function setupProfilePopup() {
             if(!document.getElementById('profile-popup')) {
                 let div = document.createElement('div'); div.id = 'profile-popup';
@@ -486,8 +520,11 @@ CSS  ตกแต่งหน้าตาเว็บ
             let cleanNameForInitial = member.FullName_Display ? member.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '') : '';
             let initial = cleanNameForInitial.charAt(0) || '?';
             
-            let profileImageHTML = (member.Url_Image && member.Url_Image.trim() !== '') 
-                ? `<img src="${member.Url_Image}" style="width:100%; height:100%; object-fit:cover;">` 
+            let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
+            let safeUrl = member.Url_Image ? member.Url_Image.trim() : '';
+
+            let profileImageHTML = safeUrl !== '' 
+                ? `<img src="${safeUrl}" onclick="openFullScreenPhoto('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
                 : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
 
             document.getElementById('profile-popup-content').innerHTML = `
@@ -511,6 +548,9 @@ CSS  ตกแต่งหน้าตาเว็บ
                         <i class="fa-solid fa-address-card" style="color:var(--gray-text);"></i> ข้อมูลส่วนตัวเบื้องต้น
                     </div>
                     <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
+                        <span style="font-size:13px; color:var(--gray-text);">รหัสประจำตัว</span><span style="font-size:13px; font-weight:700; color:var(--orange);">${member.Member_ID}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
                         <span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Nxl_Status}</span>
                     </div>
                     <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
@@ -527,7 +567,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         }
 
         // ==========================================
-        // 📊 วาดหน้าจอหลัก
+        // 📊 วาดหน้าจอหลัก (ปรับเฉพาะกราฟ ขยายและเปลี่ยนสี)
         // ==========================================
         function updateDashboardView() {
             let careListContainer = document.querySelector('.care-list-container');
@@ -557,6 +597,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 else if (currentActiveBottom === 'overview') {
                     const filteredData = getFilteredData(); const total = filteredData.length;
                     let donutGradientStr = ''; let donutLabel = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
+                    let centerImageURL = 'https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true';
 
                     if (currentActiveCircle === 'people') {
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
@@ -571,94 +612,77 @@ CSS  ตกแต่งหน้าตาเว็บ
                         let pFemale = total > 0 ? Math.round((femaleCount / total) * 100) : 0; 
                         let pUnk = total > 0 ? Math.round((unkCount / total) * 100) : 0;
 
-                        donutLabel = 'สัดส่วน ชาย/หญิง'; 
-                        donutGradientStr = generateDonutGradient([ { percent: pMale, color: '#34495E' }, { percent: pFemale, color: '#D98880' }, { percent: pUnk, color: '#BDC3C7' } ]);
+                        donutLabel = ''; // ซ่อนคำว่าสัดส่วน
                         
-                        // ปรับ UI Legend ของหน้ากลุ่มคนให้เป็นตารางเรียบร้อย
-                        donutLegendHTML = `
-                        <div style="display:flex; flex-direction:column; width:100%; padding-right:5px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
-                                <div style="color:#34495E; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:#34495E;"></div> ชาย</div>
-                                <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${pMale}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${maleCount})</span></div>
-                            </div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
-                                <div style="color:#D98880; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:#D98880;"></div> หญิง</div>
-                                <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${pFemale}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${femaleCount})</span></div>
-                            </div>
-                            ${unkCount > 0 ? `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
-                                <div style="color:#BDC3C7; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:#BDC3C7;"></div> อื่นๆ/ไม่ระบุ</div>
-                                <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${pUnk}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${unkCount})</span></div>
-                            </div>` : ''}
-                        </div>`;
+                        // สีใหม่ของกราฟชายหญิง
+                        let pItems = [
+                            { label: 'ชาย', count: maleCount, percent: pMale, color: '#82949C' },
+                            { label: 'หญิง', count: femaleCount, percent: pFemale, color: '#AC858C' }
+                        ];
+                        if (unkCount > 0) pItems.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#BDC3C7' });
+                        pItems.sort((a,b) => a.label.localeCompare(b.label, 'th')); // เรียงตัวอักษร
+
+                        donutGradientStr = generateDonutGradient(pItems);
+                        centerImageURL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; // ไอคอนคน
+
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; padding-right:5px;">`;
+                        pItems.forEach(item => {
+                            if(item.count > 0) {
+                                donutLegendHTML += `
+                                <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                    <div style="color:${item.color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:${item.color};"></div> ${item.label}</div>
+                                    <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${item.percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${item.count})</span></div>
+                                </div>`;
+                            }
+                        });
+                        donutLegendHTML += `</div>`;
                     } else {
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        // 🛑 ชุดสี Professional (ทิ้งความลิเก) สลับ โทนส้ม-เทา-น้ำตาล 
-                        const palette = ['#F97316', '#475569', '#F59E0B', '#64748B', '#D97706', '#94A3B8', '#B45309', '#CBD5E1', '#EA580C', '#334155'];
+                        // สี Earth Tone ตามที่กำหนด 
+                        const palette = ['#9A836F', '#878F7F', '#909E9E', '#BD7A5F', '#879885', '#D49A8C', '#CDA366'];
                         let segments = []; 
                         let legendItems = [];
+                        let groupCounts = {};
 
                         if (masterFilterSettings.statusMode === 'ALL') {
-                            donutLabel = 'สัดส่วน Classify';
-                            let groupCounts = {};
-                            filteredData.forEach(m => {
-                                let key = m.Classify ? String(m.Classify).trim() : 'ไม่ระบุ';
-                                groupCounts[key] = (groupCounts[key] || 0) + 1;
-                            });
-                            
-                            let keys = Object.keys(groupCounts).sort((a,b) => groupCounts[b] - groupCounts[a]);
-                            keys.forEach((key, idx) => {
-                                let count = groupCounts[key];
-                                let percent = total > 0 ? Math.round((count / total) * 100) : 0;
-                                let color = palette[idx % palette.length];
-                                
-                                let upKey = key.toUpperCase();
-                                if (upKey === 'FAMILY') color = '#F97316';
-                                else if (upKey === 'FRIENDS' || upKey === 'FRIEND') color = '#475569';
-                                else if (upKey === 'SEND' || upKey === 'ส่งออก') color = '#B45309';
-
-                                if(count > 0) {
-                                    segments.push({ percent: percent, color: color });
-                                    legendItems.push(`
-                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
-                                            <div style="color:${color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;">
-                                                <div style="width:10px; height:10px; border-radius:50%; background:${color};"></div> ${key}
-                                            </div>
-                                            <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${count})</span></div>
-                                        </div>
-                                    `);
-                                }
-                            });
+                            donutLabel = ''; // ซ่อนคำว่าสัดส่วน
+                            filteredData.forEach(m => { let key = m.Classify ? String(m.Classify).trim() : 'ไม่ระบุ'; groupCounts[key] = (groupCounts[key] || 0) + 1; });
                         } else {
-                            donutLabel = 'สัดส่วน Nxl_Status';
-                            let groupCounts = {};
-                            filteredData.forEach(m => {
-                                let key = m.Nxl_Status ? String(m.Nxl_Status).trim() : 'ไม่ระบุ';
-                                groupCounts[key] = (groupCounts[key] || 0) + 1;
-                            });
-                            
-                            let keys = Object.keys(groupCounts).sort((a,b) => groupCounts[b] - groupCounts[a]);
-                            keys.forEach((key, idx) => {
-                                let count = groupCounts[key];
-                                let percent = total > 0 ? Math.round((count / total) * 100) : 0;
-                                let color = palette[idx % palette.length];
-
-                                if(count > 0) {
-                                    segments.push({ percent: percent, color: color });
-                                    legendItems.push(`
-                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
-                                            <div style="color:${color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;">
-                                                <div style="width:10px; height:10px; border-radius:50%; background:${color};"></div> ${key}
-                                            </div>
-                                            <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${count})</span></div>
-                                        </div>
-                                    `);
-                                }
-                            });
+                            donutLabel = ''; // ซ่อนคำว่าสัดส่วน
+                            filteredData.forEach(m => { let key = m.Nxl_Status ? String(m.Nxl_Status).trim() : 'ไม่ระบุ'; groupCounts[key] = (groupCounts[key] || 0) + 1; });
                         }
 
+                        let keys = Object.keys(groupCounts);
+                        let sItems = keys.map((key) => {
+                            let prefix = key.substring(0, 2).toUpperCase();
+                            let order = 99;
+                            if (prefix === 'FM') order = 1;
+                            else if (prefix === 'FR') order = 2;
+                            else if (prefix === 'SE' || key.includes('Send') || key.includes('ส่งออก')) order = 3;
+                            return { label: key, count: groupCounts[key], order: order };
+                        });
+                        
+                        // เรียงตาม FM -> FR -> SEND
+                        sItems.sort((a, b) => {
+                            if (a.order !== b.order) return a.order - b.order;
+                            return a.label.localeCompare(b.label, 'th');
+                        });
+
+                        sItems.forEach((item, idx) => {
+                            let percent = total > 0 ? Math.round((item.count / total) * 100) : 0;
+                            let color = palette[idx % palette.length];
+                            if(item.count > 0) {
+                                segments.push({ percent: percent, color: color });
+                                legendItems.push(`
+                                    <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                        <div style="color:${color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:${color};"></div> ${item.label}</div>
+                                        <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${item.count})</span></div>
+                                    </div>
+                                `);
+                            }
+                        });
                         donutGradientStr = generateDonutGradient(segments);
                         donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:150px; overflow-y:auto; padding-right:5px;">${legendItems.join('')}</div>`;
                     }
@@ -715,7 +739,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         </div>`; 
                     }
 
-                    // 🛑 ปรับ Layout ชุดบนใหม่ทั้งหมด! โดนัทตั้งตรง มีตาราง Legend ด้านล่าง
+                    // สร้างการ์ดแบบเดิมแต่ขยายขนาดกราฟโดนัทเป็น 140px (เต็มขนาดคอลัมน์) และโลโก้ 84px
                     contentArea.innerHTML = `
                     <div style="display:flex; align-items:stretch; gap:12px; margin-bottom:16px;">
                         <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px; text-align:center;">
@@ -723,11 +747,11 @@ CSS  ตกแต่งหน้าตาเว็บ
                             <div style="font-size:42px; font-weight:800; color:var(--orange); line-height:1.1; margin:8px 0;">${total}</div>
                             <div style="font-size:10px; color:var(--gray-text);">ตามเงื่อนไขที่เลือก</div>
                         </div>
-                        <div class="clean-card" style="flex:1.4; margin-bottom:0; display:flex; flex-direction:column; align-items:center; gap:12px; padding:15px;">
-                            <div style="font-weight:800; color:var(--charcoal); font-size:13px; text-align:center;">${donutLabel}</div>
-                            <div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
-                                <div style="width:52px; height:52px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                                    <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true" style="width:80%; height:auto; object-fit:contain;">
+                        <div class="clean-card" style="flex:1.4; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:15px;">
+                            ${donutLabel !== '' ? `<div style="font-weight:800; color:var(--charcoal); font-size:13px; text-align:center;">${donutLabel}</div>` : ''}
+                            <div style="width:140px; height:140px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; margin: 5px 0;">
+                                <div style="width:84px; height:84px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                                    <img src="${centerImageURL}" style="${currentActiveCircle === 'people' ? 'width:50%;' : 'width:80%;'} height:auto; object-fit:contain; opacity: 0.9;">
                                 </div>
                             </div>
                             <div style="width:100%; border-top:1px dashed #E2E8F0; padding-top:8px; margin-top:4px;">
