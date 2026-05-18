@@ -786,3 +786,127 @@
                                         <div style="font-size:11px; color:var(--gray-text);">Min (ค่าต่ำสุด)</div>
                                         <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.minVal} <span style="font-size:12px;">คน</span></div>
                                         <div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div>
+                                    </div>
+                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
+                                        <div style="font-size:11px; color:var(--gray-text);">Mean (ค่าเฉลี่ย)</div>
+                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.mean}</div>
+                                    </div>
+                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
+                                        <div style="font-size:11px; color:var(--gray-text);">Median (ค่ากลาง)</div>
+                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.median}</div>
+                                    </div>
+                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
+                                        <div style="font-size:11px; color:var(--gray-text);">Std Dev (ส่วนเบี่ยงเบนฯ)</div>
+                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.stdDev}</div>
+                                        <div style="font-size:9px; color:var(--gray-text); line-height:1.2; margin-top:4px;">ค่าความแตกต่างของกลุ่ม<br>ยิ่งสูง = ยิ่งต่างกันมาก</div>
+                                    </div>
+                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
+                                        <div style="font-size:11px; color:var(--gray-text);">CV (สัมประสิทธิ์ความแปรผัน)</div>
+                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.cv}<span style="font-size:12px;">%</span></div>
+                                        <div style="font-size:9px; color:${statData.cvColor}; line-height:1.2; margin-top:4px; font-weight:600;">${statData.cvDesc}</div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        let tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = sHTML;
+                        document.getElementById('bar-chart-card').parentNode.appendChild(tempDiv.firstElementChild);
+                    }
+                    setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 95) + '%'; }); }, 100);
+                } else {
+                    barContainer.innerHTML = '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>';
+                }
+
+            } else {
+                // หน้ารายชื่อ
+                const filteredData = getFilteredData();
+                if (filteredData.length === 0) {
+                    contentArea.innerHTML = `<div class="clean-card" style="text-align:center; padding:40px 20px;"><i class="fa-regular fa-folder-open" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i><p style="font-size:13px; color:var(--gray-text);">ไม่พบรายชื่อภายใต้ตัวกรองนี้</p></div>`;
+                    return;
+                }
+
+                let groupedData = {};
+                filteredData.forEach(m => {
+                    let groupKey = currentActiveCircle === 'people' ? (m.Nxl_Status || 'ไม่ระบุ') : (m.CareName || 'ไม่ระบุ');
+                    if (!groupedData[groupKey]) groupedData[groupKey] = [];
+                    groupedData[groupKey].push(m);
+                });
+
+                let sortedGroupKeys = Object.keys(groupedData).sort((a,b) => a.localeCompare(b, 'th'));
+                
+                let listHTML = '';
+                sortedGroupKeys.forEach(groupName => {
+                    groupedData[groupName].sort((a, b) => a.FullName_Display.localeCompare(b.FullName_Display, 'th'));
+                    
+                    listHTML += `<div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:16px; border-bottom: 2px solid var(--orange-soft); padding-bottom:5px;">${groupName} <span style="color:var(--gray-text); font-size:12px; font-weight:normal; margin-left:5px;">(${groupedData[groupName].length} คน)</span></div>`;
+                    
+                    groupedData[groupName].forEach(m => {
+                        let safeId = String(m.Member_ID).replace(/'/g, "\\'"); 
+                        let initial = m.FullName_Display ? m.FullName_Display.charAt(0) : '?';
+                        let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '') 
+                            ? `<div class="member-photo-container"><img src="${m.Url_Image}" loading="lazy"></div>` 
+                            : `<div class="member-photo-container" style="background:var(--orange-soft); color:var(--orange); font-size:20px; font-weight:800;">${initial}</div>`;
+
+                        listHTML += `
+                            <div class="member-list-item" onclick="openProfile('${safeId}')">
+                                ${profileImageHTML}
+                                <div class="member-info-container">
+                                    <div class="member-name">${m.FullName_Display}</div>
+                                    <div class="member-subdata">แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}</div>
+                                </div>
+                                <i class="fa-solid fa-chevron-right member-arrow"></i>
+                            </div>`;
+                    });
+                });
+                contentArea.innerHTML = listHTML;
+            }
+        }
+
+    // ==========================================
+    // 🔐 ระบบกดรหัส PIN
+    // ==========================================
+    function pressKey(num) { 
+        if (pinInput.length < 4) { 
+            pinInput += num; 
+            renderDots(); 
+            if (pinInput.length === 4) setTimeout(validatePin, 300); 
+        } 
+    }
+    
+    function delKey() { 
+        if (pinInput.length > 0) { 
+            pinInput = pinInput.slice(0, -1); 
+            renderDots(); 
+        } 
+    }
+    
+    function renderDots() { 
+        const dots = document.querySelectorAll('.dot'); 
+        dots.forEach((dot, index) => { 
+            if (index < pinInput.length) dot.classList.add('filled');
+            else dot.classList.remove('filled');
+        }); 
+    }
+    
+    function validatePin() { 
+        if (pinInput === '5555') { 
+            document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; 
+            document.getElementById('screen-home').classList.add('visible'); 
+        } else { 
+            showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); 
+            pinInput = ''; 
+            renderDots(); 
+        } 
+    }
+    
+    function showAlert(t, m) { 
+        document.getElementById('alert-title-text').innerText = t; 
+        document.getElementById('alert-msg-text').innerText = m; 
+        document.getElementById('custom-alert').classList.add('show'); 
+    }
+    
+    function closeAlert() { 
+        document.getElementById('custom-alert').classList.remove('show'); 
+    }
+</script>
+</body>
+</html>
