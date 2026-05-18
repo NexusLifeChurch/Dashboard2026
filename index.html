@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.067</title>
+    <title>NxLife Community version #1.0.068</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.067</div>
+            <div class="version-tag">version #1.0.068</div>
         </div>
 
         <div id="screen-pin">
@@ -367,7 +367,15 @@ CSS  ตกแต่งหน้าตาเว็บ
             }
         }, 2000);
 
-        // 🛑 แอปมีหน้าที่แค่อ่านค่าตรงๆ ที่ API ปรุงสุกมาแล้ว
+        // 🛑 ฟังก์ชันแปลงลิงก์พรีวิวให้กลายเป็นลิงก์ไฟล์ดิบสำหรับดึงรูปภาพโดยเฉพาะ
+        function getSafeImageUrl(url) {
+            if (!url) return '';
+            if (url.includes('drive.google.com')) {
+                return url.replace('export=view', 'export=download');
+            }
+            return url;
+        }
+
         function fetchAllSheetsData() {
             fetch(API_URL)
                 .then(res => res.json())
@@ -480,9 +488,10 @@ CSS  ตกแต่งหน้าตาเว็บ
             let initial = cleanNameForInitial.charAt(0) || '?';
             let profileImageHTML = '';
             
-            // 📸 ดึงรูปจาก Url_Image ตรงๆ โชว์เลย
-            if (member.Url_Image && member.Url_Image.startsWith('http')) {
-                profileImageHTML = `<img src="${member.Url_Image}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">`;
+            // 📸 แปลงลิงก์ผ่านตัวกรองอัจฉริยะก่อนนำไปแปะลงจอ
+            let safeUrl = getSafeImageUrl(member.Url_Image);
+            if (safeUrl && safeUrl.startsWith('http')) {
+                profileImageHTML = `<img src="${safeUrl}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">`;
             } else {
                 profileImageHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
             }
@@ -614,10 +623,13 @@ CSS  ตกแต่งหน้าตาเว็บ
                             let initial = cleanNameForInitial.charAt(0) || '?';
                             let safeId = String(m.Member_ID).replace(/'/g, "\\'"); 
                             
+                            // 📸 ดึงรูปรายชื่อผ่านตัวกรองลิงก์อัจฉริยะในหน้า List View
+                            let safeUrl = getSafeImageUrl(m.Url_Image);
+
                             listHTML += `
                                 <div class="clean-card" style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s;" onclick="openProfile('${safeId}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
                                     <div style="width:42px; height:42px; border-radius:50%; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; font-weight:800; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow:hidden;">
-                                        ${(m.Url_Image && m.Url_Image.startsWith('http')) ? `<img src="${m.Url_Image}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`}
+                                        ${(safeUrl && safeUrl.startsWith('http')) ? `<img src="${safeUrl}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`}
                                     </div>
                                     <div style="flex:1; overflow:hidden;">
                                         <div style="font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.FullName_Display}</div>
