@@ -387,12 +387,15 @@ CSS  ตกแต่งหน้าตาเว็บ
                         else if (m.IsFemale) normGender = 'หญิง';
                         else if (m.Gender !== '') normGender = 'อื่นๆ';
 
+                        // 🛑 ดึงค่ามาแบบดิบๆ เชื่อใจ Dropdown 100% (ไม่มีการแปลงตัวพิมพ์ใหญ่อีกต่อไป)
+                        let exactClassify = String(m.Classify || 'อื่นๆ').trim();
+
                         return {
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                             Nxl_Status: m.Nxl_Status,
-                            Classify: m.Classify || 'อื่นๆ', // ดึงคำจาก Dropdown ตรงๆ มาเก็บไว้
+                            Classify: exactClassify, 
                             Gender: normGender, 
                             FullName_Display: m.FullName_Display,
                             Url_Image: m.Url_Image || '', 
@@ -407,21 +410,17 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
-        // 🛑 ดึงเงื่อนไขที่ถูกต้องของพี่กลับมาทั้งหมด
         function getFilteredData() {
             return dbMembers.filter(m => {
-                let cls = String(m.Classify).trim();
-                let isFam = cls === 'Family' || cls.toUpperCase() === 'FAMILY';
-                let isFri = cls === 'Friends' || cls === 'Friend' || cls.toUpperCase() === 'FRIENDS';
-                let isSnd = cls === 'Send' || cls === 'ส่งออก' || cls.toUpperCase() === 'SEND';
-
                 let statusMatch = true;
+                
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    // COMMUNITY = เอาเฉพาะ Family กับ Friends
-                    statusMatch = (isFam || isFri);
+                    // 🛑 เทียบตรงๆ เป๊ะทุกตัวอักษร
+                    statusMatch = (m.Classify === 'Family' || m.Classify === 'Friends');
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    // SEND = เอา Send/ส่งออก มาบวกกับคนที่เป็น Fr-Rtn 
-                    let isRtn = String(m.Nxl_Status).toUpperCase().includes('RTN');
+                    // 🛑 เทียบตรงๆ เป๊ะทุกตัวอักษร
+                    let isSnd = (m.Classify === 'Send');
+                    let isRtn = String(m.Nxl_Status).includes('Rtn');
                     statusMatch = (isSnd || isRtn);
                 }
                 
@@ -585,14 +584,17 @@ CSS  ตกแต่งหน้าตาเว็บ
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        // 🛑 นับจากคอลัมน์ Classify ดื้อๆ โดยเช็กคำว่า ส่งออก ด้วย!
                         let famCount = 0, friCount = 0, sndCount = 0, othCount = 0;
                         filteredData.forEach(m => {
-                            let cls = String(m.Classify).trim();
-                            if (cls === 'Family' || cls.toUpperCase() === 'FAMILY') famCount++;
-                            else if (cls === 'Friends' || cls === 'Friend' || cls.toUpperCase() === 'FRIENDS') friCount++;
-                            else if (cls === 'Send' || cls === 'ส่งออก' || cls.toUpperCase() === 'SEND') sndCount++;
-                            else othCount++;
+                            if (masterFilterSettings.statusMode === 'SEND') {
+                                sndCount++; // ในโหมด SEND กวาดลงกล่อง Send 100%
+                            } else {
+                                // 🛑 เช็กตัวอักษรเป๊ะๆ 
+                                if (m.Classify === 'Family') famCount++;
+                                else if (m.Classify === 'Friends') friCount++;
+                                else if (m.Classify === 'Send') sndCount++;
+                                else othCount++;
+                            }
                         });
 
                         let pFam = total > 0 ? Math.round((famCount / total) * 100) : 0; 
