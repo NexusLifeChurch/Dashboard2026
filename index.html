@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.061</title>
+    <title>NxLife Community version #1.0.062</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.061</div>
+            <div class="version-tag">version #1.0.062</div>
         </div>
 
         <div id="screen-pin">
@@ -509,28 +509,32 @@ CSS  ตกแต่งหน้าตาเว็บ
         function calculateStats(statsArray) {
             if (!statsArray || statsArray.length === 0) return null;
             let counts = statsArray.map(s => s.count).sort((a, b) => a - b);
-            let n = counts.length;
-            let sum = counts.reduce((a, b) => a + b, 0);
-            let mean = sum / n;
+            
+            // เพิ่มตัวแปรสำหรับเก็บจำนวนกลุ่ม (N) และจำนวนคนรวม (Sum)
+            let groupCount = counts.length;
+            let totalPeople = counts.reduce((a, b) => a + b, 0);
+            
+            let mean = totalPeople / groupCount;
 
             let median = 0;
-            if (n % 2 === 0) {
-                median = (counts[n / 2 - 1] + counts[n / 2]) / 2;
+            if (groupCount % 2 === 0) {
+                median = (counts[groupCount / 2 - 1] + counts[groupCount / 2]) / 2;
             } else {
-                median = counts[Math.floor(n / 2)];
+                median = counts[Math.floor(groupCount / 2)];
             }
 
-            let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / n;
+            let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / groupCount;
             let stdDev = Math.sqrt(variance);
 
             let minVal = counts[0];
-            let maxVal = counts[n - 1];
+            let maxVal = counts[groupCount - 1];
 
-            // หากลุ่มที่ได้ค่า Min / Max
             let minGroups = statsArray.filter(s => s.count === minVal).map(s => s.name);
             let maxGroups = statsArray.filter(s => s.count === maxVal).map(s => s.name);
 
             return {
+                groupCount: groupCount,
+                totalPeople: totalPeople,
                 mean: mean.toFixed(2),
                 median: median.toFixed(2),
                 variance: variance.toFixed(2),
@@ -542,7 +546,6 @@ CSS  ตกแต่งหน้าตาเว็บ
             };
         }
 
-        // ตัวจัดการข้อความยาวๆ ไม่ให้ล้นหน้าจอ (โชว์สูงสุด 2 ชื่อ แล้วต่อด้วย อื่นๆ)
         function formatGroups(groups) {
             if (groups.length <= 2) {
                 return groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '');
@@ -685,9 +688,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                     let barStats = [];
 
                     if (currentActiveCircle === 'people') {
-                        // ==================================================
-                        // 👥 มุมมองกลุ่มคน (สถานภาพ & เพศ)
-                        // ==================================================
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
 
                         let statusMap = {};
@@ -724,9 +724,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                             </div>`;
 
                     } else {
-                        // ==================================================
-                        // 🏡 มุมมองกลุ่มแคร์ (Care)
-                        // ==================================================
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
 
                         masterFilterSettings.selectedCares.forEach(cid => {
@@ -747,13 +744,11 @@ CSS  ตกแต่งหน้าตาเว็บ
                         let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
 
                         donutLabel = 'สัดส่วนสถานภาพ';
-                        
-                        // 🎨 พรีเมียมพาเลทแบบ Earth Tone
                         donutGradientStr = generateDonutGradient([
                             { percent: pFam, color: 'var(--orange)' }, 
                             { percent: pFri, color: '#5D6D7E' },       
-                            { percent: pSnd, color: '#A67B5B' }, // Earth Brown สำหรับ Send
-                            { percent: pOth, color: '#BCAAA4' }  // Warm Stone (เทาอมน้ำตาล) สำหรับอื่นๆ
+                            { percent: pSnd, color: '#A67B5B' }, 
+                            { percent: pOth, color: '#BCAAA4' }  
                         ]);
 
                         donutLegendHTML = `
@@ -765,16 +760,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                             </div>`;
                     }
                     
-                    // 🛑 1. การจัดเรียง (Sorting) ใหม่ตามที่พี่ขอ
                     if (currentActiveCircle === 'people') {
-                        // หน้าคน: เรียงตัวอักษรของ Nxl_Status (A-Z) เพื่อให้ตระกูลเดียวกันอยู่ติดกัน
                         barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
                     } else {
-                        // หน้าแคร์: เรียงตาม ID
                         barStats.sort((a,b) => String(a.id).localeCompare(String(b.id), 'th', { numeric: true })); 
                     }
 
-                    // 🛑 2. หัวใจสำคัญ: หาค่าสูงสุดเพื่อใช้ตีสเกลกราฟที่ 90% (เหลือช่องไฟ)
                     let maxBarCount = Math.max(...barStats.map(s => s.count), 1);
 
                     let barHTML = barStats.map((s, index) => `
@@ -784,114 +775,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                             </div>
                             <div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;">
                                 <div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div>
-                            </div>
-                        </div>`).join('');
-
-                    // 🛑 3. คำนวณสถิติวิเคราะห์ (Descriptive Statistics)
-                    let statsHTML = '';
-                    let statData = calculateStats(barStats);
-                    
-                    if (statData && total > 0) {
-                        statsHTML = `
-                            <div class="clean-card" style="margin-top: 20px;">
-                                <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--orange);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Max (ค่าสูงสุด)</div>
-                                        <div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.maxVal} คน</div>
-                                        <div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.maxGroups)}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Min (ค่าต่ำสุด)</div>
-                                        <div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.minVal} คน</div>
-                                        <div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Mean (ค่าเฉลี่ย)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal);">${statData.mean}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Median (ค่ากลาง)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal);">${statData.median}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Std Dev (ส่วนเบี่ยงเบนฯ)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal);">${statData.stdDev}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Variance (ความแปรปรวน)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal);">${statData.variance}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-
-                    contentArea.innerHTML = `
-                        <div style="display:flex; gap:12px; margin-bottom:16px;">
-                            <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
-                                <div style="font-size:12px; color:var(--gray-text);">สมาชิกทั้งหมด</div>
-                                <div style="font-size:32px; font-weight:800; color:var(--orange);">${total}</div>
-                                <div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div>
-                            </div>
-                            <div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
-                                <div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
-                                    <div style="width:50px; height:50px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--charcoal);">${total}</div>
-                                </div>
-                                <div style="font-size:11px; color:var(--gray-text); line-height:1.4;">
-                                    <div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>
-                                    ${donutLegendHTML}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="clean-card" style="margin-bottom:0;">
-                            <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div>
-                            <div style="max-height:280px; overflow-y:auto; padding-right:5px;">
-                                ${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>'}
-                            </div>
-                        </div>
-                        
-                        ${statsHTML} `;
-
-                    // วาดกราฟโดยอิงจากสัดส่วนของกลุ่มที่คนเยอะที่สุด (ลดสเกลเหลือ 90%)
-                    setTimeout(() => {
-                        barStats.forEach((s, index) => {
-                            const bar = document.getElementById(`bar-idx-${index}`);
-                            if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%';
-                        });
-                    }, 100);
-
-                } else {
-                    contentArea.innerHTML = `
-                        <div class="clean-card" style="border-top:4px solid var(--orange); text-align:center; padding:40px 20px;">
-                            <i class="fa-solid fa-list-check" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i>
-                            <h3 style="color:var(--charcoal); font-size:16px;">หน้ารายชื่อสมาชิก (${getFilteredData().length} คน)</h3>
-                            <p style="font-size:13px; color:var(--gray-text);">พร้อมสำหรับสเต็ปการวาดการ์ดรายชื่อแล้วครับ</p>
-                        </div>`;
-                }
-            }
-        }
-
-        let pinInput = '';
-        const dots = document.querySelectorAll('.dot');
-        function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
-        function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
-        function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
-        
-        function validatePin() { 
-            if (pinInput === '5555') { 
-                document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; 
-                document.getElementById('screen-home').classList.add('visible'); 
-            } else { 
-                showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); 
-                pinInput = ''; 
-                renderDots(); 
-            } 
-        }
-        function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
-        function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
-    </script>
     
 </body>
 </html>
