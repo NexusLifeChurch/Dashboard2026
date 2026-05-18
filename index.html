@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.074</title>
+    <title>NxLife Community version #1.0.078</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.074</div>
+            <div class="version-tag">version #1.0.078</div>
         </div>
 
         <div id="screen-pin">
@@ -387,16 +387,19 @@ CSS  ตกแต่งหน้าตาเว็บ
                         else if (m.IsFemale) normGender = 'หญิง';
                         else if (m.Gender !== '') normGender = 'อื่นๆ';
 
+                        // 🛑 ดึงค่ามาแบบดิบๆ เชื่อใจ Dropdown 100% (ไม่มีการแปลงตัวพิมพ์ใหญ่อีกต่อไป)
+                        let exactClassify = String(m.Classify || 'อื่นๆ').trim();
+
                         return {
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                             Nxl_Status: m.Nxl_Status,
-                            Classify: m.Classify || 'อื่นๆ',
-                            Gender: normGender, // 🛑 ตัวแปรที่เก็บเพศเพื่อเอาไปใช้งาน
+                            Classify: exactClassify, 
+                            Gender: normGender, 
                             FullName_Display: m.FullName_Display,
                             Url_Image: m.Url_Image || '', 
-                            IsFamily: m.IsFamily, IsFriend: m.IsFriend, IsSend: m.IsSend, IsKids: m.IsKids
+                            IsKids: m.IsKids
                         };
                     });
 
@@ -409,7 +412,18 @@ CSS  ตกแต่งหน้าตาเว็บ
 
         function getFilteredData() {
             return dbMembers.filter(m => {
-                let statusMatch = masterFilterSettings.statusMode === 'COMMUNITY' ? (m.IsFamily || m.IsFriend) : (masterFilterSettings.statusMode === 'SEND' ? m.IsSend : true);
+                let statusMatch = true;
+                
+                if (masterFilterSettings.statusMode === 'COMMUNITY') {
+                    // 🛑 เทียบตรงๆ เป๊ะทุกตัวอักษร
+                    statusMatch = (m.Classify === 'Family' || m.Classify === 'Friends');
+                } else if (masterFilterSettings.statusMode === 'SEND') {
+                    // 🛑 เทียบตรงๆ เป๊ะทุกตัวอักษร
+                    let isSnd = (m.Classify === 'Send');
+                    let isRtn = String(m.Nxl_Status).includes('Rtn');
+                    statusMatch = (isSnd || isRtn);
+                }
+                
                 let kidsMatch = masterFilterSettings.includeKids ? true : !m.IsKids;
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
                 return statusMatch && kidsMatch && careMatch;
@@ -555,7 +569,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                         let statusMap = {}; filteredData.forEach(m => { let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ'; statusMap[st] = (statusMap[st] || 0) + 1; });
                         for (let k in statusMap) barStats.push({ name: k, count: statusMap[k], id: k });
 
-                        // 🛑 วิธีแก้: เช็กเพศจากตัวแปร Gender โดยตรงเลยครับ! ไม่พึ่ง IsMale แล้ว
                         let maleCount = filteredData.filter(m => m.Gender === 'ชาย').length; 
                         let femaleCount = filteredData.filter(m => m.Gender === 'หญิง').length; 
                         let unkCount = total - (maleCount + femaleCount);
@@ -571,10 +584,43 @@ CSS  ตกแต่งหน้าตาเว็บ
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        let famCount = filteredData.filter(m => m.IsFamily).length; let friCount = filteredData.filter(m => m.IsFriend).length; let sndCount = filteredData.filter(m => m.IsSend).length; let othCount = total - (famCount + friCount + sndCount);
-                        let pFam = total > 0 ? Math.round((famCount / total) * 100) : 0; let pFri = total > 0 ? Math.round((friCount / total) * 100) : 0; let pSnd = total > 0 ? Math.round((sndCount / total) * 100) : 0; let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
-                        donutLabel = 'สัดส่วนสถานภาพ'; donutGradientStr = generateDonutGradient([ { percent: pFam, color: 'var(--orange)' }, { percent: pFri, color: '#5D6D7E' }, { percent: pSnd, color: '#A67B5B' }, { percent: pOth, color: '#BCAAA4' } ]);
-                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div><div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friend: ${friCount} (${pFri}%)</div><div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>${othCount > 0 ? `<div style="color:#BCAAA4; font-weight:700; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}</div>`;
+                        let famCount = 0, friCount = 0, sndCount = 0, othCount = 0;
+                        filteredData.forEach(m => {
+                            if (masterFilterSettings.statusMode === 'SEND') {
+                                sndCount++; // ในโหมด SEND กวาดลงกล่อง Send 100%
+                            } else {
+                                // 🛑 เช็กตัวอักษรเป๊ะๆ 
+                                if (m.Classify === 'Family') famCount++;
+                                else if (m.Classify === 'Friends') friCount++;
+                                else if (m.Classify === 'Send') sndCount++;
+                                else othCount++;
+                            }
+                        });
+
+                        let pFam = total > 0 ? Math.round((famCount / total) * 100) : 0; 
+                        let pFri = total > 0 ? Math.round((friCount / total) * 100) : 0; 
+                        let pSnd = total > 0 ? Math.round((sndCount / total) * 100) : 0; 
+                        let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
+                        
+                        let segments = []; let legendItems = [];
+                        
+                        if (masterFilterSettings.statusMode === 'COMMUNITY') {
+                            donutLabel = 'สัดส่วน COMMUNITY';
+                            if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
+                            if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
+                        } else if (masterFilterSettings.statusMode === 'SEND') {
+                            donutLabel = 'กลุ่ม SEND';
+                            if(pSnd > 0) { segments.push({ percent: pSnd, color: '#A67B5B' }); legendItems.push(`<div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>`); }
+                        } else {
+                            donutLabel = 'สัดส่วนสถานภาพ';
+                            if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
+                            if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
+                            if(pSnd > 0) { segments.push({ percent: pSnd, color: '#A67B5B' }); legendItems.push(`<div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>`); }
+                            if(othCount > 0) { segments.push({ percent: pOth, color: '#BCAAA4' }); legendItems.push(`<div style="color:#BCAAA4; font-weight:700; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>`); }
+                        }
+
+                        donutGradientStr = generateDonutGradient(segments);
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;">${legendItems.join('')}</div>`;
                     }
                     
                     if (currentActiveCircle === 'people') barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
@@ -585,7 +631,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                     
                     let statsHTML = ''; let statData = calculateStats(barStats);
                     if (statData && total > 0) { 
-                        // 🛑 ปรับขนาดฟอนต์ตัวเลขให้เป็น 20px และหนา 800 เท่ากันหมดทุกช่อง! 
                         statsHTML = `
                         <div class="clean-card" style="margin-top: 20px; margin-bottom: 0;">
                             <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--orange);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div>
@@ -630,7 +675,31 @@ CSS  ตกแต่งหน้าตาเว็บ
                         </div>`; 
                     }
 
-                    contentArea.innerHTML = `<div style="display:flex; gap:12px; margin-bottom:16px;"><div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;"><div style="font-size:12px; color:var(--gray-text);">สมาชิกทั้งหมด</div><div style="font-size:32px; font-weight:800; color:var(--orange);">${total}</div><div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div></div><div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;"><div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;"><div style="width:50px; height:50px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--charcoal);">${total}</div></div><div style="font-size:11px; color:var(--gray-text); line-height:1.4;"><div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>${donutLegendHTML}</div></div></div><div class="clean-card" style="margin-bottom:0;"><div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div><div style="max-height:280px; overflow-y:auto; padding-right:5px;">${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>'}</div></div>${statsHTML}`;
+                    contentArea.innerHTML = `
+                    <div style="display:flex; gap:12px; margin-bottom:16px;">
+                        <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
+                            <div style="font-size:12px; color:var(--gray-text);">จำนวนสมาชิก</div>
+                            <div style="font-size:40px; font-weight:800; color:var(--orange); line-height:1;">${total}</div>
+                            <div style="font-size:10px; color:var(--gray-text); margin-top:4px;">ตามเงื่อนไขที่เลือก</div>
+                        </div>
+                        <div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
+                            <div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
+                                <div style="width:54px; height:54px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                    <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true" style="width:80%; height:auto; object-fit:contain;">
+                                </div>
+                            </div>
+                            <div style="font-size:11px; color:var(--gray-text); line-height:1.4;">
+                                <div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>
+                                ${donutLegendHTML}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clean-card" style="margin-bottom:0;">
+                        <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div>
+                        <div style="max-height:280px; overflow-y:auto; padding-right:5px;">${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>'}</div>
+                    </div>
+                    ${statsHTML}`;
+                    
                     setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
                 } else {
