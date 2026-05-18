@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.063</title>
+    <title>NxLife Community version #1.0.064</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.063</div>
+            <div class="version-tag">version #1.0.064</div>
         </div>
 
         <div id="screen-pin">
@@ -504,13 +504,12 @@ CSS  ตกแต่งหน้าตาเว็บ
         }
 
         // ==========================================
-        // 📊 ฟังก์ชันคำนวณสถิติวิเคราะห์ (Descriptive Stats)
+        // 📊 ฟังก์ชันคำนวณสถิติวิเคราะห์ (Descriptive Stats) - อัปเดตเพิ่ม CV
         // ==========================================
         function calculateStats(statsArray) {
             if (!statsArray || statsArray.length === 0) return null;
             let counts = statsArray.map(s => s.count).sort((a, b) => a - b);
             
-            // เพิ่มตัวแปรสำหรับเก็บจำนวนกลุ่ม (N) และจำนวนคนรวม (Sum)
             let groupCount = counts.length;
             let totalPeople = counts.reduce((a, b) => a + b, 0);
             
@@ -525,6 +524,9 @@ CSS  ตกแต่งหน้าตาเว็บ
 
             let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / groupCount;
             let stdDev = Math.sqrt(variance);
+            
+            // 🛑 คำนวณสัมประสิทธิ์การแปรผัน (CV) สูตร: (StdDev / Mean) * 100
+            let cv = (mean !== 0) ? (stdDev / mean) * 100 : 0;
 
             let minVal = counts[0];
             let maxVal = counts[groupCount - 1];
@@ -537,8 +539,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                 totalPeople: totalPeople,
                 mean: mean.toFixed(2),
                 median: median.toFixed(2),
-                variance: variance.toFixed(2),
                 stdDev: stdDev.toFixed(2),
+                cv: cv.toFixed(2), // 🛑 ส่งออกค่า CV
                 minVal: minVal,
                 minGroups: minGroups,
                 maxVal: maxVal,
@@ -778,7 +780,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             </div>
                         </div>`).join('');
 
-                    // 🛑 คำนวณและสร้าง Layout สำหรับ Descriptive Stats (เพิ่ม จำนวนกลุ่ม และ จำนวนคนรวม)
+                    // 🛑 อัปเดตกล่องสถิติ เปลี่ยนจาก Variance เป็น CV (%)
                     let statsHTML = '';
                     let statData = calculateStats(barStats);
                     
@@ -818,8 +820,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                                         <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.stdDev}</div>
                                     </div>
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Variance (ความแปรปรวน)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.variance}</div>
+                                        <div style="font-size:11px; color:var(--gray-text);">CV (สัมประสิทธิ์ความแปรผัน)</div>
+                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.cv}%</div>
                                     </div>
                                 </div>
                             </div>
