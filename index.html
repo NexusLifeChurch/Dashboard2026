@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.076</title>
+    <title>NxLife Community version #1.0.077</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.076</div>
+            <div class="version-tag">version #1.0.077</div>
         </div>
 
         <div id="screen-pin">
@@ -387,16 +387,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                         else if (m.IsFemale) normGender = 'หญิง';
                         else if (m.Gender !== '') normGender = 'อื่นๆ';
 
-                        // รับข้อมูลตรงๆ จาก Dropdown 
-                        let exactClassify = String(m.Classify || 'OTHER').toUpperCase().trim();
-
                         return {
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                             Nxl_Status: m.Nxl_Status,
-                            Classify: m.Classify || 'อื่นๆ',
-                            NormClassify: exactClassify, 
+                            Classify: m.Classify || 'อื่นๆ', // ดึงคำจาก Dropdown ตรงๆ มาเก็บไว้
                             Gender: normGender, 
                             FullName_Display: m.FullName_Display,
                             Url_Image: m.Url_Image || '', 
@@ -411,14 +407,22 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
+        // 🛑 ดึงเงื่อนไขที่ถูกต้องของพี่กลับมาทั้งหมด
         function getFilteredData() {
             return dbMembers.filter(m => {
+                let cls = String(m.Classify).trim();
+                let isFam = cls === 'Family' || cls.toUpperCase() === 'FAMILY';
+                let isFri = cls === 'Friends' || cls === 'Friend' || cls.toUpperCase() === 'FRIENDS';
+                let isSnd = cls === 'Send' || cls === 'ส่งออก' || cls.toUpperCase() === 'SEND';
+
                 let statusMatch = true;
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    // 🛑 เปลี่ยนเป็น FRIENDS เติม S ให้ตรงเป๊ะ
-                    statusMatch = (m.NormClassify === 'FAMILY' || m.NormClassify === 'FRIENDS');
+                    // COMMUNITY = เอาเฉพาะ Family กับ Friends
+                    statusMatch = (isFam || isFri);
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-                    statusMatch = (m.NormClassify === 'SEND');
+                    // SEND = เอา Send/ส่งออก มาบวกกับคนที่เป็น Fr-Rtn 
+                    let isRtn = String(m.Nxl_Status).toUpperCase().includes('RTN');
+                    statusMatch = (isSnd || isRtn);
                 }
                 
                 let kidsMatch = masterFilterSettings.includeKids ? true : !m.IsKids;
@@ -581,12 +585,13 @@ CSS  ตกแต่งหน้าตาเว็บ
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
+                        // 🛑 นับจากคอลัมน์ Classify ดื้อๆ โดยเช็กคำว่า ส่งออก ด้วย!
                         let famCount = 0, friCount = 0, sndCount = 0, othCount = 0;
                         filteredData.forEach(m => {
-                            if (m.NormClassify === 'FAMILY') famCount++;
-                            // 🛑 แก้ตัว S ให้ตรงกันเป๊ะตาม Dropdown 
-                            else if (m.NormClassify === 'FRIENDS') friCount++;
-                            else if (m.NormClassify === 'SEND') sndCount++;
+                            let cls = String(m.Classify).trim();
+                            if (cls === 'Family' || cls.toUpperCase() === 'FAMILY') famCount++;
+                            else if (cls === 'Friends' || cls === 'Friend' || cls.toUpperCase() === 'FRIENDS') friCount++;
+                            else if (cls === 'Send' || cls === 'ส่งออก' || cls.toUpperCase() === 'SEND') sndCount++;
                             else othCount++;
                         });
 
@@ -600,7 +605,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                         if (masterFilterSettings.statusMode === 'COMMUNITY') {
                             donutLabel = 'สัดส่วน COMMUNITY';
                             if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
-                            // 🛑 เปลี่ยน Text เป็น Friends
                             if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
                         } else if (masterFilterSettings.statusMode === 'SEND') {
                             donutLabel = 'กลุ่ม SEND';
