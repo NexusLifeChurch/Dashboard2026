@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.075</title>
+    <title>NxLife Community version #1.0.076</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.075</div>
+            <div class="version-tag">version #1.0.076</div>
         </div>
 
         <div id="screen-pin">
@@ -387,16 +387,20 @@ CSS  ตกแต่งหน้าตาเว็บ
                         else if (m.IsFemale) normGender = 'หญิง';
                         else if (m.Gender !== '') normGender = 'อื่นๆ';
 
+                        // รับข้อมูลตรงๆ จาก Dropdown 
+                        let exactClassify = String(m.Classify || 'OTHER').toUpperCase().trim();
+
                         return {
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                             Nxl_Status: m.Nxl_Status,
                             Classify: m.Classify || 'อื่นๆ',
-                            Gender: normGender,
+                            NormClassify: exactClassify, 
+                            Gender: normGender, 
                             FullName_Display: m.FullName_Display,
                             Url_Image: m.Url_Image || '', 
-                            IsFamily: m.IsFamily, IsFriend: m.IsFriend, IsSend: m.IsSend, IsKids: m.IsKids
+                            IsKids: m.IsKids
                         };
                     });
 
@@ -409,7 +413,14 @@ CSS  ตกแต่งหน้าตาเว็บ
 
         function getFilteredData() {
             return dbMembers.filter(m => {
-                let statusMatch = masterFilterSettings.statusMode === 'COMMUNITY' ? (m.IsFamily || m.IsFriend) : (masterFilterSettings.statusMode === 'SEND' ? m.IsSend : true);
+                let statusMatch = true;
+                if (masterFilterSettings.statusMode === 'COMMUNITY') {
+                    // 🛑 เปลี่ยนเป็น FRIENDS เติม S ให้ตรงเป๊ะ
+                    statusMatch = (m.NormClassify === 'FAMILY' || m.NormClassify === 'FRIENDS');
+                } else if (masterFilterSettings.statusMode === 'SEND') {
+                    statusMatch = (m.NormClassify === 'SEND');
+                }
+                
                 let kidsMatch = masterFilterSettings.includeKids ? true : !m.IsKids;
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
                 return statusMatch && kidsMatch && careMatch;
@@ -570,13 +581,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        // 🛑 แก้บั๊ก 147%: นับจาก Classify ดื้อๆ เลยครับ (1 คนอยู่ได้กลุ่มเดียวแน่นอน)
                         let famCount = 0, friCount = 0, sndCount = 0, othCount = 0;
                         filteredData.forEach(m => {
-                            let cls = String(m.Classify).toUpperCase();
-                            if(cls === 'FAMILY') famCount++;
-                            else if(cls === 'FRIEND') friCount++;
-                            else if(cls === 'SEND') sndCount++;
+                            if (m.NormClassify === 'FAMILY') famCount++;
+                            // 🛑 แก้ตัว S ให้ตรงกันเป๊ะตาม Dropdown 
+                            else if (m.NormClassify === 'FRIENDS') friCount++;
+                            else if (m.NormClassify === 'SEND') sndCount++;
                             else othCount++;
                         });
 
@@ -585,9 +595,26 @@ CSS  ตกแต่งหน้าตาเว็บ
                         let pSnd = total > 0 ? Math.round((sndCount / total) * 100) : 0; 
                         let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
                         
-                        donutLabel = 'สัดส่วนสถานภาพ'; 
-                        donutGradientStr = generateDonutGradient([ { percent: pFam, color: 'var(--orange)' }, { percent: pFri, color: '#5D6D7E' }, { percent: pSnd, color: '#A67B5B' }, { percent: pOth, color: '#BCAAA4' } ]);
-                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div><div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friend: ${friCount} (${pFri}%)</div><div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>${othCount > 0 ? `<div style="color:#BCAAA4; font-weight:700; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}</div>`;
+                        let segments = []; let legendItems = [];
+                        
+                        if (masterFilterSettings.statusMode === 'COMMUNITY') {
+                            donutLabel = 'สัดส่วน COMMUNITY';
+                            if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
+                            // 🛑 เปลี่ยน Text เป็น Friends
+                            if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
+                        } else if (masterFilterSettings.statusMode === 'SEND') {
+                            donutLabel = 'กลุ่ม SEND';
+                            if(pSnd > 0) { segments.push({ percent: pSnd, color: '#A67B5B' }); legendItems.push(`<div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>`); }
+                        } else {
+                            donutLabel = 'สัดส่วนสถานภาพ';
+                            if(pFam > 0) { segments.push({ percent: pFam, color: 'var(--orange)' }); legendItems.push(`<div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div>`); }
+                            if(pFri > 0) { segments.push({ percent: pFri, color: '#5D6D7E' }); legendItems.push(`<div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friends: ${friCount} (${pFri}%)</div>`); }
+                            if(pSnd > 0) { segments.push({ percent: pSnd, color: '#A67B5B' }); legendItems.push(`<div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>`); }
+                            if(othCount > 0) { segments.push({ percent: pOth, color: '#BCAAA4' }); legendItems.push(`<div style="color:#BCAAA4; font-weight:700; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>`); }
+                        }
+
+                        donutGradientStr = generateDonutGradient(segments);
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;">${legendItems.join('')}</div>`;
                     }
                     
                     if (currentActiveCircle === 'people') barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
@@ -642,7 +669,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                         </div>`; 
                     }
 
-                    // 🛑 ปรับ UI กล่องสรุปจำนวนสมาชิก และฝังโลโก้ตรงกลางกราฟวงกลม
                     contentArea.innerHTML = `
                     <div style="display:flex; gap:12px; margin-bottom:16px;">
                         <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
