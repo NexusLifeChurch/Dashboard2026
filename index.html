@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.106</title>
+    <title>NxLife Community version #1.0.109</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -308,6 +308,7 @@
     </div>
 
 <script>
+    const APP_VERSION = 'v1.0.109';
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
     let dbMembers = [];    
@@ -326,29 +327,55 @@
         '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' }
     };
 
-    // รอให้หน้าจอโหลดเสร็จชัวร์ๆ ค่อยเริ่มรัน
-    function initApp() {
+    // โหลดครั้งแรกตอนเปิดแอป
+    window.addEventListener('DOMContentLoaded', () => {
+        applyTheme();
         setupProfilePopup(); 
         setupFullScreenPhoto();
         fetchAllSheetsData();
         
-        setTimeout(function() {
-            const splash = document.getElementById('screen-splash');
-            const pinScreen = document.getElementById('screen-pin');
-            if(splash && pinScreen) {
-                splash.style.opacity = '0';
-                setTimeout(function() { 
-                    splash.style.display = 'none'; 
-                    pinScreen.style.transform = 'translateX(0)'; 
-                }, 600); 
-            }
-        }, 2000);
-    }
+        // เพิ่ม Version หน้า PIN
+        const pinScreen = document.getElementById('screen-pin');
+        if(pinScreen && !document.getElementById('app-ver-tag')) {
+            let vDiv = document.createElement('div');
+            vDiv.id = 'app-ver-tag';
+            vDiv.innerText = 'Version ' + APP_VERSION;
+            vDiv.style.cssText = "position:absolute; bottom:20px; width:100%; text-align:center; color:#94A3B8; font-size:12px; font-weight:600; letter-spacing:1px;";
+            pinScreen.appendChild(vDiv);
+        }
+    });
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initApp);
-    } else {
-        initApp();
+    // ตั้งเวลาสลับจาก Splash ไป PIN
+    setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        const pinScreen = document.getElementById('screen-pin');
+        if(splash && pinScreen) {
+            splash.style.opacity = '0';
+            setTimeout(() => { 
+                splash.style.display = 'none'; 
+                pinScreen.style.transform = 'translateX(0)'; 
+            }, 600); 
+        }
+    }, 2000);
+
+    // ปรับธีมเป็น Earth Tone อัตโนมัติ
+    function applyTheme() {
+        const root = document.documentElement;
+        root.style.setProperty('--orange', '#878F7F');
+        root.style.setProperty('--orange-soft', '#F1F4F2');
+        
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid #E2E8F0; border-radius: 16px; background: white; }
+            .member-list-item:active { transform:scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+            .member-photo-container { width:48px; height:48px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; display:flex; justify-content:center; align-items:center; }
+            .member-photo-container img { width:100%; height:100%; object-fit:cover; }
+            .member-info-container { flex:1; overflow:hidden; }
+            .member-name { font-weight:700; font-size:15px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .member-subdata { font-size:12px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .member-arrow { color:#CBD5E1; font-size:14px; margin-left: 5px; }
+        `;
+        document.head.appendChild(style);
     }
 
     function fetchAllSheetsData() {
@@ -410,113 +437,68 @@
         });
     }
 
-    function generateDonutGradient(segments) {
-        let currentTotal = 0; let gradParts = [];
-        segments.forEach(s => { 
-            if (s.percent > 0) { 
-                let end = currentTotal + s.percent; 
-                gradParts.push(`${s.color} ${currentTotal}% ${end}%`); 
-                currentTotal = end; 
-            } 
-        });
-        return gradParts.length === 0 ? '#E2E8F0' : `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
-    }
-
-    function calculateStats(statsArray) {
-        if (!statsArray || statsArray.length === 0) return null;
-        let counts = statsArray.map(s => s.count).sort((a, b) => a - b);
-        let groupCount = counts.length; 
-        let totalPeople = counts.reduce((a, b) => a + b, 0);
-        let mean = totalPeople / groupCount;
-        let median = (groupCount % 2 === 0) ? (counts[groupCount / 2 - 1] + counts[groupCount / 2]) / 2 : counts[Math.floor(groupCount / 2)];
-        let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / groupCount; 
-        let stdDev = Math.sqrt(variance);
-        
-        let cvValue = (mean !== 0) ? (stdDev / mean) * 100 : 0;
-        let cvDesc = ""; let cvColor = "";
-        if (cvValue <= 10) { cvDesc = "สมดุลมาก: ขนาดกลุ่มใกล้เคียงกัน"; cvColor = "#10B981"; } 
-        else if (cvValue <= 20) { cvDesc = "สมดุล: มีความต่างเล็กน้อย"; cvColor = "#34D399"; } 
-        else if (cvValue <= 30) { cvDesc = "กระจายปานกลาง: เริ่มต่างกัน"; cvColor = "#F59E0B"; } 
-        else if (cvValue <= 50) { cvDesc = "กระจายสูง: ต่างกันชัดเจน"; cvColor = "#EA580C"; } 
-        else if (cvValue <= 100) { cvDesc = "ไม่สมดุล: แคร์เล็ก/ใหญ่ปนกัน"; cvColor = "#EF4444"; } 
-        else { cvDesc = "กระจายรุนแรง: ต่างกันมากผิดปกติ"; cvColor = "#B91C1C"; } 
-
-        let minVal = counts[0]; let maxVal = counts[groupCount - 1];
-        return {
-            groupCount: groupCount, totalPeople: totalPeople, mean: mean.toFixed(2), median: median.toFixed(2),
-            stdDev: stdDev.toFixed(2), cv: cvValue.toFixed(2), cvDesc: cvDesc, cvColor: cvColor,
-            minVal: minVal, minGroups: statsArray.filter(s => s.count === minVal).map(s => s.name), 
-            maxVal: maxVal, maxGroups: statsArray.filter(s => s.count === maxVal).map(s => s.name)
-        };
-    }
-
-    function formatGroups(groups) { 
-        return (groups.length <= 2) ? groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '') : groups.slice(0, 2).join(', ') + ` และอื่นๆ (รวม ${groups.length})`; 
-    }
-
-    function selectCircleMenu(type, element) { document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveCircle = type; handleBottomNav('overview', document.getElementById('nav-overview')); }
-    function handleBottomNav(target, element) { document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveBottom = target; updateDashboardView(); }
-    function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
-    function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
-    function toggleCareCheckbox(id) { let idx = masterFilterSettings.selectedCares.indexOf(id); if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1); else masterFilterSettings.selectedCares.push(id); updateDashboardView(); }
-    function careSelectAll() { masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
-    function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
-    function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
-    function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
-
-    function setupProfilePopup() {
-        if(!document.getElementById('profile-popup')) {
-            let div = document.createElement('div'); div.id = 'profile-popup';
-            div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px);';
-            div.innerHTML = `<div id="profile-popup-content" style="background:white; width:100%; max-width:340px; border-radius:24px; padding-bottom:30px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;"></div>`;
-            document.body.appendChild(div); 
-            div.addEventListener('click', function(e) { if (e.target === div) closeProfile(); });
-        }
-    }
-
+    // สร้างระบบรูปเต็มจอ
     function setupFullScreenPhoto() {
-        if(!document.getElementById('full-screen-photo-overlay')) {
-            let div = document.createElement('div'); div.id = 'full-screen-photo-overlay';
+        if(!document.getElementById('fs-photo-overlay')) {
+            let div = document.createElement('div');
+            div.id = 'fs-photo-overlay';
             div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;';
             div.innerHTML = `
-                <img id="full-screen-photo-img" style="max-width:90%; max-height:80%; object-fit:contain;">
-                <a id="download-photo-btn" target="_blank" download style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--theme-color); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); z-index:10001;"><i class="fa-solid fa-download"></i></a>
-                <button id="close-fs-photo" style="position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; backdrop-filter:blur(4px); z-index:10001; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+                <img id="fs-photo-img" style="max-width:95%; max-height:80%; object-fit:contain;">
+                <a id="fs-download-btn" target="_blank" download style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--orange); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); z-index:10001;"><i class="fa-solid fa-download"></i></a>
+                <button onclick="closeFullScreenPhoto()" style="position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:10001;"><i class="fa-solid fa-xmark"></i></button>
             `;
             document.body.appendChild(div);
-            document.getElementById('close-fs-photo').addEventListener('click', closeFullScreenPhoto);
-            div.addEventListener('click', function(e) { if (e.target === div || e.target === document.getElementById('full-screen-photo-img')) closeFullScreenPhoto(); });
         }
     }
 
     function openFullScreenPhoto(url, name) {
-        if(!url || url.trim() === '') return;
-        let overlay = document.getElementById('full-screen-photo-overlay');
-        let img = document.getElementById('full-screen-photo-img');
-        let downloadBtn = document.getElementById('download-photo-btn');
-        img.src = url;
-        downloadBtn.href = url;
-        downloadBtn.download = (name || 'member_photo') + '_nexus.jpg';
-        overlay.style.display = 'flex';
-        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        let overlay = document.getElementById('fs-photo-overlay');
+        let img = document.getElementById('fs-photo-img');
+        let btn = document.getElementById('fs-download-btn');
+        if(overlay && img && btn && url) {
+            img.src = url;
+            btn.href = url;
+            btn.download = (name || 'Member') + '_Nexus.jpg';
+            overlay.style.display = 'flex';
+            setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        }
     }
 
     function closeFullScreenPhoto() {
-        let overlay = document.getElementById('full-screen-photo-overlay');
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        let overlay = document.getElementById('fs-photo-overlay');
+        if(overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 300);
+        }
+    }
+
+    // หน้าจอ Profile Popup
+    function setupProfilePopup() {
+        if(!document.getElementById('profile-popup')) {
+            let div = document.createElement('div'); 
+            div.id = 'profile-popup';
+            div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px);';
+            div.innerHTML = `<div id="profile-popup-content" style="background:white; width:100%; max-width:340px; border-radius:24px; padding-bottom:30px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;"></div>`;
+            document.body.appendChild(div); 
+            div.addEventListener('click', (e) => { if (e.target === div) closeProfile(); });
+        }
     }
 
     function openProfile(memberId) {
         let member = dbMembers.find(m => m.Member_ID === memberId);
         if(!member) return;
-        let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
-        let profileImageHTML = (member.Url_Image && member.Url_Image.trim() !== '') 
-            ? `<img src="${member.Url_Image}" onclick="openFullScreenPhoto('${member.Url_Image}', '${member.FullName_Display}')" style="width:100%; height:100%; object-fit:cover;">` 
-            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--theme-soft); color:var(--theme-color);">${initial}</div>`;
         
-        let htmlStr = `
-            <div style="position:absolute; top:0; left:0; width:100%; height:90px; background: linear-gradient(135deg, var(--theme-color), #A1A1AA); z-index:1;"></div>
+        let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
+        let safeUrl = member.Url_Image ? member.Url_Image.trim() : '';
+        let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
+        
+        let profileImageHTML = safeUrl !== '' 
+            ? `<img src="${safeUrl}" onclick="openFullScreenPhoto('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover;">` 
+            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
+        
+        document.getElementById('profile-popup-content').innerHTML = `
+            <div style="position:absolute; top:0; left:0; width:100%; height:90px; background: linear-gradient(135deg, var(--orange), #909E9E); z-index:1;"></div>
             <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.3); width:30px; height:30px; border-radius:50%; border:none; font-size:14px; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); z-index:10;"><i class="fa-solid fa-xmark"></i></button>
             <div style="width:100px; height:100px; border-radius:50%; background:white; margin: 40px auto 15px auto; position:relative; z-index:2; overflow:hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor:pointer;">
                 ${profileImageHTML}
@@ -524,7 +506,7 @@
             <div style="text-align:center; padding: 0 20px;">
                 <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:12px; line-height:1.2;">${member.FullName_Display}</div>
                 <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
-                    <span style="background:var(--theme-soft); color:var(--theme-color); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
+                    <span style="background:var(--orange-soft); color:var(--orange); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
                     <span style="background:#F1F5F9; color:var(--charcoal); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-regular fa-id-badge" style="margin-right:4px;"></i>${member.Classify}</span>
                 </div>
             </div>
@@ -533,7 +515,7 @@
                     <i class="fa-solid fa-address-card" style="color:var(--gray-text);"></i> ข้อมูลส่วนตัวเบื้องต้น
                 </div>
                 <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
-                    <span style="font-size:13px; color:var(--gray-text);">รหัสประจำตัว</span><span style="font-size:13px; font-weight:700; color:var(--theme-color);">${member.Member_ID}</span>
+                    <span style="font-size:13px; color:var(--gray-text);">รหัสประจำตัว</span><span style="font-size:13px; font-weight:700; color:var(--orange);">${member.Member_ID}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
                     <span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Nxl_Status}</span>
@@ -543,7 +525,6 @@
                 </div>
             </div>
         `;
-        document.getElementById('profile-popup-content').innerHTML = htmlStr;
         let popup = document.getElementById('profile-popup'); 
         popup.style.display = 'flex';
         setTimeout(() => { popup.style.opacity = '1'; document.getElementById('profile-popup-content').style.transform = 'scale(1)'; }, 10);
@@ -556,30 +537,28 @@
         setTimeout(() => { popup.style.display = 'none'; }, 300);
     }
 
+    // วาดหน้าจอหลัก
     function updateDashboardView() {
-        let careListContainer = document.querySelector('.care-list-container');
-        let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
-        const homeTopSection = document.getElementById('home-top-section'); 
-        const subPageHeader = document.getElementById('sub-page-header');
-        const contentArea = document.getElementById('dashboard-content-area'); 
-        const activeCtx = circleContext[currentActiveCircle] || circleContext[''];
-        const viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
+        let contentArea = document.getElementById('dashboard-content-area'); 
+        let activeCtx = circleContext[currentActiveCircle] || circleContext[''];
+        let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
 
         if (currentActiveBottom === 'home') {
-            homeTopSection.style.display = 'block'; 
-            subPageHeader.style.display = 'none';
+            document.getElementById('home-top-section').style.display = 'block'; 
+            document.getElementById('sub-page-header').style.display = 'none';
             contentArea.innerHTML = `
-                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--theme-color);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
-                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--theme-color);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
+                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--orange);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
+                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--orange);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
             `;
         } else {
-            homeTopSection.style.display = 'none';
+            document.getElementById('home-top-section').style.display = 'none';
+            
             if (currentActiveBottom !== 'filter') {
-                subPageHeader.style.display = 'flex'; 
-                subPageHeader.style.justifyContent = 'space-between';
-                subPageHeader.innerHTML = `
+                document.getElementById('sub-page-header').style.display = 'flex'; 
+                document.getElementById('sub-page-header').style.justifyContent = 'space-between';
+                document.getElementById('sub-page-header').innerHTML = `
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="width:38px; height:38px; border-radius:10px; background:var(--theme-soft); color:var(--theme-color); display:flex; justify-content:center; align-items:center; font-size:18px;"><i class="fa-solid ${activeCtx.icon}"></i></div>
+                        <div style="width:38px; height:38px; border-radius:10px; background:var(--orange-soft); color:var(--orange); display:flex; justify-content:center; align-items:center; font-size:18px;"><i class="fa-solid ${activeCtx.icon}"></i></div>
                         <div style="display:flex; flex-direction:column;">
                             <div style="font-size:12px; color:var(--gray-text); font-weight:600; margin-bottom:2px;">${activeCtx.name}</div>
                             <div style="font-size:20px; font-weight:700; color:var(--charcoal); line-height:1.1;">${viewTitle}</div>
@@ -587,37 +566,33 @@
                     </div>
                     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                         <div style="display:flex; gap:4px;">
-                            <span style="background:var(--theme-color); color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.statusMode}</span>
+                            <span style="background:var(--orange); color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.statusMode}</span>
                             <span style="background:${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
                         </div>
                         <span style="font-size:10px; color:var(--charcoal); font-weight:600; background:#F1F5F9; padding:2px 6px; border-radius:6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${dbCares.length}</span>
                     </div>
                 `;
             } else { 
-                subPageHeader.style.display = 'none'; 
+                document.getElementById('sub-page-header').style.display = 'none'; 
             }
 
             if (currentActiveBottom === 'filter') {
                 let careListHTML = '';
-                if(dbCares.length === 0) { 
-                    careListHTML = `<div style="text-align:center; padding:20px 0;"><i class="fa-regular fa-folder-open" style="font-size:40px; color:#E2E8F0; margin-bottom:10px;"></i><div style="font-size:14px; font-weight:600; color:var(--gray-text);">กำลังดึงข้อมูล...</div></div>`; 
-                } else { 
-                    dbCares.forEach(care => { 
-                        let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; 
-                        careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.CareName}</span></label><span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span></div>`; 
-                    }); 
-                }
+                dbCares.forEach(care => { 
+                    let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; 
+                    careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.CareName}</span></label><span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span></div>`; 
+                });
 
                 contentArea.innerHTML = `
                     <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:flex-start;">
                         <div style="flex:1;">
-                            <h2 style="font-size:22px; color:var(--charcoal); display:flex; align-items:center; gap:8px; margin-bottom:4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color:var(--theme-color);"></i> ภาพรวมข้อมูล</h2>
+                            <h2 style="font-size:22px; color:var(--charcoal); display:flex; align-items:center; gap:8px; margin-bottom:4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color:var(--orange);"></i> ภาพรวมข้อมูล</h2>
                             <p style="font-size:12px; color:var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p>
                         </div>
-                        <button onclick="resetFilterToDefault()" style="border:1px solid var(--theme-color); background:white; color:var(--theme-color); border-radius:10px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button>
+                        <button onclick="resetFilterToDefault()" style="border:1px solid var(--orange); background:white; color:var(--orange); border-radius:10px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button>
                     </div>
                     <div class="clean-card">
-                        <div class="section-title"><i class="fa-regular fa-id-badge" style="color:var(--theme-color);"></i> ประเภทสมาชิก</div>
+                        <div class="section-title"><i class="fa-regular fa-id-badge" style="color:var(--orange);"></i> ประเภทสมาชิก</div>
                         <div class="seg-control">
                             <div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div>
                             <div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div>
@@ -626,13 +601,13 @@
                     </div>
                     <div class="clean-card" style="padding:16px 20px;">
                         <div class="toggle-wrapper">
-                            <div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color:var(--theme-color);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div>
+                            <div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color:var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div>
                             <label class="switch"><input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)"><span class="slider"></span></label>
                         </div>
                     </div>
                     <div class="clean-card">
                         <div class="section-header">
-                            <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color:var(--theme-color);"></i> เลือกกลุ่ม Care</div>
+                            <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color:var(--orange);"></i> เลือกกลุ่ม Care</div>
                             <div class="care-shortcuts">
                                 <button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button>
                                 <button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button>
@@ -641,8 +616,6 @@
                         <div class="care-list-container">${careListHTML}</div>
                     </div>
                 `;
-                let newCareList = document.querySelector('.care-list-container'); 
-                if (newCareList) newCareList.scrollTop = savedScrollPos;
             } 
             else if (currentActiveBottom === 'overview') {
                 const filteredData = getFilteredData(); 
@@ -664,20 +637,16 @@
                     let pFemale = total > 0 ? Math.round((femaleCount / total) * 100) : 0; 
                     let pUnk = total > 0 ? Math.round((unkCount / total) * 100) : 0;
 
-                    donutGradientStr = generateDonutGradient([ 
-                        { percent: pMale, color: '#82949C' }, 
-                        { percent: pFemale, color: '#AC858C' }, 
-                        { percent: pUnk, color: '#BDC3C7' } 
-                    ]);
-                    
                     let items = [
                         { label: 'ชาย', count: maleCount, percent: pMale, color: '#82949C' },
                         { label: 'หญิง', count: femaleCount, percent: pFemale, color: '#AC858C' }
                     ];
                     if (unkCount > 0) items.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#BDC3C7' });
                     items.sort((a,b) => a.label.localeCompare(b.label, 'th'));
+
+                    donutGradientStr = generateDonutGradient(items);
                     
-                    donutCenterIcon = `<i class="fa-solid fa-user-group" style="font-size:42px; color:var(--theme-color);"></i>`;
+                    donutCenterIcon = `<i class="fa-solid fa-user-group" style="font-size:54px; color:var(--orange);"></i>`;
                     donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; padding: 0 20px;">`;
                     items.forEach(item => {
                         donutLegendHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px dashed #E2E8F0;"><div style="color:${item.color}; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;"><div style="width:12px; height:12px; border-radius:50%; background:${item.color};"></div> ${item.label}</div><div style="font-weight:800; font-size:14px; color:var(--charcoal);">${item.percent}% <span style="color:var(--gray-text); font-size:12px; font-weight:normal;">(${item.count})</span></div></div>`;
@@ -687,7 +656,7 @@
                 } else {
                     barTitle = 'จำนวนคนรายกลุ่มแคร์';
                     const palette = ['#9A836F', '#878F7F', '#909E9E', '#BD7A5F', '#A0A0A0', '#C4A484', '#6D7C7A'];
-                    let segments = []; let groupCounts = {};
+                    let groupCounts = {};
 
                     if (masterFilterSettings.statusMode === 'ALL') {
                         filteredData.forEach(m => { let key = m.Classify ? String(m.Classify).trim() : 'ไม่ระบุ'; groupCounts[key] = (groupCounts[key] || 0) + 1; });
@@ -695,10 +664,8 @@
                         filteredData.forEach(m => { let key = m.Nxl_Status ? String(m.Nxl_Status).trim() : 'ไม่ระบุ'; groupCounts[key] = (groupCounts[key] || 0) + 1; });
                     }
                     
-                    let items = [];
                     let keys = Object.keys(groupCounts);
-                    
-                    items = keys.map((key) => {
+                    let items = keys.map((key) => {
                         let prefix = key.substring(0, 2).toUpperCase();
                         let order = 99;
                         if (prefix === 'FM') order = 1;
@@ -712,20 +679,20 @@
                         return a.label.localeCompare(b.label, 'th');
                     });
 
+                    let segments = [];
                     let legendItems = [];
                     items.forEach((item, idx) => {
-                        let count = item.count;
-                        let percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                        let percent = total > 0 ? Math.round((item.count / total) * 100) : 0;
                         let color = palette[idx % palette.length];
                         
-                        if(count > 0) {
+                        if(item.count > 0) {
                             segments.push({ percent: percent, color: color });
-                            legendItems.push(`<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px dashed #E2E8F0;"><div style="color:${color}; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;"><div style="width:12px; height:12px; border-radius:50%; background:${color};"></div> ${item.label}</div><div style="font-weight:800; font-size:14px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:12px; font-weight:normal;">(${count})</span></div></div>`);
+                            legendItems.push(`<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px dashed #E2E8F0;"><div style="color:${color}; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;"><div style="width:12px; height:12px; border-radius:50%; background:${color};"></div> ${item.label}</div><div style="font-weight:800; font-size:14px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:12px; font-weight:normal;">(${item.count})</span></div></div>`);
                         }
                     });
 
                     donutGradientStr = generateDonutGradient(segments);
-                    donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:250px; overflow-y:auto; padding: 0 20px;">${legendItems.join('')}</div>`;
+                    donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:220px; overflow-y:auto; padding: 0 20px;">${legendItems.join('')}</div>`;
                     donutCenterIcon = `<img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true" style="width:85%; height:auto; object-fit:contain;">`;
 
                     masterFilterSettings.selectedCares.forEach(cid => { 
@@ -741,13 +708,13 @@
                         <div class="clean-card" style="display:flex; align-items:center; justify-content:center; padding:20px; text-align:center;">
                             <div>
                                 <div style="font-size:14px; color:var(--gray-text); font-weight:600;">จำนวนสมาชิกตามเงื่อนไข</div>
-                                <div style="font-size:48px; font-weight:800; color:var(--theme-color); line-height:1; margin:10px 0;">${total} <span style="font-size:18px; color:var(--gray-text); font-weight:700;">คน</span></div>
+                                <div style="font-size:48px; font-weight:800; color:var(--orange); line-height:1; margin:10px 0;">${total} <span style="font-size:18px; color:var(--gray-text); font-weight:700;">คน</span></div>
                             </div>
                         </div>
                         <div class="clean-card" style="display:flex; flex-direction:column; align-items:center; padding: 25px 0; overflow:hidden;">
-                            <div class="donut-chart-container" style="width: 100%; display: flex; justify-content: center; margin-bottom: 25px;">
-                                <div style="width:160px; height:160px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                    <div style="width:100px; height:100px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                            <div style="width: 100%; display: flex; justify-content: center; margin-bottom: 25px;">
+                                <div style="width:180px; height:180px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <div style="width:110px; height:110px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                                         ${donutCenterIcon}
                                     </div>
                                 </div>
@@ -755,8 +722,8 @@
                             ${donutLegendHTML}
                         </div>
                     </div>
-                    <div class="clean-card" style="margin-bottom:0;">
-                        <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--theme-color);"></i> ${barTitle}</div>
+                    <div class="clean-card" style="margin-bottom:0;" id="bar-chart-card">
+                        <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div>
                         <div id="bar-chart-container" style="max-height:280px; overflow-y:auto; padding-right:5px;"></div>
                     </div>
                 `;
@@ -768,58 +735,10 @@
                     let maxBarCount = Math.max(...barStats.map(s => s.count), 1);
                     let barHTMLStr = '';
                     barStats.forEach((s, index) => {
-                        barHTMLStr += `<div style="margin-bottom:12px;"><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span></div><div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;"><div style="height:100%; background:var(--theme-color); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div></div></div>`;
+                        barHTMLStr += `<div style="margin-bottom:12px;"><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span></div><div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;"><div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div></div></div>`;
                     });
                     barContainer.innerHTML = barHTMLStr;
                     
-                    let statData = calculateStats(barStats);
-                    if (statData) {
-                        let sHTML = `
-                            <div class="clean-card" style="margin-top: 20px; margin-bottom: 0;">
-                                <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--theme-color);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">จำนวนกลุ่ม (N)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.groupCount} <span style="font-size:12px;">กลุ่ม</span></div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">จำนวนคนรวม (Sum)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.totalPeople} <span style="font-size:12px;">คน</span></div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Max (ค่าสูงสุด)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.maxVal} <span style="font-size:12px;">คน</span></div>
-                                        <div style="font-size:10px; color:var(--theme-color); line-height:1.2;">กลุ่ม: ${formatGroups(statData.maxGroups)}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Min (ค่าต่ำสุด)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.minVal} <span style="font-size:12px;">คน</span></div>
-                                        <div style="font-size:10px; color:var(--theme-color); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Mean (ค่าเฉลี่ย)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.mean}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Median (ค่ากลาง)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.median}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Std Dev (ส่วนเบี่ยงเบนฯ)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.stdDev}</div>
-                                        <div style="font-size:9px; color:var(--gray-text); line-height:1.2; margin-top:4px;">ค่าความแตกต่างของกลุ่ม<br>ยิ่งสูง = ยิ่งต่างกันมาก</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">CV (สัมประสิทธิ์ความแปรผัน)</div>
-                                        <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-top:2px;">${statData.cv}<span style="font-size:12px;">%</span></div>
-                                        <div style="font-size:9px; color:${statData.cvColor}; line-height:1.2; margin-top:4px; font-weight:600;">${statData.cvDesc}</div>
-                                    </div>
-                                </div>
-                            </div>`;
-                        let tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = sHTML;
-                        contentArea.appendChild(tempDiv.firstElementChild);
-                    }
                     setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 95) + '%'; }); }, 100);
                 } else {
                     barContainer.innerHTML = '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>';
@@ -845,31 +764,52 @@
                 sortedGroupKeys.forEach(groupName => {
                     groupedData[groupName].sort((a, b) => a.FullName_Display.localeCompare(b.FullName_Display, 'th'));
                     
-                    listHTML += `<div style="font-weight:800; color:var(--theme-color); margin: 20px 0 8px 5px; font-size:16px; border-bottom: 2px solid var(--theme-soft); padding-bottom:5px;">${groupName} <span style="color:var(--gray-text); font-size:12px; font-weight:normal; margin-left:5px;">(${groupedData[groupName].length} คน)</span></div>`;
+                    listHTML += `<div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:16px; border-bottom: 2px solid var(--orange-soft); padding-bottom:5px;">${groupName} <span style="color:var(--gray-text); font-size:12px; font-weight:normal; margin-left:5px;">(${groupedData[groupName].length} คน)</span></div>`;
                     
                     groupedData[groupName].forEach(m => {
-                        let cleanNameForInitial = m.FullName_Display ? m.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '') : '';
-                        let initial = cleanNameForInitial.charAt(0) || '?';
                         let safeId = String(m.Member_ID).replace(/'/g, "\\'"); 
-                        
+                        let initial = m.FullName_Display ? m.FullName_Display.charAt(0) : '?';
                         let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '') 
-                            ? `<img src="${m.Url_Image}" loading="lazy" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0;">` 
-                            : `<div style="width:45px; height:45px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--theme-soft); color:var(--theme-color);">${initial}</div>`;
+                            ? `<div class="member-photo-container"><img src="${m.Url_Image}" loading="lazy"></div>` 
+                            : `<div class="member-photo-container" style="background:var(--orange-soft); color:var(--orange); font-size:20px; font-weight:800;">${initial}</div>`;
 
                         listHTML += `
-                            <div class="clean-card" style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; border-radius:16px; transition: transform 0.1s, box-shadow 0.2s;" onclick="openProfile('${safeId}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                            <div class="member-list-item" onclick="openProfile('${safeId}')">
                                 ${profileImageHTML}
-                                <div style="flex:1; overflow:hidden;">
-                                    <div style="font-weight:700; font-size:15px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.FullName_Display}</div>
-                                    <div style="font-size:12px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}</div>
+                                <div class="member-info-container">
+                                    <div class="member-name">${m.FullName_Display}</div>
+                                    <div class="member-subdata">แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}</div>
                                 </div>
-                                <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:14px; margin-left: 5px;"></i>
+                                <i class="fa-solid fa-chevron-right member-arrow"></i>
                             </div>`;
                     });
                 });
                 contentArea.innerHTML = listHTML;
             }
         }
+
+    // ฟังก์ชันเสริมอื่นๆ
+    function generateDonutGradient(segments) {
+        let currentTotal = 0; let gradParts = [];
+        segments.forEach(s => { 
+            if (s.percent > 0) { 
+                let end = currentTotal + s.percent; 
+                gradParts.push(`${s.color} ${currentTotal}% ${end}%`); 
+                currentTotal = end; 
+            } 
+        });
+        return gradParts.length === 0 ? '#E2E8F0' : `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
+    }
+
+    function selectCircleMenu(type, element) { document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveCircle = type; handleBottomNav('overview', document.getElementById('nav-overview')); }
+    function handleBottomNav(target, element) { document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveBottom = target; updateDashboardView(); }
+    function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
+    function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
+    function toggleCareCheckbox(id) { let idx = masterFilterSettings.selectedCares.indexOf(id); if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1); else masterFilterSettings.selectedCares.push(id); updateDashboardView(); }
+    function careSelectAll() { masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
+    function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
+    function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
+    function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
 
     function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
     function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
@@ -878,5 +818,7 @@
     function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
     function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
 </script>
+
+    
 </body>
 </html>
