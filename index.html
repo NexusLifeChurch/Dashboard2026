@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.079</title>
+    <title>NxLife Community version #1.0.080</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.079</div>
+            <div class="version-tag">version #1.0.080</div>
         </div>
 
         <div id="screen-pin">
@@ -391,8 +391,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
-                            Nxl_Status: String(m.Nxl_Status || '').trim(), // เก็บค่าดั้งเดิมไว้ใช้งาน
-                            Classify: String(m.Classify || 'ไม่ระบุ').trim(), // เก็บค่าดั้งเดิมไว้ใช้งาน
+                            Nxl_Status: String(m.Nxl_Status || '').trim(), 
+                            Classify: String(m.Classify || 'ไม่ระบุ').trim(), 
                             Gender: normGender, 
                             FullName_Display: m.FullName_Display,
                             Url_Image: m.Url_Image || '', 
@@ -407,7 +407,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
-        // 🛑 รื้อระบบกรองใหม่ทั้งหมด: ใช้ Array เช็กค่า Nxl_Status สะกดเป๊ะๆ ตามที่พี่สั่ง
+        // คงตรรกะเดิมไว้ ไม่แตะต้องเด็ดขาด
         function getFilteredData() {
             return dbMembers.filter(m => {
                 let statusMatch = true;
@@ -573,15 +573,32 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                         donutLabel = 'สัดส่วน ชาย/หญิง'; 
                         donutGradientStr = generateDonutGradient([ { percent: pMale, color: '#34495E' }, { percent: pFemale, color: '#D98880' }, { percent: pUnk, color: '#BDC3C7' } ]);
-                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><div style="color:#34495E; font-weight:700; font-size:12px;">● ชาย: ${maleCount} (${pMale}%)</div><div style="color:#D98880; font-weight:700; font-size:12px;">● หญิง: ${femaleCount} (${pFemale}%)</div>${unkCount > 0 ? `<div style="color:#BDC3C7; font-weight:700; font-size:12px;">● อื่นๆ/ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}</div>`;
+                        
+                        // ปรับ UI Legend ของหน้ากลุ่มคนให้เป็นตารางเรียบร้อย
+                        donutLegendHTML = `
+                        <div style="display:flex; flex-direction:column; width:100%; padding-right:5px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                <div style="color:#34495E; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:#34495E;"></div> ชาย</div>
+                                <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${pMale}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${maleCount})</span></div>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                <div style="color:#D98880; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:#D98880;"></div> หญิง</div>
+                                <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${pFemale}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${femaleCount})</span></div>
+                            </div>
+                            ${unkCount > 0 ? `
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                <div style="color:#BDC3C7; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:#BDC3C7;"></div> อื่นๆ/ไม่ระบุ</div>
+                                <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${pUnk}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${unkCount})</span></div>
+                            </div>` : ''}
+                        </div>`;
                     } else {
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
                         masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        // 🛑 รื้อระบบนับกราฟ! สร้างระบบนับกลุ่มไดนามิกจากข้อมูลดิบ ไม่ Hardcode ตัวอักษร
+                        // 🛑 ชุดสี Professional (ทิ้งความลิเก) สลับ โทนส้ม-เทา-น้ำตาล 
+                        const palette = ['#F97316', '#475569', '#F59E0B', '#64748B', '#D97706', '#94A3B8', '#B45309', '#CBD5E1', '#EA580C', '#334155'];
                         let segments = []; 
                         let legendItems = [];
-                        const palette = ['#E67C22', '#5D6D7E', '#A67B5B', '#34495E', '#16A085', '#2980B9', '#8E44AD', '#D35400', '#C0392B', '#7F8C8D'];
 
                         if (masterFilterSettings.statusMode === 'ALL') {
                             donutLabel = 'สัดส่วน Classify';
@@ -598,14 +615,20 @@ CSS  ตกแต่งหน้าตาเว็บ
                                 let color = palette[idx % palette.length];
                                 
                                 let upKey = key.toUpperCase();
-                                if (upKey === 'FAMILY') color = 'var(--orange)';
-                                else if (upKey === 'FRIENDS' || upKey === 'FRIEND') color = '#5D6D7E';
-                                else if (upKey === 'SEND' || upKey === 'ส่งออก') color = '#A67B5B';
-                                else if (upKey === 'BYE') color = '#E74C3C';
+                                if (upKey === 'FAMILY') color = '#F97316';
+                                else if (upKey === 'FRIENDS' || upKey === 'FRIEND') color = '#475569';
+                                else if (upKey === 'SEND' || upKey === 'ส่งออก') color = '#B45309';
 
                                 if(count > 0) {
                                     segments.push({ percent: percent, color: color });
-                                    legendItems.push(`<div style="color:${color}; font-weight:700; font-size:12px;">● ${key}: ${count} (${percent}%)</div>`);
+                                    legendItems.push(`
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                            <div style="color:${color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;">
+                                                <div style="width:10px; height:10px; border-radius:50%; background:${color};"></div> ${key}
+                                            </div>
+                                            <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${count})</span></div>
+                                        </div>
+                                    `);
                                 }
                             });
                         } else {
@@ -624,13 +647,20 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                                 if(count > 0) {
                                     segments.push({ percent: percent, color: color });
-                                    legendItems.push(`<div style="color:${color}; font-weight:700; font-size:12px;">● ${key}: ${count} (${percent}%)</div>`);
+                                    legendItems.push(`
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                            <div style="color:${color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;">
+                                                <div style="width:10px; height:10px; border-radius:50%; background:${color};"></div> ${key}
+                                            </div>
+                                            <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${count})</span></div>
+                                        </div>
+                                    `);
                                 }
                             });
                         }
 
                         donutGradientStr = generateDonutGradient(segments);
-                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px; max-height:120px; overflow-y:auto; padding-right:5px;">${legendItems.join('')}</div>`;
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:150px; overflow-y:auto; padding-right:5px;">${legendItems.join('')}</div>`;
                     }
                     
                     if (currentActiveCircle === 'people') barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
@@ -685,21 +715,22 @@ CSS  ตกแต่งหน้าตาเว็บ
                         </div>`; 
                     }
 
+                    // 🛑 ปรับ Layout ชุดบนใหม่ทั้งหมด! โดนัทตั้งตรง มีตาราง Legend ด้านล่าง
                     contentArea.innerHTML = `
-                    <div style="display:flex; gap:12px; margin-bottom:16px;">
-                        <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
+                    <div style="display:flex; align-items:stretch; gap:12px; margin-bottom:16px;">
+                        <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px; text-align:center;">
                             <div style="font-size:12px; color:var(--gray-text);">จำนวนสมาชิก</div>
-                            <div style="font-size:40px; font-weight:800; color:var(--orange); line-height:1;">${total}</div>
-                            <div style="font-size:10px; color:var(--gray-text); margin-top:4px;">ตามเงื่อนไขที่เลือก</div>
+                            <div style="font-size:42px; font-weight:800; color:var(--orange); line-height:1.1; margin:8px 0;">${total}</div>
+                            <div style="font-size:10px; color:var(--gray-text);">ตามเงื่อนไขที่เลือก</div>
                         </div>
-                        <div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
+                        <div class="clean-card" style="flex:1.4; margin-bottom:0; display:flex; flex-direction:column; align-items:center; gap:12px; padding:15px;">
+                            <div style="font-weight:800; color:var(--charcoal); font-size:13px; text-align:center;">${donutLabel}</div>
                             <div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
-                                <div style="width:54px; height:54px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                <div style="width:52px; height:52px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
                                     <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true" style="width:80%; height:auto; object-fit:contain;">
                                 </div>
                             </div>
-                            <div style="font-size:11px; color:var(--gray-text); line-height:1.4;">
-                                <div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>
+                            <div style="width:100%; border-top:1px dashed #E2E8F0; padding-top:8px; margin-top:4px;">
                                 ${donutLegendHTML}
                             </div>
                         </div>
