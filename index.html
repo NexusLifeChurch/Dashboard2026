@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.064</title>
+    <title>NxLife Community version #1.0.065</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.064</div>
+            <div class="version-tag">version #1.0.065</div>
         </div>
 
         <div id="screen-pin">
@@ -504,7 +504,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         }
 
         // ==========================================
-        // 📊 ฟังก์ชันคำนวณสถิติวิเคราะห์ (Descriptive Stats) - อัปเดตเพิ่ม CV
+        // 📊 ฟังก์ชันคำนวณสถิติวิเคราะห์ พร้อมเครื่องมือแปลผล (Data Storytelling)
         // ==========================================
         function calculateStats(statsArray) {
             if (!statsArray || statsArray.length === 0) return null;
@@ -525,8 +525,18 @@ CSS  ตกแต่งหน้าตาเว็บ
             let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / groupCount;
             let stdDev = Math.sqrt(variance);
             
-            // 🛑 คำนวณสัมประสิทธิ์การแปรผัน (CV) สูตร: (StdDev / Mean) * 100
-            let cv = (mean !== 0) ? (stdDev / mean) * 100 : 0;
+            let cvValue = (mean !== 0) ? (stdDev / mean) * 100 : 0;
+            let cv = cvValue.toFixed(2);
+
+            // 🛑 ระบบแปลผลค่า CV (อ้างอิงเกณฑ์ที่ผู้ใช้กำหนด)
+            let cvDesc = "";
+            let cvColor = "";
+            if (cvValue <= 10) { cvDesc = "สมดุลมาก: ขนาดกลุ่มใกล้เคียงกันมาก"; cvColor = "#10B981"; } // สีเขียว
+            else if (cvValue <= 20) { cvDesc = "สมดุล: มีความต่างเล็กน้อย"; cvColor = "#34D399"; } // สีเขียวอ่อน
+            else if (cvValue <= 30) { cvDesc = "กระจายปานกลาง: เริ่มมีความต่างระหว่างกลุ่ม"; cvColor = "#F59E0B"; } // สีส้ม
+            else if (cvValue <= 50) { cvDesc = "กระจายสูง: ขนาดกลุ่มต่างกันชัดเจน"; cvColor = "#EA580C"; } // สีส้มเข้ม
+            else if (cvValue <= 100) { cvDesc = "ไม่สมดุล: บางกลุ่มเล็ก บางกลุ่มใหญ่"; cvColor = "#EF4444"; } // สีแดง
+            else { cvDesc = "กระจายรุนแรง: ขนาดกลุ่มแตกต่างกันมากผิดปกติ"; cvColor = "#B91C1C"; } // สีแดงเข้ม
 
             let minVal = counts[0];
             let maxVal = counts[groupCount - 1];
@@ -540,7 +550,9 @@ CSS  ตกแต่งหน้าตาเว็บ
                 mean: mean.toFixed(2),
                 median: median.toFixed(2),
                 stdDev: stdDev.toFixed(2),
-                cv: cv.toFixed(2), // 🛑 ส่งออกค่า CV
+                cv: cv,
+                cvDesc: cvDesc,
+                cvColor: cvColor,
                 minVal: minVal,
                 minGroups: minGroups,
                 maxVal: maxVal,
@@ -780,7 +792,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             </div>
                         </div>`).join('');
 
-                    // 🛑 อัปเดตกล่องสถิติ เปลี่ยนจาก Variance เป็น CV (%)
+                    // 🛑 คำนวณและสร้าง Layout สำหรับ Descriptive Stats พร้อมตัวแปลผล (Tooltips/Desc)
                     let statsHTML = '';
                     let statData = calculateStats(barStats);
                     
@@ -818,10 +830,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
                                         <div style="font-size:11px; color:var(--gray-text);">Std Dev (ส่วนเบี่ยงเบนฯ)</div>
                                         <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.stdDev}</div>
+                                        <div style="font-size:9px; color:var(--gray-text); line-height:1.2; margin-top:4px;">ค่าความแตกต่างของกลุ่ม<br>ยิ่งสูง = ยิ่งต่างกันมาก</div>
                                     </div>
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
                                         <div style="font-size:11px; color:var(--gray-text);">CV (สัมประสิทธิ์ความแปรผัน)</div>
                                         <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.cv}%</div>
+                                        <div style="font-size:9px; color:${statData.cvColor}; line-height:1.2; margin-top:4px; font-weight:600;">${statData.cvDesc}</div>
                                     </div>
                                 </div>
                             </div>
