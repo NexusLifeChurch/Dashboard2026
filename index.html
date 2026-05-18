@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.089</title>
+    <title>NxLife Community version #1.0.090</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -236,7 +236,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.089</div>
+            <div class="version-tag">version #1.0.090</div>
         </div>
 
         <div id="screen-pin">
@@ -343,7 +343,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 ================================ -->
     
 <script>
-    const APP_VERSION = 'v1.0.99';
+    const APP_VERSION = 'v1.0.100';
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
     let dbMembers = [];    
@@ -371,7 +371,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             let vDiv = document.createElement('div');
             vDiv.id = 'app-ver-tag';
             vDiv.innerText = 'Version ' + APP_VERSION;
-            vDiv.style.cssText = "position:absolute; bottom:20px; width:100%; text-align:center; color:#94A3B8; font-size:12px; font-weight:600; letter-spacing:1px;";
+            vDiv.style.cssText = "position:absolute; bottom:20px; width:100%; text-align:center; color:var(--gray-text); font-size:12px; font-weight:600; letter-spacing:1px;";
             pinScreen.appendChild(vDiv);
         }
     });
@@ -539,7 +539,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;';
             div.innerHTML = `
                 <img id="full-screen-photo-img" style="max-width:90%; max-height:80%; object-fit:contain;">
-                <a id="download-photo-btn" class="download-photo-btn" download><i class="fa-solid fa-download"></i></a>
+                <a id="download-photo-btn" class="download-photo-btn" target="_blank" download><i class="fa-solid fa-download"></i></a>
                 <button id="close-fs-photo" class="close-fs-photo"><i class="fa-solid fa-xmark"></i></button>
             `;
             document.body.appendChild(div);
@@ -555,7 +555,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         let downloadBtn = document.getElementById('download-photo-btn');
         img.src = url;
         downloadBtn.href = url;
-        downloadBtn.download = (name || 'member_photo') + '_nexus.jpg'; 
+        downloadBtn.download = (name || 'member_photo') + '_nexus.jpg';
         overlay.style.display = 'flex';
         setTimeout(() => { overlay.style.opacity = '1'; }, 10);
     }
@@ -570,23 +570,39 @@ CSS  ตกแต่งหน้าตาเว็บ
         let member = dbMembers.find(m => m.Member_ID === memberId);
         if(!member) return;
         let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
-        let profileImageHTML = (member.Url_Image && member.Url_Image.trim() !== '') ? `<img src="${member.Url_Image}" onclick="openFullScreenPhoto('${member.Url_Image}', '${member.FullName_Display}')">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--green-soft); color:var(--emerald);">${initial}</div>`;
+        let profileImageHTML = (member.Url_Image && member.Url_Image.trim() !== '') 
+            ? `<img src="${member.Url_Image}" onclick="openFullScreenPhoto('${member.Url_Image}', '${member.FullName_Display}')">` 
+            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--theme-soft); color:var(--theme-primary);">${initial}</div>`;
+        
         document.getElementById('profile-popup-content').innerHTML = `
-            <div style="position:absolute; top:0; left:0; width:100%; height:90px; background: linear-gradient(135deg, var(--green-primary), #A1A1AA); z-index:1;"></div>
+            <div style="position:absolute; top:0; left:0; width:100%; height:90px; background: linear-gradient(135deg, var(--theme-primary), var(--theme-accent)); z-index:1;"></div>
             <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.3); width:30px; height:30px; border-radius:50%; border:none; font-size:14px; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); z-index:10;"><i class="fa-solid fa-xmark"></i></button>
-            <div style="width:100px; height:100px; border-radius:50%; background:white; margin: 40px auto 15px auto; position:relative; z-index:2; overflow:hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor:pointer;">${profileImageHTML}</div>
+            
+            <div style="width:100px; height:100px; border-radius:50%; background:white; margin: 40px auto 15px auto; position:relative; z-index:2; overflow:hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor:pointer;">
+                ${profileImageHTML}
+            </div>
+            
             <div style="text-align:center; padding: 0 20px;">
                 <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:12px; line-height:1.2;">${member.FullName_Display}</div>
                 <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
-                    <span style="background:var(--emerald-soft); color:var(--emerald); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
+                    <span style="background:var(--theme-soft); color:var(--theme-primary); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
                     <span style="background:#F1F5F9; color:var(--charcoal); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-regular fa-id-badge" style="margin-right:4px;"></i>${member.Classify}</span>
                 </div>
             </div>
+            
             <div style="background:#F8FAFC; border-radius:16px; padding:15px; margin: 0 20px; border: 1px solid #E2E8F0;">
-                <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:10px; display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-address-card" style="color:var(--gray-text);"></i> ข้อมูลส่วนตัวเบื้องต้น</div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;"><span style="font-size:13px; color:var(--gray-text);">รหัสประจำตัว</span><span style="font-size:13px; font-weight:700; color:var(--emerald);">${member.Member_ID}</span></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;"><span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Nxl_Status}</span></div>
-                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;"><span style="font-size:13px; color:var(--gray-text);">เพศ (Gender)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Gender}</span></div>
+                <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                    <i class="fa-solid fa-address-card" style="color:var(--gray-text);"></i> ข้อมูลส่วนตัวเบื้องต้น
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
+                    <span style="font-size:13px; color:var(--gray-text);">รหัสประจำตัว</span><span style="font-size:13px; font-weight:700; color:var(--theme-primary);">${member.Member_ID}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
+                    <span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Nxl_Status}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
+                    <span style="font-size:13px; color:var(--gray-text);">เพศ (Gender)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Gender}</span>
+                </div>
             </div>
         `;
         let popup = document.getElementById('profile-popup'); 
@@ -614,8 +630,8 @@ CSS  ตกแต่งหน้าตาเว็บ
             homeTopSection.style.display = 'block'; 
             subPageHeader.style.display = 'none';
             contentArea.innerHTML = `
-                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--green-primary);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
-                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--green-primary);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
+                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--theme-primary);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
+                <div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--theme-primary);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
             `;
         } else {
             homeTopSection.style.display = 'none';
@@ -624,7 +640,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 subPageHeader.style.justifyContent = 'space-between';
                 subPageHeader.innerHTML = `
                     <div style="display:flex; align-items:center; gap:12px;">
-                        <div style="width:38px; height:38px; border-radius:10px; background:var(--green-soft); color:var(--emerald); display:flex; justify-content:center; align-items:center; font-size:18px;"><i class="fa-solid ${activeCtx.icon}"></i></div>
+                        <div style="width:38px; height:38px; border-radius:10px; background:var(--theme-soft); color:var(--theme-primary); display:flex; justify-content:center; align-items:center; font-size:18px;"><i class="fa-solid ${activeCtx.icon}"></i></div>
                         <div style="display:flex; flex-direction:column;">
                             <div style="font-size:12px; color:var(--gray-text); font-weight:600; margin-bottom:2px;">${activeCtx.name}</div>
                             <div style="font-size:20px; font-weight:700; color:var(--charcoal); line-height:1.1;">${viewTitle}</div>
@@ -632,7 +648,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                     </div>
                     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
                         <div style="display:flex; gap:4px;">
-                            <span style="background:var(--green-primary); color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.statusMode}</span>
+                            <span style="background:var(--theme-primary); color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.statusMode}</span>
                             <span style="background:${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
                         </div>
                         <span style="font-size:10px; color:var(--charcoal); font-weight:600; background:#F1F5F9; padding:2px 6px; border-radius:6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${dbCares.length}</span>
@@ -656,13 +672,13 @@ CSS  ตกแต่งหน้าตาเว็บ
                 contentArea.innerHTML = `
                     <div style="margin-bottom:15px; display:flex; justify-content:space-between; align-items:flex-start;">
                         <div style="flex:1;">
-                            <h2 style="font-size:22px; color:var(--charcoal); display:flex; align-items:center; gap:8px; margin-bottom:4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color:var(--green-primary);"></i> ภาพรวมข้อมูล</h2>
+                            <h2 style="font-size:22px; color:var(--charcoal); display:flex; align-items:center; gap:8px; margin-bottom:4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color:var(--theme-primary);"></i> ภาพรวมข้อมูล</h2>
                             <p style="font-size:12px; color:var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p>
                         </div>
-                        <button onclick="resetFilterToDefault()" style="border:1px solid var(--green-primary); background:white; color:var(--green-primary); border-radius:10px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button>
+                        <button onclick="resetFilterToDefault()" style="border:1px solid var(--theme-primary); background:white; color:var(--theme-primary); border-radius:10px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button>
                     </div>
                     <div class="clean-card">
-                        <div class="section-title"><i class="fa-regular fa-id-badge" style="color:var(--green-primary);"></i> ประเภทสมาชิก</div>
+                        <div class="section-title"><i class="fa-regular fa-id-badge" style="color:var(--theme-primary);"></i> ประเภทสมาชิก</div>
                         <div class="seg-control">
                             <div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div>
                             <div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div>
@@ -671,13 +687,13 @@ CSS  ตกแต่งหน้าตาเว็บ
                     </div>
                     <div class="clean-card" style="padding:16px 20px;">
                         <div class="toggle-wrapper">
-                            <div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color:var(--green-primary);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div>
+                            <div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color:var(--theme-primary);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div>
                             <label class="switch"><input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)"><span class="slider"></span></label>
                         </div>
                     </div>
                     <div class="clean-card">
                         <div class="section-header">
-                            <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color:var(--green-primary);"></i> เลือกกลุ่ม Care</div>
+                            <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color:var(--theme-primary);"></i> เลือกกลุ่ม Care</div>
                             <div class="care-shortcuts">
                                 <button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button>
                                 <button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button>
@@ -693,6 +709,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 const filteredData = getFilteredData(); 
                 const total = filteredData.length;
                 let donutGradientStr = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
+                let donutCenterIcon = '';
 
                 if (currentActiveCircle === 'people') {
                     barTitle = 'จำนวนคนแต่ละสถานภาพ';
@@ -720,6 +737,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                     ];
                     if (unkCount > 0) items.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#BDC3C7' });
                     
+                    donutCenterIcon = `<i class="fa-solid fa-user-group" style="font-size:36px; color:var(--theme-primary);"></i>`;
                     donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; padding: 0 20px;">`;
                     items.forEach(item => {
                         donutLegendHTML += `<div style="display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid #F1F5F9;"><div style="color:${item.color}; font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;"><div style="width:12px; height:12px; border-radius:50%; background:${item.color};"></div> ${item.label}</div><div style="font-weight:800; font-size:14px; color:var(--charcoal);">${item.percent}% <span style="color:var(--gray-text); font-size:12px; font-weight:normal;">(${item.count})</span></div></div>`;
@@ -728,10 +746,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                 } else {
                     barTitle = 'จำนวนคนรายกลุ่มแคร์';
-                    const primaryPalette = ['#9A836F', '#878F7F', '#909E9E', '#BD7A5F'];
-                    const secondaryPalette = ['#879885', '#D49A8C', '#CDA366', '#71717A', '#A1A1AA'];
-                    const palette = [...primaryPalette, ...secondaryPalette];
-
+                    const palette = ['#9A836F', '#878F7F', '#909E9E', '#BD7A5F', '#879885', '#D49A8C', '#CDA366'];
                     let segments = []; let groupCounts = {};
 
                     if (masterFilterSettings.statusMode === 'ALL') {
@@ -770,7 +785,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                     });
 
                     donutGradientStr = generateDonutGradient(segments);
-                    donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:200px; overflow-y:auto; padding: 0 20px;">${legendItems.join('')}</div>`;
+                    donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:220px; overflow-y:auto; padding: 0 20px;">${legendItems.join('')}</div>`;
+                    donutCenterIcon = `<img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true" style="width:80%; height:auto; object-fit:contain;">`;
 
                     masterFilterSettings.selectedCares.forEach(cid => { 
                         let careObj = dbCares.find(c => c.Care_ID === cid); 
@@ -785,7 +801,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         <div class="clean-card" style="display:flex; align-items:center; justify-content:center; padding:20px; text-align:center;">
                             <div>
                                 <div style="font-size:14px; color:var(--gray-text); font-weight:600;">จำนวนสมาชิกตามเงื่อนไข</div>
-                                <div style="font-size:48px; font-weight:800; color:var(--green-primary); line-height:1; margin:10px 0;">${total} <span style="font-size:18px; color:var(--gray-text); font-weight:700;">คน</span></div>
+                                <div style="font-size:48px; font-weight:800; color:var(--theme-primary); line-height:1; margin:10px 0;">${total} <span style="font-size:18px; color:var(--gray-text); font-weight:700;">คน</span></div>
                             </div>
                         </div>
                         
@@ -793,7 +809,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             <div class="donut-chart-container" style="width: 100%; display: flex; justify-content: center; margin-bottom: 25px;">
                                 <div style="width:150px; height:150px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                                     <div style="width:90px; height:90px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                                        <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Logo2.png?raw=true" style="width:80%; height:auto; object-fit:contain;">
+                                        ${donutCenterIcon}
                                     </div>
                                 </div>
                             </div>
@@ -801,25 +817,28 @@ CSS  ตกแต่งหน้าตาเว็บ
                         </div>
                     </div>
                     <div class="clean-card" style="margin-bottom:0;">
-                        <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--green-primary);"></i> ${barTitle}</div>
-                        <div style="max-height:280px; overflow-y:auto; padding-right:5px;">${total > 0 ? '' : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>'}
+                        <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--theme-primary);"></i> ${barTitle}</div>
+                        <div id="bar-chart-container" style="max-height:280px; overflow-y:auto; padding-right:5px;"></div>
+                    </div>
                 `;
                 
+                const barContainer = document.getElementById('bar-chart-container');
                 if (total > 0) {
                     if (currentActiveCircle === 'people') barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
                     else barStats.sort((a,b) => String(a.id).localeCompare(String(b.id), 'th', { numeric: true })); 
 
                     let maxBarCount = Math.max(...barStats.map(s => s.count), 1);
+                    let barHTMLStr = '';
                     barStats.forEach((s, index) => {
-                        contentArea.innerHTML += `<div style="margin-bottom:12px;"><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span></div><div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;"><div style="height:100%; background:var(--green-primary); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div></div></div>`;
+                        barHTMLStr += `<div style="margin-bottom:12px;"><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span></div><div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;"><div style="height:100%; background:var(--theme-primary); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div></div></div>`;
                     });
-                    contentArea.innerHTML += `</div></div>`; 
+                    barContainer.innerHTML = barHTMLStr;
                     
                     let statData = calculateStats(barStats);
                     if (statData) {
                         contentArea.innerHTML += `
                             <div class="clean-card" style="margin-top: 20px; margin-bottom: 0;">
-                                <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--green-primary);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div>
+                                <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--theme-primary);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
                                         <div style="font-size:11px; color:var(--gray-text);">จำนวนกลุ่ม (N)</div>
@@ -832,12 +851,12 @@ CSS  ตกแต่งหน้าตาเว็บ
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
                                         <div style="font-size:11px; color:var(--gray-text);">Max (ค่าสูงสุด)</div>
                                         <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.maxVal} <span style="font-size:12px;">คน</span></div>
-                                        <div style="font-size:10px; color:var(--green-primary); line-height:1.2;">กลุ่ม: ${formatGroups(statData.maxGroups)}</div>
+                                        <div style="font-size:10px; color:var(--theme-primary); line-height:1.2;">กลุ่ม: ${formatGroups(statData.maxGroups)}</div>
                                     </div>
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
                                         <div style="font-size:11px; color:var(--gray-text);">Min (ค่าต่ำสุด)</div>
                                         <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin:2px 0;">${statData.minVal} <span style="font-size:12px;">คน</span></div>
-                                        <div style="font-size:10px; color:var(--green-primary); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div>
+                                        <div style="font-size:10px; color:var(--theme-primary); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div>
                                     </div>
                                     <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
                                         <div style="font-size:11px; color:var(--gray-text);">Mean (ค่าเฉลี่ย)</div>
@@ -860,10 +879,9 @@ CSS  ตกแต่งหน้าตาเว็บ
                                 </div>
                             </div>`;
                     }
-                    
                     setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 95) + '%'; }); }, 100);
                 } else {
-                    contentArea.innerHTML += `</div></div>`; 
+                    barContainer.innerHTML = '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>';
                 }
 
             } else {
@@ -886,7 +904,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 sortedGroupKeys.forEach(groupName => {
                     groupedData[groupName].sort((a, b) => a.FullName_Display.localeCompare(b.FullName_Display, 'th'));
                     
-                    listHTML += `<div style="font-weight:800; color:var(--green-primary); margin: 20px 0 8px 5px; font-size:16px; border-bottom: 2px solid var(--green-soft); padding-bottom:5px;">${groupName} <span style="color:var(--gray-text); font-size:12px; font-weight:normal; margin-left:5px;">(${groupedData[groupName].length} คน)</span></div>`;
+                    listHTML += `<div style="font-weight:800; color:var(--theme-primary); margin: 20px 0 8px 5px; font-size:16px; border-bottom: 2px solid var(--theme-soft); padding-bottom:5px;">${groupName} <span style="color:var(--gray-text); font-size:12px; font-weight:normal; margin-left:5px;">(${groupedData[groupName].length} คน)</span></div>`;
                     
                     groupedData[groupName].forEach(m => {
                         let cleanNameForInitial = m.FullName_Display ? m.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '') : '';
@@ -895,7 +913,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         
                         let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '') 
                             ? `<img src="${m.Url_Image}" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` 
-                            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--green-soft); color:var(--emerald); border-radius:50%;">${initial}</div>`;
+                            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--theme-soft); color:var(--theme-primary); border-radius:50%;">${initial}</div>`;
 
                         listHTML += `
                             <div class="member-list-item clean-card" onclick="openProfile('${safeId}')">
@@ -925,29 +943,26 @@ CSS  ตกแต่งหน้าตาเว็บ
 
 <style>
     :root {
-        --green-primary: #878F7F; 
-        --green-soft: #F1F3F1;
-        --emerald: #5F675F;
-        --emerald-soft: #ECF0EC;
-        
+        --theme-primary: #878F7F; 
+        --theme-soft: #F1F4F2;
+        --theme-accent: #9A836F;
         --charcoal: #3F3F46;
         --gray-text: #71717A;
-        --orange: #BD7A5F;
         --bg-color: #F4F4F5;
     }
 
-    .menu-btn.active { background: var(--green-primary); color: white; box-shadow: 0 4px 10px rgba(135,143,127,0.3); }
-    .nav-bar .nav-btn.active { color: var(--green-primary); }
-    .nav-bar .nav-btn.active::after { background: var(--green-primary); }
-    .seg-btn.active { background: var(--green-primary); color: white; }
-    .care-shortcuts .sc-btn { color: var(--green-primary); border: 1px solid var(--green-primary); }
-    .only-link { color: var(--green-primary); }
-    input[type="checkbox"]:checked { background-color: var(--green-primary); border-color: var(--green-primary); }
+    .menu-btn.active { background: var(--theme-primary) !important; color: white !important; box-shadow: 0 4px 10px rgba(135,143,127,0.3) !important; }
+    .nav-bar .nav-btn.active { color: var(--theme-primary) !important; }
+    .nav-bar .nav-btn.active::after { background: var(--theme-primary) !important; }
+    .seg-btn.active { background: var(--theme-primary) !important; color: white !important; }
+    .care-shortcuts .sc-btn { color: var(--theme-primary) !important; border: 1px solid var(--theme-primary) !important; }
+    .only-link { color: var(--theme-primary) !important; }
+    input[type="checkbox"]:checked { background-color: var(--theme-primary) !important; border-color: var(--theme-primary) !important; }
     .slider { background-color: #ccc; }
-    input:checked + .slider { background-color: var(--green-primary); }
-    input:focus + .slider { box-shadow: 0 0 1px var(--green-primary); }
+    input:checked + .slider { background-color: var(--theme-primary) !important; }
+    input:focus + .slider { box-shadow: 0 0 1px var(--theme-primary) !important; }
 
-    .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid transparent; }
+    .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid #F1F5F9; border-radius: 16px; background: white; }
     .member-list-item:active { transform:scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     .member-photo-container { width:45px; height:45px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; }
     .member-info-container { flex:1; overflow:hidden; }
@@ -956,71 +971,15 @@ CSS  ตกแต่งหน้าตาเว็บ
     .member-arrow { color:#CBD5E1; font-size:14px; margin-left: 5px; }
 
     #profile-popup-content img { width:100%; height:100%; object-fit:cover; }
-    .download-photo-btn { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:var(--green-primary); color:white; width:55px; height:55px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10001; transition:background 0.2s; }
-    .download-photo-btn:active { background:#6F766F; }
+    .download-photo-btn { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:var(--theme-primary); color:white; width:55px; height:55px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10001; transition:background 0.2s; }
+    .download-photo-btn:active { background:var(--theme-accent); }
     .close-fs-photo { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; backdrop-filter:blur(4px); z-index:10001; cursor:pointer; }
 
-    .circle-hub-btn .icon-box i { color: var(--green-primary); }
-    #home-top-section .main-card h1 { color: var(--green-primary); }
-    #alert-title-text { color: #DC2626; }
-    #screen-pin h1 { color: var(--green-primary); }
-    .pin-btn:active { background-color: var(--green-soft); }
-</style>
-
-<style>
-    /* ปรับปรุง CSS เพื่อรองรับ Theme เอิร์ธโทน-ธรรมชาติ และเลย์เอาต์ใหม่ */
-    :root {
-        /* ชุดสีใหม่ตามที่พี่ขอ */
-        --earth-1: #9A836F;
-        --earth-2: #878F7F;
-        --earth-3: #909E9E;
-        --earth-4: #BD7A5F;
-        
-        /* สีหลักของแอป (UI Primary) เลือกใช้สีเขียวขี้ม้าปนเทาเพื่อให้ดูเป็นธรรมชาติ */
-        --green-primary: #878F7F; 
-        --green-soft: #F1F3F1;
-        --emerald: #5F675F;
-        --emerald-soft: #ECF0EC;
-        
-        --charcoal: #3F3F46;
-        --gray-text: #71717A;
-        --orange: #BD7A5F;
-        --bg-color: #F4F4F5;
-    }
-
-    /* Style สำหรับปุ่ม/ไอคอนหลัก ให้ใช้สี Theme ใหม่ */
-    .menu-btn.active { background: var(--green-primary); color: white; box-shadow: 0 4px 10px rgba(135,143,127,0.3); }
-    .nav-bar .nav-btn.active { color: var(--green-primary); }
-    .nav-bar .nav-btn.active::after { background: var(--green-primary); }
-    .seg-btn.active { background: var(--green-primary); color: white; }
-    .care-shortcuts .sc-btn { color: var(--green-primary); border: 1px solid var(--green-primary); }
-    .only-link { color: var(--green-primary); }
-    input[type="checkbox"]:checked { background-color: var(--green-primary); border-color: var(--green-primary); }
-    .slider { background-color: #ccc; }
-    input:checked + .slider { background-color: var(--green-primary); }
-    input:focus + .slider { box-shadow: 0 0 1px var(--green-primary); }
-
-    /* ปรับปรุงหน้าจอรายชื่อ (List Item) */
-    .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid transparent; }
-    .member-list-item:active { transform:scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-    .member-photo-container { width:45px; height:45px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; }
-    .member-info-container { flex:1; overflow:hidden; }
-    .member-name { font-weight:700; font-size:15px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .member-subdata { font-size:12px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .member-arrow { color:#CBD5E1; font-size:14px; margin-left: 5px; }
-
-    /* ปรับปรุงหน้า Profile และหน้าขยายรูปเต็มจอ */
-    #profile-popup-content img { width:100%; height:100%; object-fit:cover; }
-    .download-photo-btn { position:absolute; bottom:30px; left:50%; transform:translateX(-50%); background:var(--green-primary); color:white; width:55px; height:55px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10001; transition:background 0.2s; }
-    .download-photo-btn:active { background:#6F766F; }
-    .close-fs-photo { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; backdrop-filter:blur(4px); z-index:10001; cursor:pointer; }
-
-    /* อื่นๆ */
-    .circle-hub-btn .icon-box i { color: var(--green-primary); }
-    #home-top-section .main-card h1 { color: var(--green-primary); }
-    #alert-title-text { color: #DC2626; }
-    #screen-pin h1 { color: var(--green-primary); }
-    .pin-btn:active { background-color: var(--green-soft); }
+    .circle-hub-btn .icon-box i { color: var(--theme-primary) !important; }
+    #home-top-section .main-card h1 { color: var(--theme-primary) !important; }
+    #alert-title-text { color: #DC2626 !important; }
+    #screen-pin h1 { color: var(--theme-primary) !important; }
+    .pin-btn:active { background-color: var(--theme-soft) !important; }
 </style>
 
    
