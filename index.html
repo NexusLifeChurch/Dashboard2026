@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.065</title>
+    <title>NxLife Community version #1.0.066</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.065</div>
+            <div class="version-tag">version #1.0.066</div>
         </div>
 
         <div id="screen-pin">
@@ -342,11 +342,7 @@ CSS  ตกแต่งหน้าตาเว็บ
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
 
-        let masterFilterSettings = {
-            statusMode: 'COMMUNITY', 
-            includeKids: false,      
-            selectedCares: []        
-        };
+        let masterFilterSettings = { statusMode: 'COMMUNITY', includeKids: false, selectedCares: [] };
 
         const circleContext = {
             'care': { name: 'กลุ่มแคร์', icon: 'fa-people-roof' },
@@ -359,6 +355,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 
         window.addEventListener('DOMContentLoaded', () => {
             fetchAllSheetsData();
+            setupProfilePopup(); 
         });
 
         setTimeout(function() {
@@ -366,10 +363,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             const pinScreen = document.getElementById('screen-pin');
             if(splash && pinScreen) {
                 splash.style.opacity = '0';
-                setTimeout(function() {
-                    splash.style.display = 'none';
-                    pinScreen.style.transform = 'translateX(0)';
-                }, 600); 
+                setTimeout(function() { splash.style.display = 'none'; pinScreen.style.transform = 'translateX(0)'; }, 600); 
             }
         }, 2000);
 
@@ -388,81 +382,45 @@ CSS  ตกแต่งหน้าตาเว็บ
             fetch(API_URL)
                 .then(res => res.json())
                 .then(responseObj => {
-                    
-                    let rawCares = responseObj.cares || responseObj.careMap || [];
-                    if (rawCares && typeof rawCares === 'object' && !Array.isArray(rawCares)) {
-                        let arr = [];
-                        for (let k in rawCares) {
-                            if (typeof rawCares[k] === 'object') arr.push({ Care_ID: k, ...rawCares[k] });
-                            else arr.push({ Care_ID: k, CareName: rawCares[k] });
-                        }
-                        rawCares = arr;
-                    }
-
+                    let rawCares = responseObj.cares || [];
                     dbCares = rawCares.map(c => {
-                        let cid = String(getProp(c, ['Care_ID', 'CareID', 'care_id']) || '').trim();
-                        let cname = String(getProp(c, ['CareName', 'Care_Name', 'care_name']) || '').trim();
-                        let activeVal = getProp(c, ['Is_Active', 'IsActive', 'is_active', 'active']);
-                        
-                        let isActive = true;
-                        if (activeVal !== undefined && activeVal !== '') {
-                            let s = String(activeVal).toUpperCase().trim();
-                            isActive = (s === 'TRUE' || s === '1' || activeVal === true);
-                        }
-                        return { Care_ID: cid, CareName: cname || cid, Is_Active: isActive };
-                    }).filter(c => c.Care_ID !== '' && c.Is_Active);
+                        let cid = String(c.Care_ID || '').trim();
+                        let cname = String(c.CareName || cid).trim();
+                        return { Care_ID: cid, CareName: cname, Is_Active: c.Is_Active };
+                    });
 
                     dbCares.sort((a, b) => String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true }));
-
                     let validCareIds = new Set(dbCares.map(c => c.Care_ID));
-                    let careNameMap = {};
-                    dbCares.forEach(c => { careNameMap[c.Care_ID.toLowerCase()] = c.CareName; });
 
                     let rawMembers = responseObj.members || [];
                     let hasUnmappedCares = false;
 
                     dbMembers = rawMembers.map(m => {
-                        let cid = String(getProp(m, ['Care_ID', 'CareID', 'care_id', 'careId']) || '').trim();
-                        let status = String(getProp(m, ['Nxl_Status', 'NxlStatus', 'nxl_status', 'status']) || '').trim();
-                        let gen = String(getProp(m, ['Gender', 'เพศ', 'Sex', 'gender']) || '').trim();
-                        let fullName = String(getProp(m, ['FullName_Display', 'fullname']) || '').trim();
+                        let cid = String(m.Care_ID || '').trim();
+                        let status = String(m.Nxl_Status || '').trim();
+                        let gen = String(m.Gender || '').trim();
                         
-                        if (cid === '' || !validCareIds.has(cid)) {
-                            cid = 'UNMAPPED_CARE';
-                            hasUnmappedCares = true;
-                        }
-
-                        let upStatus = status.toUpperCase();
-                        let upGen = gen.toUpperCase();
+                        if (cid === '' || !validCareIds.has(cid)) { cid = 'UNMAPPED_CARE'; hasUnmappedCares = true; }
 
                         let normGender = 'ไม่ระบุ';
-                        if (['ชาย', 'M', 'MALE', 'MAN'].includes(upGen)) normGender = 'ชาย';
-                        else if (['หญิง', 'F', 'FEMALE', 'WOMAN'].includes(upGen)) normGender = 'หญิง';
+                        if (m.IsMale) normGender = 'ชาย';
+                        else if (m.IsFemale) normGender = 'หญิง';
                         else if (gen !== '') normGender = 'อื่นๆ';
 
-                        let classify = 'อื่นๆ';
-                        if (upStatus.startsWith('FM')) classify = 'Family';
-                        else if (upStatus.startsWith('FR')) classify = 'Friend';
-                        else if (upStatus.startsWith('SEND') || upStatus.includes('RTN')) classify = 'Send';
-
                         return {
+                            Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
-                            CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : (careNameMap[cid.toLowerCase()] || cid),
+                            CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                             Nxl_Status: status,
-                            Classify: classify,
+                            Classify: m.Classify || 'อื่นๆ',
                             Gender: normGender,
-                            FullName_Display: fullName,
-                            IsFamily: upStatus.startsWith('FM'),
-                            IsFriend: upStatus.startsWith('FR'),
-                            IsSend: upStatus.startsWith('SEND') || upStatus.includes('RTN'),
-                            IsKids: upStatus.includes('KIDS')
+                            FullName_Display: m.FullName_Display,
+                            Url_Image: m.Url_Image || '', 
+                            IsFamily: m.IsFamily, IsFriend: m.IsFriend, IsSend: m.IsSend, IsKids: m.IsKids
                         };
                     });
 
-                    if (hasUnmappedCares) {
-                        dbCares.push({ Care_ID: 'UNMAPPED_CARE', CareName: 'ไม่ระบุแคร์/อื่นๆ', Is_Active: true });
-                    }
-
+                    if (hasUnmappedCares) dbCares.push({ Care_ID: 'UNMAPPED_CARE', CareName: 'ไม่ระบุแคร์/อื่นๆ', Is_Active: true });
                     masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
                     updateDashboardView();
                 })
@@ -471,439 +429,234 @@ CSS  ตกแต่งหน้าตาเว็บ
 
         function getFilteredData() {
             return dbMembers.filter(m => {
-                let statusMatch = true;
-                if (masterFilterSettings.statusMode === 'COMMUNITY') {
-                    statusMatch = m.IsFamily || m.IsFriend;
-                } else if (masterFilterSettings.statusMode === 'SEND') {
-                    statusMatch = m.IsSend;
-                }
-
-                let kidsMatch = true;
-                if (!masterFilterSettings.includeKids) {
-                    kidsMatch = !m.IsKids;
-                }
-
+                let statusMatch = masterFilterSettings.statusMode === 'COMMUNITY' ? (m.IsFamily || m.IsFriend) : (masterFilterSettings.statusMode === 'SEND' ? m.IsSend : true);
+                let kidsMatch = masterFilterSettings.includeKids ? true : !m.IsKids;
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
                 return statusMatch && kidsMatch && careMatch;
             });
         }
 
         function generateDonutGradient(segments) {
-            let currentTotal = 0;
-            let gradParts = [];
-            segments.forEach(s => {
-                if (s.percent > 0) {
-                    let start = currentTotal;
-                    let end = currentTotal + s.percent;
-                    gradParts.push(`${s.color} ${start}% ${end}%`);
-                    currentTotal = end;
-                }
-            });
-            if (gradParts.length === 0) return '#E2E8F0';
-            return `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
+            let currentTotal = 0; let gradParts = [];
+            segments.forEach(s => { if (s.percent > 0) { let end = currentTotal + s.percent; gradParts.push(`${s.color} ${currentTotal}% ${end}%`); currentTotal = end; } });
+            return gradParts.length === 0 ? '#E2E8F0' : `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
         }
 
-        // ==========================================
-        // 📊 ฟังก์ชันคำนวณสถิติวิเคราะห์ พร้อมเครื่องมือแปลผล (Data Storytelling)
-        // ==========================================
         function calculateStats(statsArray) {
             if (!statsArray || statsArray.length === 0) return null;
             let counts = statsArray.map(s => s.count).sort((a, b) => a - b);
-            
-            let groupCount = counts.length;
-            let totalPeople = counts.reduce((a, b) => a + b, 0);
-            
+            let groupCount = counts.length; let totalPeople = counts.reduce((a, b) => a + b, 0);
             let mean = totalPeople / groupCount;
-
-            let median = 0;
-            if (groupCount % 2 === 0) {
-                median = (counts[groupCount / 2 - 1] + counts[groupCount / 2]) / 2;
-            } else {
-                median = counts[Math.floor(groupCount / 2)];
-            }
-
-            let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / groupCount;
-            let stdDev = Math.sqrt(variance);
+            let median = (groupCount % 2 === 0) ? (counts[groupCount / 2 - 1] + counts[groupCount / 2]) / 2 : counts[Math.floor(groupCount / 2)];
+            let variance = counts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / groupCount; let stdDev = Math.sqrt(variance);
             
             let cvValue = (mean !== 0) ? (stdDev / mean) * 100 : 0;
-            let cv = cvValue.toFixed(2);
+            let cvDesc = ""; let cvColor = "";
+            if (cvValue <= 10) { cvDesc = "สมดุลมาก: ขนาดกลุ่มใกล้เคียงกัน"; cvColor = "#10B981"; } 
+            else if (cvValue <= 20) { cvDesc = "สมดุล: มีความต่างเล็กน้อย"; cvColor = "#34D399"; } 
+            else if (cvValue <= 30) { cvDesc = "กระจายปานกลาง: เริ่มต่างกัน"; cvColor = "#F59E0B"; } 
+            else if (cvValue <= 50) { cvDesc = "กระจายสูง: ต่างกันชัดเจน"; cvColor = "#EA580C"; } 
+            else if (cvValue <= 100) { cvDesc = "ไม่สมดุล: แคร์เล็ก/ใหญ่ปนกัน"; cvColor = "#EF4444"; } 
+            else { cvDesc = "กระจายรุนแรง: ต่างกันมากผิดปกติ"; cvColor = "#B91C1C"; } 
 
-            // 🛑 ระบบแปลผลค่า CV (อ้างอิงเกณฑ์ที่ผู้ใช้กำหนด)
-            let cvDesc = "";
-            let cvColor = "";
-            if (cvValue <= 10) { cvDesc = "สมดุลมาก: ขนาดกลุ่มใกล้เคียงกันมาก"; cvColor = "#10B981"; } // สีเขียว
-            else if (cvValue <= 20) { cvDesc = "สมดุล: มีความต่างเล็กน้อย"; cvColor = "#34D399"; } // สีเขียวอ่อน
-            else if (cvValue <= 30) { cvDesc = "กระจายปานกลาง: เริ่มมีความต่างระหว่างกลุ่ม"; cvColor = "#F59E0B"; } // สีส้ม
-            else if (cvValue <= 50) { cvDesc = "กระจายสูง: ขนาดกลุ่มต่างกันชัดเจน"; cvColor = "#EA580C"; } // สีส้มเข้ม
-            else if (cvValue <= 100) { cvDesc = "ไม่สมดุล: บางกลุ่มเล็ก บางกลุ่มใหญ่"; cvColor = "#EF4444"; } // สีแดง
-            else { cvDesc = "กระจายรุนแรง: ขนาดกลุ่มแตกต่างกันมากผิดปกติ"; cvColor = "#B91C1C"; } // สีแดงเข้ม
-
-            let minVal = counts[0];
-            let maxVal = counts[groupCount - 1];
-
-            let minGroups = statsArray.filter(s => s.count === minVal).map(s => s.name);
-            let maxGroups = statsArray.filter(s => s.count === maxVal).map(s => s.name);
-
+            let minVal = counts[0]; let maxVal = counts[groupCount - 1];
             return {
-                groupCount: groupCount,
-                totalPeople: totalPeople,
-                mean: mean.toFixed(2),
-                median: median.toFixed(2),
-                stdDev: stdDev.toFixed(2),
-                cv: cv,
-                cvDesc: cvDesc,
-                cvColor: cvColor,
-                minVal: minVal,
-                minGroups: minGroups,
-                maxVal: maxVal,
-                maxGroups: maxGroups
+                groupCount: groupCount, totalPeople: totalPeople, mean: mean.toFixed(2), median: median.toFixed(2),
+                stdDev: stdDev.toFixed(2), cv: cvValue.toFixed(2), cvDesc: cvDesc, cvColor: cvColor,
+                minVal: minVal, minGroups: statsArray.filter(s => s.count === minVal).map(s => s.name), maxVal: maxVal, maxGroups: statsArray.filter(s => s.count === maxVal).map(s => s.name)
             };
         }
 
-        function formatGroups(groups) {
-            if (groups.length <= 2) {
-                return groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '');
-            } else {
-                return groups.slice(0, 2).join(', ') + ` และอื่นๆ (รวม ${groups.length})`;
-            }
-        }
+        function formatGroups(groups) { return (groups.length <= 2) ? groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '') : groups.slice(0, 2).join(', ') + ` และอื่นๆ (รวม ${groups.length})`; }
 
-        function selectCircleMenu(type, element) {
-            document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
-            if(element) element.classList.add('active');
-            currentActiveCircle = type;
-            handleBottomNav('overview', document.getElementById('nav-overview'));
-        }
-
-        function handleBottomNav(target, element) {
-            document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active'));
-            if(element) element.classList.add('active');
-            currentActiveBottom = target;
-            updateDashboardView();
-        }
-
+        function selectCircleMenu(type, element) { document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveCircle = type; handleBottomNav('overview', document.getElementById('nav-overview')); }
+        function handleBottomNav(target, element) { document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveBottom = target; updateDashboardView(); }
         function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
         function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
-        
-        function toggleCareCheckbox(id) {
-            let idx = masterFilterSettings.selectedCares.indexOf(id);
-            if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1);
-            else masterFilterSettings.selectedCares.push(id);
-            updateDashboardView();
-        }
-        
+        function toggleCareCheckbox(id) { let idx = masterFilterSettings.selectedCares.indexOf(id); if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1); else masterFilterSettings.selectedCares.push(id); updateDashboardView(); }
         function careSelectAll() { masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
         function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
         function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
-        
-        function resetFilterToDefault() {
-            masterFilterSettings.statusMode = 'COMMUNITY';
-            masterFilterSettings.includeKids = false;
-            masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID);
-            updateDashboardView();
+        function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
+
+        // ==========================================
+        // 🔮 ระบบ Popup โปรไฟล์ (ดีไซน์ใหม่แบบนามบัตร ID Card)
+        // ==========================================
+        function setupProfilePopup() {
+            if(!document.getElementById('profile-popup')) {
+                let div = document.createElement('div'); div.id = 'profile-popup';
+                div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px);';
+                // ปรับขอบโค้งและซ่อนส่วนเกิน (overflow:hidden) เพื่อให้ Cover ไม่ล้นกรอบ
+                div.innerHTML = `<div id="profile-popup-content" style="background:white; width:100%; max-width:340px; border-radius:24px; padding-bottom:30px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;"></div>`;
+                document.body.appendChild(div); div.addEventListener('click', function(e) { if (e.target === div) closeProfile(); });
+            }
         }
 
+        function openProfile(memberId) {
+            let member = dbMembers.find(m => m.Member_ID === memberId);
+            if(!member) return;
+
+            let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
+            let profileImageHTML = '';
+            
+            if (member.Url_Image && member.Url_Image.startsWith('http')) {
+                profileImageHTML = `<img src="${member.Url_Image}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">`;
+            } else {
+                profileImageHTML = `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
+            }
+
+            document.getElementById('profile-popup-content').innerHTML = `
+                <div style="position:absolute; top:0; left:0; width:100%; height:90px; background: linear-gradient(135deg, var(--orange), #FBBF24); z-index:1;"></div>
+                
+                <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.3); width:30px; height:30px; border-radius:50%; border:none; font-size:14px; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); z-index:10;"><i class="fa-solid fa-xmark"></i></button>
+                
+                <div style="width:100px; height:100px; border-radius:50%; background:white; margin: 40px auto 15px auto; position:relative; z-index:2; overflow:hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                    ${profileImageHTML}
+                </div>
+                
+                <div style="text-align:center; padding: 0 20px;">
+                    <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:12px; line-height:1.2;">${member.FullName_Display}</div>
+                    
+                    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
+                        <span style="background:var(--orange-soft); color:var(--orange); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
+                        <span style="background:#F1F5F9; color:var(--charcoal); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-regular fa-id-badge" style="margin-right:4px;"></i>${member.Classify}</span>
+                    </div>
+                </div>
+                
+                <div style="background:#F8FAFC; border-radius:16px; padding:15px; margin: 0 20px; border: 1px solid #E2E8F0;">
+                    <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-address-card" style="color:var(--gray-text);"></i> ข้อมูลส่วนตัวเบื้องต้น
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
+                        <span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Nxl_Status}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
+                        <span style="font-size:13px; color:var(--gray-text);">เพศ (Gender)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Gender}</span>
+                    </div>
+                    
+                    <div style="text-align:center; padding-top:8px;">
+                        <span style="font-size:11px; color:var(--gray-text); font-style:italic;">รอเพิ่มข้อมูลอื่นๆ ในสเต็ปต่อไป...</span>
+                    </div>
+                </div>
+            `;
+            let popup = document.getElementById('profile-popup'); popup.style.display = 'flex';
+            setTimeout(() => { popup.style.opacity = '1'; document.getElementById('profile-popup-content').style.transform = 'scale(1)'; }, 10);
+        }
+        function closeProfile() {
+            let popup = document.getElementById('profile-popup'); popup.style.opacity = '0'; document.getElementById('profile-popup-content').style.transform = 'scale(0.9)';
+            setTimeout(() => { popup.style.display = 'none'; }, 300);
+        }
+
+        // ==========================================
+        // 📊 วาดหน้าจอหลัก
+        // ==========================================
         function updateDashboardView() {
             let careListContainer = document.querySelector('.care-list-container');
             let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
-
-            const homeTopSection = document.getElementById('home-top-section');
-            const subPageHeader = document.getElementById('sub-page-header');
-            const contentArea = document.getElementById('dashboard-content-area');
-            const activeCtx = circleContext[currentActiveCircle] || circleContext[''];
+            const homeTopSection = document.getElementById('home-top-section'); const subPageHeader = document.getElementById('sub-page-header');
+            const contentArea = document.getElementById('dashboard-content-area'); const activeCtx = circleContext[currentActiveCircle] || circleContext[''];
             const viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
 
             if (currentActiveBottom === 'home') {
-                homeTopSection.style.display = 'block';
-                subPageHeader.style.display = 'none';
-                contentArea.innerHTML = `
-                    <div class="clean-card">
-                        <div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--orange);"></i> Family</div>
-                        <p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p>
-                    </div>
-                    <div class="clean-card">
-                        <div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--orange);"></i> Friend</div>
-                        <p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p>
-                    </div>`;
+                homeTopSection.style.display = 'block'; subPageHeader.style.display = 'none';
+                contentArea.innerHTML = `<div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--orange);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div><div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--orange);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>`;
             } else {
                 homeTopSection.style.display = 'none';
-                
-                if (currentActiveBottom !== 'filter' && currentActiveBottom !== 'profile') {
-                    subPageHeader.style.display = 'flex';
-                    subPageHeader.style.justifyContent = 'space-between';
-                    subPageHeader.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px;"><i class="fa-solid ${activeCtx.icon}"></i></div>
-                            <div style="display: flex; flex-direction: column;">
-                                <div style="font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px;">${activeCtx.name}</div>
-                                <div style="font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1;">${viewTitle}</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                            <div style="display: flex; gap: 4px;">
-                                <span style="background: var(--orange); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.statusMode}</span>
-                                <span style="background: ${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
-                            </div>
-                            <span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${dbCares.length}</span>
-                        </div>`;
+                if (currentActiveBottom !== 'filter') {
+                    subPageHeader.style.display = 'flex'; subPageHeader.style.justifyContent = 'space-between';
+                    subPageHeader.innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><div style="width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px;"><i class="fa-solid ${activeCtx.icon}"></i></div><div style="display: flex; flex-direction: column;"><div style="font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px;">${activeCtx.name}</div><div style="font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1;">${viewTitle}</div></div></div><div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;"><div style="display: flex; gap: 4px;"><span style="background: var(--orange); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.statusMode}</span><span style="background: ${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span></div><span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${dbCares.length}</span></div>`;
                 } else { subPageHeader.style.display = 'none'; }
 
                 if (currentActiveBottom === 'filter') {
                     let careListHTML = '';
-                    if(dbCares.length === 0) { 
-                        careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 14px; font-weight: 600; color: var(--gray-text);">กำลังดึงข้อมูลกลุ่มแคร์...</div></div>`; 
-                    } else { 
-                        dbCares.forEach(care => { 
-                            let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; 
-                            careListHTML += `
-                                <div class="care-item">
-                                    <label class="care-checkbox-label">
-                                        <input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')">
-                                        <span>${care.CareName}</span>
-                                    </label>
-                                    <span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span>
-                                </div>`; 
-                        }); 
-                    }
+                    if(dbCares.length === 0) { careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 14px; font-weight: 600; color: var(--gray-text);">กำลังดึงข้อมูล...</div></div>`; } 
+                    else { dbCares.forEach(care => { let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.CareName}</span></label><span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span></div>`; }); }
 
-                    contentArea.innerHTML = `
-                        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start;">
-                            <div style="flex: 1;">
-                                <h2 style="font-size: 22px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล</h2>
-                                <p style="font-size: 12px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p>
-                            </div>
-                            <button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 600; font-family: 'Prompt'; cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button>
-                        </div>
-                        <div class="clean-card"><div class="section-title"><i class="fa-regular fa-id-badge" style="color: var(--orange);"></i> ประเภทสมาชิก</div><div class="seg-control"><div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div><div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div><div class="seg-btn ${masterFilterSettings.statusMode === 'SEND' ? 'active' : ''}" onclick="setStatusMode('SEND')">Send</div></div></div>
-                        <div class="clean-card" style="padding: 16px 20px;"><div class="toggle-wrapper"><div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div><label class="switch"><input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)"><span class="slider"></span></label></div></div>
-                        <div class="clean-card">
-                            <div class="section-header">
-                                <div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div>
-                                <div class="care-shortcuts">
-                                    <button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button>
-                                    <button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button>
-                                </div>
-                            </div>
-                            <div class="care-list-container">${careListHTML}</div>
-                        </div>`;
-                    
-                    let newCareList = document.querySelector('.care-list-container');
-                    if (newCareList) newCareList.scrollTop = savedScrollPos;
-
+                    contentArea.innerHTML = `<div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start;"><div style="flex: 1;"><h2 style="font-size: 22px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล</h2><p style="font-size: 12px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p></div><button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button></div><div class="clean-card"><div class="section-title"><i class="fa-regular fa-id-badge" style="color: var(--orange);"></i> ประเภทสมาชิก</div><div class="seg-control"><div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div><div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div><div class="seg-btn ${masterFilterSettings.statusMode === 'SEND' ? 'active' : ''}" onclick="setStatusMode('SEND')">Send</div></div></div><div class="clean-card" style="padding: 16px 20px;"><div class="toggle-wrapper"><div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div><label class="switch"><input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)"><span class="slider"></span></label></div></div><div class="clean-card"><div class="section-header"><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div><div class="care-shortcuts"><button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button><button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button></div></div><div class="care-list-container">${careListHTML}</div></div>`;
+                    let newCareList = document.querySelector('.care-list-container'); if (newCareList) newCareList.scrollTop = savedScrollPos;
                 } 
                 else if (currentActiveBottom === 'overview') {
-                    const filteredData = getFilteredData();
-                    const total = filteredData.length;
-                    
-                    let donutGradientStr = '';
-                    let donutLabel = '';
-                    let donutLegendHTML = '';
-                    let barTitle = '';
-                    let barStats = [];
+                    const filteredData = getFilteredData(); const total = filteredData.length;
+                    let donutGradientStr = ''; let donutLabel = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
 
                     if (currentActiveCircle === 'people') {
                         barTitle = 'จำนวนคนแต่ละสถานภาพ';
-
-                        let statusMap = {};
-                        filteredData.forEach(m => {
-                            let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ';
-                            statusMap[st] = (statusMap[st] || 0) + 1;
-                        });
+                        let statusMap = {}; filteredData.forEach(m => { let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ'; statusMap[st] = (statusMap[st] || 0) + 1; });
                         for (let k in statusMap) barStats.push({ name: k, count: statusMap[k], id: k });
 
-                        let maleCount = filteredData.filter(m => m.Gender === 'ชาย').length;
-                        let femaleCount = filteredData.filter(m => m.Gender === 'หญิง').length;
-                        let otherCount = filteredData.filter(m => m.Gender === 'อื่นๆ').length;
-                        let unkCount = filteredData.filter(m => m.Gender === 'ไม่ระบุ').length;
-
-                        let pMale = total > 0 ? Math.round((maleCount / total) * 100) : 0;
-                        let pFemale = total > 0 ? Math.round((femaleCount / total) * 100) : 0;
-                        let pOther = total > 0 ? Math.round((otherCount / total) * 100) : 0;
-                        let pUnk = total > 0 ? Math.round((unkCount / total) * 100) : 0;
-
-                        donutLabel = 'สัดส่วน ชาย/หญิง';
-                        donutGradientStr = generateDonutGradient([
-                            { percent: pMale, color: '#34495E' },   
-                            { percent: pFemale, color: '#D98880' }, 
-                            { percent: pOther, color: '#A569BD' },  
-                            { percent: pUnk, color: '#BDC3C7' }     
-                        ]);
-
-                        donutLegendHTML = `
-                            <div style="display:flex; flex-direction:column; gap:4px;">
-                                <div style="color:#34495E; font-weight:700; font-size:12px; white-space:nowrap;">● ชาย: ${maleCount} (${pMale}%)</div>
-                                <div style="color:#D98880; font-weight:700; font-size:12px; white-space:nowrap;">● หญิง: ${femaleCount} (${pFemale}%)</div>
-                                ${otherCount > 0 ? `<div style="color:#A569BD; font-weight:700; font-size:12px; white-space:nowrap;">● อื่นๆ: ${otherCount} (${pOther}%)</div>` : ''}
-                                ${unkCount > 0 ? `<div style="color:#BDC3C7; font-weight:700; font-size:12px; white-space:nowrap;">● ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}
-                            </div>`;
-
+                        let maleCount = filteredData.filter(m => m.Gender === 'ชาย').length; let femaleCount = filteredData.filter(m => m.Gender === 'หญิง').length; let unkCount = total - (maleCount + femaleCount);
+                        let pMale = total > 0 ? Math.round((maleCount / total) * 100) : 0; let pFemale = total > 0 ? Math.round((femaleCount / total) * 100) : 0; let pUnk = total > 0 ? Math.round((unkCount / total) * 100) : 0;
+                        donutLabel = 'สัดส่วน ชาย/หญิง'; donutGradientStr = generateDonutGradient([ { percent: pMale, color: '#34495E' }, { percent: pFemale, color: '#D98880' }, { percent: pUnk, color: '#BDC3C7' } ]);
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><div style="color:#34495E; font-weight:700; font-size:12px;">● ชาย: ${maleCount} (${pMale}%)</div><div style="color:#D98880; font-weight:700; font-size:12px;">● หญิง: ${femaleCount} (${pFemale}%)</div>${unkCount > 0 ? `<div style="color:#BDC3C7; font-weight:700; font-size:12px;">● อื่นๆ/ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}</div>`;
                     } else {
                         barTitle = 'จำนวนคนรายกลุ่มแคร์';
+                        masterFilterSettings.selectedCares.forEach(cid => { let careObj = dbCares.find(c => c.Care_ID === cid); let careName = careObj ? careObj.CareName : cid; const count = filteredData.filter(m => m.Care_ID === cid).length; if(count > 0) barStats.push({ name: careName, count: count, id: cid }); });
 
-                        masterFilterSettings.selectedCares.forEach(cid => {
-                            let careObj = dbCares.find(c => c.Care_ID === cid);
-                            let careName = careObj ? careObj.CareName : cid;
-                            const count = filteredData.filter(m => m.Care_ID === cid).length;
-                            if(count > 0) barStats.push({ name: careName, count: count, id: cid });
-                        });
-
-                        let famCount = filteredData.filter(m => m.Classify === 'Family').length;
-                        let friCount = filteredData.filter(m => m.Classify === 'Friend').length;
-                        let sndCount = filteredData.filter(m => m.Classify === 'Send').length;
-                        let othCount = total - (famCount + friCount + sndCount);
-
-                        let pFam = total > 0 ? Math.round((famCount / total) * 100) : 0;
-                        let pFri = total > 0 ? Math.round((friCount / total) * 100) : 0;
-                        let pSnd = total > 0 ? Math.round((sndCount / total) * 100) : 0;
-                        let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
-
-                        donutLabel = 'สัดส่วนสถานภาพ';
-                        donutGradientStr = generateDonutGradient([
-                            { percent: pFam, color: 'var(--orange)' }, 
-                            { percent: pFri, color: '#5D6D7E' },       
-                            { percent: pSnd, color: '#A67B5B' }, 
-                            { percent: pOth, color: '#BCAAA4' }  
-                        ]);
-
-                        donutLegendHTML = `
-                            <div style="display:flex; flex-direction:column; gap:4px;">
-                                <div style="color:var(--orange); font-weight:700; font-size:12px; white-space:nowrap;">● Family: ${famCount} (${pFam}%)</div>
-                                <div style="color:#5D6D7E; font-weight:700; font-size:12px; white-space:nowrap;">● Friend: ${friCount} (${pFri}%)</div>
-                                <div style="color:#A67B5B; font-weight:700; font-size:12px; white-space:nowrap;">● Send: ${sndCount} (${pSnd}%)</div>
-                                ${othCount > 0 ? `<div style="color:#BCAAA4; font-weight:700; font-size:12px; white-space:nowrap;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}
-                            </div>`;
+                        let famCount = filteredData.filter(m => m.IsFamily).length; let friCount = filteredData.filter(m => m.IsFriend).length; let sndCount = filteredData.filter(m => m.IsSend).length; let othCount = total - (famCount + friCount + sndCount);
+                        let pFam = total > 0 ? Math.round((famCount / total) * 100) : 0; let pFri = total > 0 ? Math.round((friCount / total) * 100) : 0; let pSnd = total > 0 ? Math.round((sndCount / total) * 100) : 0; let pOth = total > 0 ? Math.round((othCount / total) * 100) : 0;
+                        donutLabel = 'สัดส่วนสถานภาพ'; donutGradientStr = generateDonutGradient([ { percent: pFam, color: 'var(--orange)' }, { percent: pFri, color: '#5D6D7E' }, { percent: pSnd, color: '#A67B5B' }, { percent: pOth, color: '#BCAAA4' } ]);
+                        donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><div style="color:var(--orange); font-weight:700; font-size:12px;">● Family: ${famCount} (${pFam}%)</div><div style="color:#5D6D7E; font-weight:700; font-size:12px;">● Friend: ${friCount} (${pFri}%)</div><div style="color:#A67B5B; font-weight:700; font-size:12px;">● Send: ${sndCount} (${pSnd}%)</div>${othCount > 0 ? `<div style="color:#BCAAA4; font-weight:700; font-size:12px;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}</div>`;
                     }
                     
-                    if (currentActiveCircle === 'people') {
-                        barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
-                    } else {
-                        barStats.sort((a,b) => String(a.id).localeCompare(String(b.id), 'th', { numeric: true })); 
-                    }
+                    if (currentActiveCircle === 'people') barStats.sort((a,b) => String(a.name).localeCompare(String(b.name), 'th')); 
+                    else barStats.sort((a,b) => String(a.id).localeCompare(String(b.id), 'th', { numeric: true })); 
 
                     let maxBarCount = Math.max(...barStats.map(s => s.count), 1);
-
-                    let barHTML = barStats.map((s, index) => `
-                        <div style="margin-bottom:12px;">
-                            <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-                                <span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span>
-                            </div>
-                            <div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;">
-                                <div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div>
-                            </div>
-                        </div>`).join('');
-
-                    // 🛑 คำนวณและสร้าง Layout สำหรับ Descriptive Stats พร้อมตัวแปลผล (Tooltips/Desc)
-                    let statsHTML = '';
-                    let statData = calculateStats(barStats);
+                    let barHTML = barStats.map((s, index) => `<div style="margin-bottom:12px;"><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;"><span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span></div><div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;"><div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div></div></div>`).join('');
                     
-                    if (statData && total > 0) {
-                        statsHTML = `
-                            <div class="clean-card" style="margin-top: 20px; margin-bottom: 0;">
-                                <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--orange);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">จำนวนกลุ่ม (N)</div>
-                                        <div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.groupCount} กลุ่ม</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">จำนวนคนรวม (Sum)</div>
-                                        <div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.totalPeople} คน</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Max (ค่าสูงสุด)</div>
-                                        <div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.maxVal} คน</div>
-                                        <div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.maxGroups)}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Min (ค่าต่ำสุด)</div>
-                                        <div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.minVal} คน</div>
-                                        <div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Mean (ค่าเฉลี่ย)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.mean}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Median (ค่ากลาง)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.median}</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">Std Dev (ส่วนเบี่ยงเบนฯ)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.stdDev}</div>
-                                        <div style="font-size:9px; color:var(--gray-text); line-height:1.2; margin-top:4px;">ค่าความแตกต่างของกลุ่ม<br>ยิ่งสูง = ยิ่งต่างกันมาก</div>
-                                    </div>
-                                    <div style="background: #F8FAFC; padding: 12px; border-radius: 8px;">
-                                        <div style="font-size:11px; color:var(--gray-text);">CV (สัมประสิทธิ์ความแปรผัน)</div>
-                                        <div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.cv}%</div>
-                                        <div style="font-size:9px; color:${statData.cvColor}; line-height:1.2; margin-top:4px; font-weight:600;">${statData.cvDesc}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
+                    let statsHTML = ''; let statData = calculateStats(barStats);
+                    if (statData && total > 0) { statsHTML = `<div class="clean-card" style="margin-top: 20px; margin-bottom: 0;"><div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-calculator" style="color:var(--orange);"></i> สถิติเชิงวิเคราะห์ (Descriptive Stats)</div><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;"><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">จำนวนกลุ่ม (N)</div><div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.groupCount} กลุ่ม</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">จำนวนคนรวม (Sum)</div><div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.totalPeople} คน</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">Max (ค่าสูงสุด)</div><div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.maxVal} คน</div><div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.maxGroups)}</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">Min (ค่าต่ำสุด)</div><div style="font-size:16px; font-weight:700; color:var(--charcoal); margin:2px 0;">${statData.minVal} คน</div><div style="font-size:10px; color:var(--orange); line-height:1.2;">กลุ่ม: ${formatGroups(statData.minGroups)}</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">Mean (ค่าเฉลี่ย)</div><div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.mean}</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">Median (ค่ากลาง)</div><div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.median}</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">Std Dev (ส่วนเบี่ยงเบนฯ)</div><div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.stdDev}</div><div style="font-size:9px; color:var(--gray-text); line-height:1.2; margin-top:4px;">ค่าความแตกต่างของกลุ่ม<br>ยิ่งสูง = ยิ่งต่างกันมาก</div></div><div style="background: #F8FAFC; padding: 12px; border-radius: 8px;"><div style="font-size:11px; color:var(--gray-text);">CV (สัมประสิทธิ์ความแปรผัน)</div><div style="font-size:14px; font-weight:700; color:var(--charcoal); margin-top:2px;">${statData.cv}%</div><div style="font-size:9px; color:${statData.cvColor}; line-height:1.2; margin-top:4px; font-weight:600;">${statData.cvDesc}</div></div></div></div>`; }
 
-                    contentArea.innerHTML = `
-                        <div style="display:flex; gap:12px; margin-bottom:16px;">
-                            <div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;">
-                                <div style="font-size:12px; color:var(--gray-text);">สมาชิกทั้งหมด</div>
-                                <div style="font-size:32px; font-weight:800; color:var(--orange);">${total}</div>
-                                <div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div>
-                            </div>
-                            <div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;">
-                                <div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
-                                    <div style="width:50px; height:50px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--charcoal);">${total}</div>
-                                </div>
-                                <div style="font-size:11px; color:var(--gray-text); line-height:1.4;">
-                                    <div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>
-                                    ${donutLegendHTML}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="clean-card" style="margin-bottom:0;">
-                            <div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div>
-                            <div style="max-height:280px; overflow-y:auto; padding-right:5px;">
-                                ${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>'}
-                            </div>
-                        </div>
-                        
-                        ${statsHTML}
-                        `;
-
-                    setTimeout(() => {
-                        barStats.forEach((s, index) => {
-                            const bar = document.getElementById(`bar-idx-${index}`);
-                            if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%';
-                        });
-                    }, 100);
+                    contentArea.innerHTML = `<div style="display:flex; gap:12px; margin-bottom:16px;"><div class="clean-card" style="flex:1; margin-bottom:0; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:15px;"><div style="font-size:12px; color:var(--gray-text);">สมาชิกทั้งหมด</div><div style="font-size:32px; font-weight:800; color:var(--orange);">${total}</div><div style="font-size:10px; color:var(--gray-text);">รายชื่อตามเงื่อนไข</div></div><div class="clean-card" style="flex:1.6; margin-bottom:0; display:flex; align-items:center; gap:15px; padding:15px;"><div style="width:80px; height:80px; border-radius:50%; background:${donutGradientStr}; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;"><div style="width:50px; height:50px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--charcoal);">${total}</div></div><div style="font-size:11px; color:var(--gray-text); line-height:1.4;"><div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>${donutLegendHTML}</div></div></div><div class="clean-card" style="margin-bottom:0;"><div class="section-title" style="font-size:14px; margin-bottom:15px;"><i class="fa-solid fa-chart-bar" style="color:var(--orange);"></i> ${barTitle}</div><div style="max-height:280px; overflow-y:auto; padding-right:5px;">${total > 0 ? barHTML : '<p style="text-align:center; color:var(--gray-text); padding:20px;">ไม่มีข้อมูลภายใต้ตัวกรองนี้</p>'}</div></div>${statsHTML}`;
+                    setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
                 } else {
-                    contentArea.innerHTML = `
-                        <div class="clean-card" style="border-top:4px solid var(--orange); text-align:center; padding:40px 20px;">
-                            <i class="fa-solid fa-list-check" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i>
-                            <h3 style="color:var(--charcoal); font-size:16px;">หน้ารายชื่อสมาชิก (${getFilteredData().length} คน)</h3>
-                            <p style="font-size:13px; color:var(--gray-text);">พร้อมสำหรับสเต็ปการวาดการ์ดรายชื่อแล้วครับ</p>
-                        </div>`;
+                    const filteredData = getFilteredData();
+                    if (filteredData.length === 0) {
+                        contentArea.innerHTML = `<div class="clean-card" style="text-align:center; padding:40px 20px;"><i class="fa-regular fa-folder-open" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i><p style="font-size:13px; color:var(--gray-text);">ไม่พบรายชื่อภายใต้ตัวกรองนี้</p></div>`;
+                        return;
+                    }
+
+                    let groupedData = {};
+                    filteredData.forEach(m => {
+                        let groupKey = currentActiveCircle === 'people' ? (m.Nxl_Status || 'ไม่ระบุ') : (m.CareName || 'ไม่ระบุ');
+                        if (!groupedData[groupKey]) groupedData[groupKey] = [];
+                        groupedData[groupKey].push(m);
+                    });
+
+                    let sortedGroupKeys = Object.keys(groupedData).sort((a,b) => a.localeCompare(b, 'th'));
+                    let listHTML = '';
+                    sortedGroupKeys.forEach(groupName => {
+                        groupedData[groupName].sort((a, b) => a.FullName_Display.localeCompare(b.FullName_Display, 'th'));
+                        listHTML += `<div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:15px; border-bottom: 2px solid var(--orange-soft); padding-bottom:4px;">${groupName} <span style="color:var(--gray-text); font-size:11px; font-weight:normal;">(${groupedData[groupName].length} คน)</span></div>`;
+                        
+                        groupedData[groupName].forEach(m => {
+                            let initial = m.FullName_Display ? m.FullName_Display.charAt(0) : '?';
+                            let safeId = String(m.Member_ID).replace(/'/g, "\\'"); 
+                            
+                            listHTML += `
+                                <div class="clean-card" style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s;" onclick="openProfile('${safeId}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                                    <div style="width:42px; height:42px; border-radius:50%; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px; font-weight:800; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow:hidden;">
+                                        ${(m.Url_Image && m.Url_Image.startsWith('http')) ? `<img src="${m.Url_Image}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">` : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`}
+                                    </div>
+                                    <div style="flex:1; overflow:hidden;">
+                                        <div style="font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.FullName_Display}</div>
+                                        <div style="font-size:11px; color:var(--gray-text);">แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}</div>
+                                    </div>
+                                    <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:12px;"></i>
+                                </div>`;
+                        });
+                    });
+                    contentArea.innerHTML = listHTML;
                 }
             }
         }
 
-        let pinInput = '';
-        const dots = document.querySelectorAll('.dot');
+        let pinInput = ''; const dots = document.querySelectorAll('.dot');
         function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
         function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
         function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
-        
-        function validatePin() { 
-            if (pinInput === '5555') { 
-                document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; 
-                document.getElementById('screen-home').classList.add('visible'); 
-            } else { 
-                showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); 
-                pinInput = ''; 
-                renderDots(); 
-            } 
-        }
+        function validatePin() { if (pinInput === '5555') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
     </script>
