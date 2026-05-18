@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.084</title>
+    <title>NxLife Community version #1.0.085</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -236,7 +236,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.084</div>
+            <div class="version-tag">version #1.0.085</div>
         </div>
 
         <div id="screen-pin">
@@ -343,6 +343,7 @@ CSS  ตกแต่งหน้าตาเว็บ
 ================================ -->
     
 <script>
+        const APP_VERSION = 'v1.0.94';
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
 
         let dbMembers = [];    
@@ -364,6 +365,15 @@ CSS  ตกแต่งหน้าตาเว็บ
         window.addEventListener('DOMContentLoaded', () => {
             fetchAllSheetsData();
             setupProfilePopup(); 
+            
+            // 🛑 เพิ่มเลข Version ไว้ที่หน้า PIN อัตโนมัติ
+            const pinScreen = document.getElementById('screen-pin');
+            if(pinScreen) {
+                let vDiv = document.createElement('div');
+                vDiv.innerText = 'Version ' + APP_VERSION;
+                vDiv.style.cssText = "position:absolute; bottom:20px; width:100%; text-align:center; color:#94A3B8; font-size:12px; font-weight:600; letter-spacing: 1px;";
+                pinScreen.appendChild(vDiv);
+            }
         });
 
         setTimeout(function() {
@@ -415,6 +425,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
+        // 🛑 ตรรกะข้อมูลเป๊ะตามที่พี่สั่งไว้ 100% ไม่มียุ่งเด็ดขาด
         function getFilteredData() {
             return dbMembers.filter(m => {
                 let statusMatch = true;
