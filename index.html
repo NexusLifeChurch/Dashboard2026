@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.059</title>
+    <title>NxLife Community version #1.0.060</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.059</div>
+            <div class="version-tag">version #1.0.060</div>
         </div>
 
         <div id="screen-pin">
@@ -412,6 +412,9 @@ CSS  ตกแต่งหน้าตาเว็บ
                         }
                         return { Care_ID: cid, CareName: cname || cid, Is_Active: isActive };
                     }).filter(c => c.Care_ID !== '' && c.Is_Active);
+
+                    // 🛑 เรียงลำดับกลุ่มแคร์ตาม ID (Numeric Sort) ทันทีที่โหลดเสร็จ
+                    dbCares.sort((a, b) => String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true }));
 
                     let validCareIds = new Set(dbCares.map(c => c.Care_ID));
                     let careNameMap = {};
@@ -646,7 +649,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ';
                             statusMap[st] = (statusMap[st] || 0) + 1;
                         });
-                        for (let k in statusMap) barStats.push({ name: k, count: statusMap[k] });
+                        for (let k in statusMap) barStats.push({ name: k, count: statusMap[k], id: k });
 
                         let maleCount = filteredData.filter(m => m.Gender === 'ชาย').length;
                         let femaleCount = filteredData.filter(m => m.Gender === 'หญิง').length;
@@ -660,21 +663,20 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                         donutLabel = 'สัดส่วน ชาย/หญิง';
                         
-                        // ปรับสีให้เข้าธีมพรีเมียม (เอิร์ธโทน-น้ำเงิน-แดงตุ่น)
+                        // 🎨 พรีเมียมพาเลท: ชาย(สเลทเนวี่), หญิง(โรส), อื่นๆ(ไวโอเลตหม่น), ไม่ระบุ(เทาเงิน)
                         donutGradientStr = generateDonutGradient([
-                            { percent: pMale, color: '#0284C7' },   // ฟ้าเข้ม (Ocean Blue)
-                            { percent: pFemale, color: '#E11D48' }, // แดงอมชมพูตุ่น (Rose)
-                            { percent: pOther, color: '#7C3AED' },  // ม่วงเข้ม (Violet)
-                            { percent: pUnk, color: '#94A3B8' }     // เทา (Slate)
+                            { percent: pMale, color: '#34495E' },   // Slate Navy
+                            { percent: pFemale, color: '#D98880' }, // Dusty Rose
+                            { percent: pOther, color: '#A569BD' },  // Muted Violet
+                            { percent: pUnk, color: '#BDC3C7' }     // Silver Gray
                         ]);
 
-                        // 🛑 จัด Layout ขึ้นบรรทัดใหม่ทุกบรรทัด และห้ามฉีกคำ (white-space: nowrap)
                         donutLegendHTML = `
                             <div style="display:flex; flex-direction:column; gap:4px;">
-                                <div style="color:#0284C7; font-weight:600; font-size:12px; white-space:nowrap;">● ชาย: ${maleCount} (${pMale}%)</div>
-                                <div style="color:#E11D48; font-weight:600; font-size:12px; white-space:nowrap;">● หญิง: ${femaleCount} (${pFemale}%)</div>
-                                ${otherCount > 0 ? `<div style="color:#7C3AED; font-weight:600; font-size:12px; white-space:nowrap;">● อื่นๆ: ${otherCount} (${pOther}%)</div>` : ''}
-                                ${unkCount > 0 ? `<div style="color:#94A3B8; font-weight:600; font-size:12px; white-space:nowrap;">● ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}
+                                <div style="color:#34495E; font-weight:700; font-size:12px; white-space:nowrap;">● ชาย: ${maleCount} (${pMale}%)</div>
+                                <div style="color:#D98880; font-weight:700; font-size:12px; white-space:nowrap;">● หญิง: ${femaleCount} (${pFemale}%)</div>
+                                ${otherCount > 0 ? `<div style="color:#A569BD; font-weight:700; font-size:12px; white-space:nowrap;">● อื่นๆ: ${otherCount} (${pOther}%)</div>` : ''}
+                                ${unkCount > 0 ? `<div style="color:#BDC3C7; font-weight:700; font-size:12px; white-space:nowrap;">● ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}
                             </div>`;
 
                     } else {
@@ -687,7 +689,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                             let careObj = dbCares.find(c => c.Care_ID === cid);
                             let careName = careObj ? careObj.CareName : cid;
                             const count = filteredData.filter(m => m.Care_ID === cid).length;
-                            if(count > 0) barStats.push({ name: careName, count: count });
+                            if(count > 0) barStats.push({ name: careName, count: count, id: cid });
                         });
 
                         let famCount = filteredData.filter(m => m.Classify === 'Family').length;
@@ -702,30 +704,36 @@ CSS  ตกแต่งหน้าตาเว็บ
 
                         donutLabel = 'สัดส่วนสถานภาพ';
                         
-                        // ปรับสีให้เข้าธีมพรีเมียม
+                        // 🎨 พรีเมียมพาเลท: Family(ส้มแบรนด์), Friend(ฟ้าอมเทา), Send(เขียวมินต์หม่น), อื่นๆ(เทาเงิน)
                         donutGradientStr = generateDonutGradient([
-                            { percent: pFam, color: 'var(--orange)' }, // ส้มแบรนด์
-                            { percent: pFri, color: '#0284C7' },       // น้ำเงินกรมท่า (Professional Blue)
-                            { percent: pSnd, color: '#0D9488' },       // เขียวอมฟ้า (Teal)
-                            { percent: pOth, color: '#94A3B8' }        // เทา (Slate)
+                            { percent: pFam, color: 'var(--orange)' }, 
+                            { percent: pFri, color: '#5D6D7E' },       
+                            { percent: pSnd, color: '#48C9B0' },       
+                            { percent: pOth, color: '#BDC3C7' }        
                         ]);
 
-                        // 🛑 จัด Layout ขึ้นบรรทัดใหม่ทุกบรรทัด และห้ามฉีกคำ (white-space: nowrap)
                         donutLegendHTML = `
                             <div style="display:flex; flex-direction:column; gap:4px;">
-                                <div style="color:var(--orange); font-weight:600; font-size:12px; white-space:nowrap;">● Family: ${famCount} (${pFam}%)</div>
-                                <div style="color:#0284C7; font-weight:600; font-size:12px; white-space:nowrap;">● Friend: ${friCount} (${pFri}%)</div>
-                                <div style="color:#0D9488; font-weight:600; font-size:12px; white-space:nowrap;">● Send: ${sndCount} (${pSnd}%)</div>
-                                ${othCount > 0 ? `<div style="color:#94A3B8; font-weight:600; font-size:12px; white-space:nowrap;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}
+                                <div style="color:var(--orange); font-weight:700; font-size:12px; white-space:nowrap;">● Family: ${famCount} (${pFam}%)</div>
+                                <div style="color:#5D6D7E; font-weight:700; font-size:12px; white-space:nowrap;">● Friend: ${friCount} (${pFri}%)</div>
+                                <div style="color:#48C9B0; font-weight:700; font-size:12px; white-space:nowrap;">● Send: ${sndCount} (${pSnd}%)</div>
+                                ${othCount > 0 ? `<div style="color:#BDC3C7; font-weight:700; font-size:12px; white-space:nowrap;">● อื่นๆ: ${othCount} (${pOth}%)</div>` : ''}
                             </div>`;
                     }
                     
-                    barStats.sort((a,b) => b.count - a.count);
+                    // 🛑 เรียงลำดับกราฟแท่ง
+                    if (currentActiveCircle === 'people') {
+                        // หน้าสถานะ เรียงตามยอดคน มาก -> น้อย
+                        barStats.sort((a,b) => b.count - a.count);
+                    } else {
+                        // หน้ากลุ่มแคร์ เรียงตาม Care_ID (อ้างอิงความสัมพันธ์เดียวกับ Filter)
+                        barStats.sort((a,b) => String(a.id).localeCompare(String(b.id), 'th', { numeric: true }));
+                    }
 
                     let barHTML = barStats.map((s, index) => `
                         <div style="margin-bottom:12px;">
                             <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px;">
-                                <span>${s.name}</span><span style="font-weight:700;">${s.count} คน</span>
+                                <span>${s.name}</span><span style="font-weight:700; color:var(--charcoal);">${s.count} คน</span>
                             </div>
                             <div style="height:8px; background:#F1F5F9; border-radius:4px; overflow:hidden;">
                                 <div style="height:100%; background:var(--orange); width:0%; transition: width 1s ease-out;" id="bar-idx-${index}"></div>
@@ -744,7 +752,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                                     <div style="width:50px; height:50px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:var(--charcoal);">${total}</div>
                                 </div>
                                 <div style="font-size:11px; color:var(--gray-text); line-height:1.4;">
-                                    <div style="font-weight:700; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>
+                                    <div style="font-weight:800; color:var(--charcoal); font-size:13px; margin-bottom:6px;">${donutLabel}</div>
                                     ${donutLegendHTML}
                                 </div>
                             </div>
@@ -781,8 +789,8 @@ CSS  ตกแต่งหน้าตาเว็บ
         function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
         function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
         
-        // 🛑 อัปเดตเปลี่ยนรหัส PIN เป็น 5555
         function validatePin() { 
+            // 🛑 รหัสผ่านแอป = 5555
             if (pinInput === '5555') { 
                 document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; 
                 document.getElementById('screen-home').classList.add('visible'); 
