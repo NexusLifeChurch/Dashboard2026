@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.066</title>
+    <title>NxLife Community version #1.0.067</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -230,7 +230,7 @@ CSS  ตกแต่งหน้าตาเว็บ
             <div class="splash-content">
                 <img src="https://raw.githubusercontent.com/NexusLifeChurch/NxLife_Mbr_Regist/main/images/Logo/life_logo.png" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #1.0.066</div>
+            <div class="version-tag">version #1.0.067</div>
         </div>
 
         <div id="screen-pin">
@@ -367,55 +367,36 @@ CSS  ตกแต่งหน้าตาเว็บ
             }
         }, 2000);
 
-        function getProp(obj, possibleKeys) {
-            if (!obj) return '';
-            for (let k of possibleKeys) { if (obj[k] !== undefined) return obj[k]; }
-            let cleanPossible = possibleKeys.map(k => String(k).toLowerCase().replace(/[^a-z0-9]/g, ''));
-            for (let actualKey in obj) {
-                let cleanActual = String(actualKey).toLowerCase().replace(/[^a-z0-9]/g, '');
-                if (cleanPossible.includes(cleanActual)) return obj[actualKey];
-            }
-            return '';
-        }
-
+        // 🛑 แอปมีหน้าที่แค่อ่านค่าตรงๆ ที่ API ปรุงสุกมาแล้ว
         function fetchAllSheetsData() {
             fetch(API_URL)
                 .then(res => res.json())
                 .then(responseObj => {
-                    let rawCares = responseObj.cares || [];
-                    dbCares = rawCares.map(c => {
-                        let cid = String(c.Care_ID || '').trim();
-                        let cname = String(c.CareName || cid).trim();
-                        return { Care_ID: cid, CareName: cname, Is_Active: c.Is_Active };
-                    });
-
+                    dbCares = responseObj.cares || [];
                     dbCares.sort((a, b) => String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true }));
-                    let validCareIds = new Set(dbCares.map(c => c.Care_ID));
 
+                    let validCareIds = new Set(dbCares.map(c => c.Care_ID));
                     let rawMembers = responseObj.members || [];
                     let hasUnmappedCares = false;
 
                     dbMembers = rawMembers.map(m => {
-                        let cid = String(m.Care_ID || '').trim();
-                        let status = String(m.Nxl_Status || '').trim();
-                        let gen = String(m.Gender || '').trim();
-                        
+                        let cid = m.Care_ID;
                         if (cid === '' || !validCareIds.has(cid)) { cid = 'UNMAPPED_CARE'; hasUnmappedCares = true; }
 
                         let normGender = 'ไม่ระบุ';
                         if (m.IsMale) normGender = 'ชาย';
                         else if (m.IsFemale) normGender = 'หญิง';
-                        else if (gen !== '') normGender = 'อื่นๆ';
+                        else if (m.Gender !== '') normGender = 'อื่นๆ';
 
                         return {
                             Member_ID: m.Member_ID || m.FullName_Display, 
                             Care_ID: cid,
                             CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
-                            Nxl_Status: status,
+                            Nxl_Status: m.Nxl_Status,
                             Classify: m.Classify || 'อื่นๆ',
                             Gender: normGender,
                             FullName_Display: m.FullName_Display,
-                            Url_Image: m.Url_Image || '', 
+                            Url_Image: m.Url_Image || '',
                             IsFamily: m.IsFamily, IsFriend: m.IsFriend, IsSend: m.IsSend, IsKids: m.IsKids
                         };
                     });
@@ -480,13 +461,12 @@ CSS  ตกแต่งหน้าตาเว็บ
         function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
 
         // ==========================================
-        // 🔮 ระบบ Popup โปรไฟล์ (ดีไซน์ใหม่แบบนามบัตร ID Card)
+        // 🔮 ระบบ Popup โปรไฟล์ (ดีไซน์ ID Card)
         // ==========================================
         function setupProfilePopup() {
             if(!document.getElementById('profile-popup')) {
                 let div = document.createElement('div'); div.id = 'profile-popup';
                 div.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px);';
-                // ปรับขอบโค้งและซ่อนส่วนเกิน (overflow:hidden) เพื่อให้ Cover ไม่ล้นกรอบ
                 div.innerHTML = `<div id="profile-popup-content" style="background:white; width:100%; max-width:340px; border-radius:24px; padding-bottom:30px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); overflow:hidden;"></div>`;
                 document.body.appendChild(div); div.addEventListener('click', function(e) { if (e.target === div) closeProfile(); });
             }
@@ -496,9 +476,11 @@ CSS  ตกแต่งหน้าตาเว็บ
             let member = dbMembers.find(m => m.Member_ID === memberId);
             if(!member) return;
 
-            let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
+            let cleanNameForInitial = member.FullName_Display ? member.FullName_Display.replace(/[^ก-๙a-zA-Z]/g, '') : '';
+            let initial = cleanNameForInitial.charAt(0) || '?';
             let profileImageHTML = '';
             
+            // 📸 ดึงรูปจาก Url_Image ตรงๆ โชว์เลย
             if (member.Url_Image && member.Url_Image.startsWith('http')) {
                 profileImageHTML = `<img src="${member.Url_Image}" style="width:100%; height:100%; object-fit:cover;" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);\\'>${initial}</div>';">`;
             } else {
@@ -507,7 +489,6 @@ CSS  ตกแต่งหน้าตาเว็บ
 
             document.getElementById('profile-popup-content').innerHTML = `
                 <div style="position:absolute; top:0; left:0; width:100%; height:90px; background: linear-gradient(135deg, var(--orange), #FBBF24); z-index:1;"></div>
-                
                 <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:rgba(255,255,255,0.3); width:30px; height:30px; border-radius:50%; border:none; font-size:14px; color:white; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(4px); z-index:10;"><i class="fa-solid fa-xmark"></i></button>
                 
                 <div style="width:100px; height:100px; border-radius:50%; background:white; margin: 40px auto 15px auto; position:relative; z-index:2; overflow:hidden; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
@@ -516,7 +497,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                 
                 <div style="text-align:center; padding: 0 20px;">
                     <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:12px; line-height:1.2;">${member.FullName_Display}</div>
-                    
                     <div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">
                         <span style="background:var(--orange-soft); color:var(--orange); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
                         <span style="background:#F1F5F9; color:var(--charcoal); padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700;"><i class="fa-regular fa-id-badge" style="margin-right:4px;"></i>${member.Classify}</span>
@@ -533,7 +513,6 @@ CSS  ตกแต่งหน้าตาเว็บ
                     <div style="display:flex; justify-content:space-between; border-bottom:1px dashed #CBD5E1; padding-bottom:8px; margin-bottom:8px;">
                         <span style="font-size:13px; color:var(--gray-text);">เพศ (Gender)</span><span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Gender}</span>
                     </div>
-                    
                     <div style="text-align:center; padding-top:8px;">
                         <span style="font-size:11px; color:var(--gray-text); font-style:italic;">รอเพิ่มข้อมูลอื่นๆ ในสเต็ปต่อไป...</span>
                     </div>
@@ -584,7 +563,7 @@ CSS  ตกแต่งหน้าตาเว็บ
                         let statusMap = {}; filteredData.forEach(m => { let st = m.Nxl_Status ? m.Nxl_Status : 'ไม่ระบุ'; statusMap[st] = (statusMap[st] || 0) + 1; });
                         for (let k in statusMap) barStats.push({ name: k, count: statusMap[k], id: k });
 
-                        let maleCount = filteredData.filter(m => m.Gender === 'ชาย').length; let femaleCount = filteredData.filter(m => m.Gender === 'หญิง').length; let unkCount = total - (maleCount + femaleCount);
+                        let maleCount = filteredData.filter(m => m.IsMale).length; let femaleCount = filteredData.filter(m => m.IsFemale).length; let unkCount = total - (maleCount + femaleCount);
                         let pMale = total > 0 ? Math.round((maleCount / total) * 100) : 0; let pFemale = total > 0 ? Math.round((femaleCount / total) * 100) : 0; let pUnk = total > 0 ? Math.round((unkCount / total) * 100) : 0;
                         donutLabel = 'สัดส่วน ชาย/หญิง'; donutGradientStr = generateDonutGradient([ { percent: pMale, color: '#34495E' }, { percent: pFemale, color: '#D98880' }, { percent: pUnk, color: '#BDC3C7' } ]);
                         donutLegendHTML = `<div style="display:flex; flex-direction:column; gap:4px;"><div style="color:#34495E; font-weight:700; font-size:12px;">● ชาย: ${maleCount} (${pMale}%)</div><div style="color:#D98880; font-weight:700; font-size:12px;">● หญิง: ${femaleCount} (${pFemale}%)</div>${unkCount > 0 ? `<div style="color:#BDC3C7; font-weight:700; font-size:12px;">● อื่นๆ/ไม่ระบุ: ${unkCount} (${pUnk}%)</div>` : ''}</div>`;
@@ -631,7 +610,8 @@ CSS  ตกแต่งหน้าตาเว็บ
                         listHTML += `<div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:15px; border-bottom: 2px solid var(--orange-soft); padding-bottom:4px;">${groupName} <span style="color:var(--gray-text); font-size:11px; font-weight:normal;">(${groupedData[groupName].length} คน)</span></div>`;
                         
                         groupedData[groupName].forEach(m => {
-                            let initial = m.FullName_Display ? m.FullName_Display.charAt(0) : '?';
+                            let cleanNameForInitial = m.FullName_Display ? m.FullName_Display.replace(/[^ก-๙a-zA-Z]/g, '') : '';
+                            let initial = cleanNameForInitial.charAt(0) || '?';
                             let safeId = String(m.Member_ID).replace(/'/g, "\\'"); 
                             
                             listHTML += `
