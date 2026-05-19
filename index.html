@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.150</title>
+    <title>NxLife Community</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -81,11 +81,9 @@
 
         #sub-page-header { display: none; align-items: center; gap: 12px; margin-bottom: 15px; padding: 5px 0 10px; border-bottom: 1px solid var(--gray-border); }
         .sub-header-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px; }
-        .sub-header-text { display: flex; flex-direction: column; }
         #sub-page-topic { font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px; }
         #sub-page-title { font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1; }
 
-        /* แถบเมนูล่าง */
         .nav-bar { width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--gray-border); flex-shrink: 0; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px); }
         .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray-text); font-size: 10px; font-weight: 500; cursor: pointer; transition: 0.3s; width: 20%; }
         .nav-btn.active { color: var(--orange); }
@@ -94,7 +92,7 @@
         .nav-btn.active .home-fab { transform: scale(1.08); box-shadow: 0 6px 14px rgba(192, 100, 40, 0.45); }
         .home-fab i { color: white !important; }
 
-        /* Filter UI */
+        /* Clean Card UI */
         .clean-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--gray-border); }
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .section-title { font-size: 16px; font-weight: 700; color: var(--charcoal); display: flex; align-items: center; gap: 8px; }
@@ -113,13 +111,12 @@
         input:checked + .slider:before { transform: translateX(22px); }
 
         .care-shortcuts { display: flex; gap: 8px; }
-        .sc-btn { background: white; border: 1px solid var(--gray-border); color: var(--gray-text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; font-family: 'Prompt', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+        .sc-btn { background: white; border: 1px solid var(--gray-border); color: var(--gray-text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
         .sc-btn:active { background: #F1F5F9; }
         .care-list-container { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 15px; border-top: 1px dashed var(--gray-border); margin-top: 15px; }
         .care-item { display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: var(--charcoal); }
         .care-checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; width: 100%; }
         .care-checkbox-label input { width: 18px; height: 18px; accent-color: var(--orange); cursor: pointer; }
-        .only-link { color: var(--orange); font-weight: 600; cursor: pointer; font-size: 12px; }
 
         /* Custom Alert Popup */
         #custom-alert { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
@@ -129,39 +126,39 @@
         .alert-icon { font-size: 40px; color: #EF4444; margin-bottom: 12px; }
         .alert-title { font-size: 18px; font-weight: 700; color: var(--charcoal); margin-bottom: 5px; }
         .alert-msg { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.5; }
-        .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
+        .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* รายชื่อ & Profile (ส่วนเพิ่มเติมใหม่) */
-        .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid #E2E8F0; border-radius: 12px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .member-list-item:active { transform:scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .member-photo-container { width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--orange-soft); color:var(--orange); font-size:18px; font-weight:800; }
-        .member-photo-container img { width:100%; height:100%; object-fit:cover; }
-        .member-info-container { flex:1; overflow:hidden; }
-        .member-name { font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .member-subdata { font-size:11px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        /* CSS พิเศษสำหรับรูปเต็มจอ (Fullscreen Image) */
+        #fs-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; }
+        #fs-img { max-width:95%; max-height:80%; object-fit:contain; border-radius:8px; }
+        .fs-close { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:10001; }
+        .fs-download { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--orange); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); z-index:10001; }
 
-        /* โมดอลรูปเต็มจอ */
-        #fs-photo-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; }
-        #fs-photo-img { max-width:90%; max-height:80%; object-fit:contain; border-radius: 8px;}
-        .close-fs-photo { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; backdrop-filter:blur(4px); z-index:10001; cursor:pointer; }
-        .download-photo-btn { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--charcoal); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10001; transition:background 0.2s; }
-        
-        /* Profile Popup แบบใหม่ (คลีนๆ) */
+        /* Profile Modal Background */
         #profile-popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px); }
-        #profile-popup-content { background:white; width:100%; max-width:320px; border-radius:24px; padding:30px 20px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        .profile-close-btn { position:absolute; top:15px; right:15px; background:#F1F5F9; color:var(--gray-text); border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; transition:0.2s; }
-        .profile-img-wrap { width:90px; height:90px; margin: 0 auto 15px auto; border-radius:50%; border: 2px solid var(--gray-border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow:hidden; position:relative; display:flex; justify-content:center; align-items:center; background:var(--orange-soft); color:var(--orange); font-size:36px; font-weight:800; cursor:pointer; }
 </style>
 </head>
 <body>
+
+    <script>
+        setTimeout(function() {
+            var spl = document.getElementById('screen-splash');
+            var pin = document.getElementById('screen-pin');
+            if(spl) spl.style.opacity = '0';
+            setTimeout(function() { 
+                if(spl) spl.style.display = 'none'; 
+                if(pin) pin.style.transform = 'translateX(0)'; 
+            }, 600);
+        }, 2000);
+    </script>
 
     <div id="app-container">
         <div id="screen-splash">
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">Version 1.0.150</div>
+            <div class="version-tag">Version 1.1.0 (Search & Minimal)</div>
         </div>
 
         <div id="screen-pin">
@@ -223,16 +220,28 @@
                     <div id="sub-page-filters" style="display:none; flex-direction:column; align-items:flex-end; gap:4px;"></div>
                 </div>
 
-                <div class="feed-list" id="dashboard-content-area"></div>
+                <div class="feed-list" id="dashboard-content-area">
+                    <div class="info-card">
+                        <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
+                        <div class="card-txt"><h3>Family</h3><p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
+                    </div>
+                    <div class="info-card">
+                        <div class="card-ico"><i class="fa-solid fa-user-plus"></i></div>
+                        <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
+                    </div>
+                </div>
+
             </div>
             
             <div class="nav-bar">
                 <div class="nav-btn" id="nav-overview" onclick="handleBottomNav('overview', this)"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
                 <div class="nav-btn" id="nav-directory" onclick="handleBottomNav('directory', this)"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
+                
                 <div class="nav-btn active" id="nav-home" onclick="handleBottomNav('home', this)">
                     <div class="home-fab"><i class="fa-solid fa-house"></i></div>
                     <span>หน้าหลัก</span>
                 </div>
+                
                 <div class="nav-btn" id="nav-filter" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
                 <div class="nav-btn" id="nav-profile" onclick="handleBottomNav('profile', this)"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
             </div>
@@ -247,15 +256,16 @@
             </div>
         </div>
 
-        <div id="fs-photo-overlay" onclick="if(event.target === this) closeFullScreenPhoto()">
-            <button class="close-fs-photo" onclick="closeFullScreenPhoto()"><i class="fa-solid fa-xmark"></i></button>
-            <img id="fs-photo-img">
-            <a id="download-photo-btn" class="download-photo-btn" target="_blank" download><i class="fa-solid fa-download"></i></a>
+        <div id="fs-overlay">
+            <button class="fs-close" onclick="closeFullScreen()"><i class="fa-solid fa-xmark"></i></button>
+            <img id="fs-img">
+            <a id="fs-dl" class="fs-download" target="_blank" download><i class="fa-solid fa-download"></i></a>
         </div>
 
-        <div id="profile-popup" onclick="if(event.target === this) closeProfile()">
+        <div id="profile-popup">
             <div id="profile-popup-content"></div>
         </div>
+
     </div>
 
 <script>
@@ -266,6 +276,7 @@
     let currentActiveCircle = ''; 
     let currentActiveBottom = 'home';
     let masterFilterSettings = { statusMode: 'COMMUNITY', includeKids: false, selectedCares: [] };
+    let pinInput = '';
 
     const circleContext = {
         'care': { name: 'กลุ่มแคร์', icon: 'fa-people-roof' },
@@ -279,16 +290,8 @@
     window.addEventListener('DOMContentLoaded', () => {
         fetchAllSheetsData();
         setupProfilePopup(); 
+        setupFullScreenPhoto();
     });
-
-    setTimeout(function() {
-        const splash = document.getElementById('screen-splash');
-        const pinScreen = document.getElementById('screen-pin');
-        if(splash && pinScreen) {
-            splash.style.opacity = '0';
-            setTimeout(function() { splash.style.display = 'none'; pinScreen.style.transform = 'translateX(0)'; }, 600); 
-        }
-    }, 2000);
 
     function fetchAllSheetsData() {
         fetch(API_URL)
@@ -310,10 +313,11 @@
                     else if (m.IsFemale) normGender = 'หญิง';
                     else if (m.Gender !== '') normGender = 'อื่นๆ';
 
-                    let displayId = (m.M_ID && String(m.M_ID).trim() !== '') ? String(m.M_ID).trim() : '-';
+                    // ดักจับ Member_ID ถ้าว่างให้ใส่ '-'
+                    let displayId = (m.Member_ID && String(m.Member_ID).trim() !== '') ? String(m.Member_ID).trim() : '-';
 
                     return {
-                        _uid: 'uid_' + index,
+                        _uid: 'uid_' + index, // รหัสอ้างอิงลับสำหรับกดดู Profile
                         Member_ID: displayId,
                         Care_ID: cid, CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                         Nxl_Status: String(m.Nxl_Status || '').trim(), 
@@ -349,7 +353,107 @@
         });
     }
 
-    function generateDonutGradient(segments) {
+    // ==========================================
+    // 🖼️ Profile & Full Screen Image (ดีไซน์มินิมอล)
+    // ==========================================
+    function setupFullScreenPhoto() {
+        let div = document.getElementById('fs-overlay');
+        div.addEventListener('click', function(e) { if (e.target === div || e.target === document.getElementById('fs-img')) window.closeFullScreen(); });
+    }
+
+    window.openFullScreen = function(url, name) {
+        if(!url) return;
+        document.getElementById('fs-img').src = url;
+        document.getElementById('fs-dl').href = url;
+        document.getElementById('fs-dl').download = (name || 'Member') + '_Nexus.jpg';
+        let overlay = document.getElementById('fs-overlay');
+        overlay.style.display = 'flex'; setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+    };
+
+    window.closeFullScreen = function() {
+        let overlay = document.getElementById('fs-overlay');
+        if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
+    };
+
+    function setupProfilePopup() {
+        let div = document.getElementById('profile-popup');
+        div.addEventListener('click', function(e) { if (e.target === div) window.closeProfile(); });
+    }
+
+    window.openProfile = function(uid) {
+        let member = dbMembers.find(m => m._uid === uid);
+        if(!member) return;
+        
+        let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
+        let safeUrl = member.Url_Image ? member.Url_Image.trim() : '';
+        let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
+        
+        let profileImageHTML = safeUrl !== '' 
+            ? `<img src="${safeUrl}" onclick="openFullScreen('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
+            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
+        
+        // ดีไซน์ใหม่: คลีน สะอาด ทันสมัย พื้นขาว ล้วน
+        let htmlStr = `
+            <div style="background:white; width:100%; max-width:320px; border-radius:24px; padding:30px 20px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
+                <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:#F1F5F9; color:var(--gray-text); border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; transition:0.2s;"><i class="fa-solid fa-xmark"></i></button>
+                
+                <div style="width:90px; height:90px; margin: 0 auto 15px auto; border-radius:50%; border: 2px solid var(--gray-border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow:hidden; position:relative;">
+                    ${profileImageHTML}
+                </div>
+                
+                <div style="text-align:center;">
+                    <div style="font-size:18px; font-weight:700; color:var(--charcoal); margin-bottom:4px; line-height:1.2;">${member.FullName_Display}</div>
+                    
+                    <div style="font-size:12px; color:var(--gray-text); margin-bottom:15px; font-weight:400; font-family:'Urbanist', sans-serif; letter-spacing:0.5px;">ID: ${member.Member_ID}</div>
+                    
+                    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px;">
+                        <span style="background:var(--orange-soft); color:var(--orange); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
+                        <span style="background:#F1F5F9; color:var(--charcoal); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;"><i class="fa-regular fa-id-badge" style="margin-right:4px;"></i>${member.Classify}</span>
+                    </div>
+                </div>
+                
+                <div style="background:#F8FAFC; border-radius:14px; padding:15px; text-align:left;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px dashed #E2E8F0; padding-bottom:10px;">
+                        <span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span>
+                        <span style="font-size:13px; font-weight:500; color:var(--charcoal);">${member.Nxl_Status}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:13px; color:var(--gray-text);">เพศ (Gender)</span>
+                        <span style="font-size:13px; font-weight:500; color:var(--charcoal);">${member.Gender}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.getElementById('profile-popup-content').innerHTML = htmlStr;
+        let popup = document.getElementById('profile-popup'); 
+        popup.style.display = 'flex';
+        setTimeout(() => { popup.style.opacity = '1'; document.getElementById('profile-popup-content').children[0].style.transform = 'scale(1)'; }, 10);
+    };
+
+    window.closeProfile = function() {
+        let popup = document.getElementById('profile-popup'); 
+        if(popup) {
+            popup.style.opacity = '0'; 
+            document.getElementById('profile-popup-content').children[0].style.transform = 'scale(0.9)';
+            setTimeout(() => { popup.style.display = 'none'; }, 300);
+        }
+    };
+
+    // ==========================================
+    // 🖥️ เรนเดอร์ Dashboard (รวมระบบค้นหา Realtime)
+    // ==========================================
+    window.selectCircleMenu = function(type, element) { document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveCircle = type; handleBottomNav('overview', document.getElementById('nav-overview')); };
+    window.handleBottomNav = function(target, element) { document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveBottom = target; updateDashboardView(); };
+    window.setStatusMode = function(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); };
+    window.toggleKidsSwitch = function(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); };
+    window.toggleCareCheckbox = function(id) { let idx = masterFilterSettings.selectedCares.indexOf(id); if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1); else masterFilterSettings.selectedCares.push(id); updateDashboardView(); };
+    window.careSelectAll = function() { masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); };
+    window.careClearAll = function() { masterFilterSettings.selectedCares = []; updateDashboardView(); };
+    window.careSelectOnly = function(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); };
+    window.resetFilterToDefault = function() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); };
+
+    function makeConic(segments) {
+        if(segments.length === 0) return '#E2E8F0';
         let currentTotal = 0; let gradParts = [];
         segments.forEach(s => { 
             if (s.percent > 0) { 
@@ -358,7 +462,7 @@
                 currentTotal = end; 
             } 
         });
-        return gradParts.length === 0 ? '#E2E8F0' : `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
+        return `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
     }
 
     function calculateStats(statsArray) {
@@ -377,108 +481,8 @@
 
     function formatGroups(groups) { return (groups.length <= 2) ? groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '') : groups.slice(0, 2).join(', ') + ` และอื่นๆ (รวม ${groups.length})`; }
 
-    // Navigation
-    function selectCircleMenu(type, element) { 
-        document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); 
-        if(element) element.classList.add('active'); 
-        currentActiveCircle = type; 
-        handleBottomNav('overview', document.getElementById('nav-overview')); 
-    }
-    
-    function handleBottomNav(target, element) { 
-        document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); 
-        if(element) element.classList.add('active'); 
-        currentActiveBottom = target; 
-        updateDashboardView(); 
-    }
-
-    function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
-    function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
-    function toggleCareCheckbox(id) { 
-        let idx = masterFilterSettings.selectedCares.indexOf(id); 
-        if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1); else masterFilterSettings.selectedCares.push(id); 
-        updateDashboardView(); 
-    }
-    function careSelectAll() { masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
-    function careClearAll() { masterFilterSettings.selectedCares = []; updateDashboardView(); }
-    function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
-    function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
-
-    // Full Screen Photo
-    function openFullScreenPhoto(url, name) {
-        if(!url || url.trim() === '') return;
-        document.getElementById('fs-photo-img').src = url;
-        document.getElementById('download-photo-btn').href = url;
-        document.getElementById('download-photo-btn').download = (name || 'Member') + '_Nexus.jpg';
-        let overlay = document.getElementById('fs-photo-overlay');
-        overlay.style.display = 'flex'; 
-        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
-    }
-
-    function closeFullScreenPhoto() {
-        let overlay = document.getElementById('fs-photo-overlay');
-        if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
-    }
-
-    // Profile Popup
-    function setupProfilePopup() {
-        let popup = document.getElementById('profile-popup');
-        if (popup) popup.addEventListener('click', function(e) { if (e.target === popup) closeProfile(); });
-    }
-
-    function openProfile(uid) {
-        let member = dbMembers.find(m => m._uid === uid);
-        if(!member) return;
-        
-        let initial = member.FullName_Display ? member.FullName_Display.charAt(0) : '?';
-        let safeUrl = member.Url_Image ? member.Url_Image.trim() : '';
-        let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
-        
-        let profileImageHTML = safeUrl !== '' 
-            ? `<img src="${safeUrl}" onclick="openFullScreenPhoto('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
-            : `${initial}`;
-        
-        let htmlStr = `
-            <div style="background:white; width:100%; max-width:320px; border-radius:24px; padding:30px 20px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-                <button onclick="closeProfile()" class="profile-close-btn"><i class="fa-solid fa-xmark"></i></button>
-                <div class="profile-img-wrap">${profileImageHTML}</div>
-                <div style="text-align:center;">
-                    <div style="font-size:18px; font-weight:700; color:var(--charcoal); margin-bottom:4px; line-height:1.2;">${member.FullName_Display}</div>
-                    <div style="font-size:12px; color:var(--gray-text); margin-bottom:15px; font-weight:400; font-family:'Urbanist', sans-serif;">ID: ${member.Member_ID}</div>
-                    <div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px;">
-                        <span style="background:var(--orange-soft); color:var(--orange); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;"><i class="fa-solid fa-people-roof" style="margin-right:4px;"></i>${member.CareName}</span>
-                        <span style="background:#F1F5F9; color:var(--charcoal); padding:6px 14px; border-radius:20px; font-size:11px; font-weight:600;"><i class="fa-regular fa-id-badge" style="margin-right:4px;"></i>${member.Classify}</span>
-                    </div>
-                </div>
-                <div style="background:#F8FAFC; border-radius:14px; padding:15px; text-align:left;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px dashed #E2E8F0; padding-bottom:10px;">
-                        <span style="font-size:13px; color:var(--gray-text);">สถานภาพ (Status)</span>
-                        <span style="font-size:13px; font-weight:500; color:var(--charcoal);">${member.Nxl_Status}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span style="font-size:13px; color:var(--gray-text);">เพศ (Gender)</span>
-                        <span style="font-size:13px; font-weight:500; color:var(--charcoal);">${member.Gender}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.getElementById('profile-popup-content').innerHTML = htmlStr;
-        let popup = document.getElementById('profile-popup'); 
-        popup.style.display = 'flex';
-        setTimeout(() => { popup.style.opacity = '1'; document.getElementById('profile-popup-content').children[0].style.transform = 'scale(1)'; }, 10);
-    }
-
-    function closeProfile() {
-        let popup = document.getElementById('profile-popup'); 
-        if(popup) {
-            popup.style.opacity = '0'; 
-            document.getElementById('profile-popup-content').children[0].style.transform = 'scale(0.9)';
-            setTimeout(() => { popup.style.display = 'none'; }, 300);
-        }
-    }
-
-    // Search Realtime
-    function renderDirectoryList(searchTerm) {
+    // ฟังก์ชันค้นหา Realtime
+    window.renderDirectoryList = function(searchTerm) {
         let container = document.getElementById('directory-list-container');
         if (!container) return;
 
@@ -508,21 +512,23 @@
         
         sortedGroupKeys.forEach(groupName => {
             groupedData[groupName].sort((a, b) => a.FullName_Display.localeCompare(b.FullName_Display, 'th'));
+            
             listHTML += `<div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:15px; border-bottom: 2px solid var(--orange-soft); padding-bottom:4px;">${groupName} <span style="color:var(--gray-text); font-size:11px; font-weight:normal;">(${groupedData[groupName].length} คน)</span></div>`;
             
             groupedData[groupName].forEach(m => {
                 let cleanNameForInitial = m.FullName_Display ? m.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '') : '';
                 let initial = cleanNameForInitial.charAt(0) || '?';
+                
                 let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '') 
                     ? `<img src="${m.Url_Image}" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` 
                     : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; background:var(--orange-soft); color:var(--orange); border-radius:50%;">${initial}</div>`;
 
                 listHTML += `
-                    <div class="member-list-item" onclick="openProfile('${m._uid}')">
+                    <div style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s; background: white; border-radius: 12px; border: 1px solid #E2E8F0;" onclick="window.openProfile('${m._uid}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
                         <div style="width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0;">
                             ${profileImageHTML}
                         </div>
-                        <div class="member-info-container">
+                        <div style="flex:1; overflow:hidden;">
                             <div style="font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.FullName_Display}</div>
                             <div style="font-size:11px; color:var(--gray-text);">แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}</div>
                         </div>
@@ -531,33 +537,40 @@
             });
         });
         container.innerHTML = listHTML;
-    }
+    };
 
-    // Dashboard Render
     function updateDashboardView() {
-        let careListContainer = document.querySelector('.care-list-container');
-        let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
-        const homeTopSection = document.getElementById('home-top-section'); 
-        const subPageHeader = document.getElementById('sub-page-header');
         let contentArea = document.getElementById('dashboard-content-area'); 
-        if(!contentArea) return;
         let activeCtx = circleContext[currentActiveCircle] || circleContext[''];
         let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
 
         if (currentActiveBottom === 'home') {
-            homeTopSection.style.display = 'block'; subPageHeader.style.display = 'none';
+            document.getElementById('home-top-section').style.display = 'block'; 
+            document.getElementById('sub-page-header').style.display = 'none';
             contentArea.innerHTML = `
                 <div class="clean-card"><div class="section-title"><i class="fa-solid fa-house-user" style="color:var(--orange);"></i> Family</div><p class="section-desc" style="margin-bottom:0;">สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
                 <div class="clean-card"><div class="section-title"><i class="fa-solid fa-user-plus" style="color:var(--orange);"></i> Friend</div><p class="section-desc" style="margin-bottom:0;">ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
             `;
         } else {
-            homeTopSection.style.display = 'none';
+            document.getElementById('home-top-section').style.display = 'none';
             
             if (currentActiveBottom !== 'filter') {
-                subPageHeader.style.display = 'flex'; subPageHeader.style.justifyContent = 'space-between';
-                subPageHeader.innerHTML = `<div style="display: flex; align-items: center; gap: 12px;"><div style="width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px;"><i class="fa-solid ${activeCtx.icon}"></i></div><div style="display: flex; flex-direction: column;"><div style="font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px;">${activeCtx.name}</div><div style="font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1;">${viewTitle}</div></div></div><div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;"><div style="display: flex; gap: 4px;"><span style="background: var(--orange); color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.statusMode}</span><span style="background: ${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; font-weight: 600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span></div><span style="font-size: 10px; color: var(--charcoal); font-weight: 600; background: #F1F5F9; padding: 2px 6px; border-radius: 6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${dbCares.length}</span></div>`;
+                document.getElementById('sub-page-header').style.display = 'flex'; 
+                document.getElementById('sub-header-icon').innerHTML = `<i class="fa-solid ${activeCtx.icon}"></i>`;
+                document.getElementById('sub-page-topic').innerText = activeCtx.name;
+                document.getElementById('sub-page-title').innerText = viewTitle;
+                
+                let filtersHTML = document.getElementById('sub-page-filters');
+                filtersHTML.style.display = 'flex';
+                filtersHTML.innerHTML = `
+                    <div style="display:flex; gap:4px;">
+                        <span style="background:var(--orange); color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.statusMode}</span>
+                        <span style="background:${masterFilterSettings.includeKids ? '#10B981' : '#EF4444'}; color:white; padding:2px 6px; border-radius:6px; font-size:10px; font-weight:600;">${masterFilterSettings.includeKids ? '+ เด็ก' : '- เด็ก'}</span>
+                    </div>
+                    <span style="font-size:10px; color:var(--charcoal); font-weight:600; background:#F1F5F9; padding:2px 6px; border-radius:6px;">แคร์: ${masterFilterSettings.selectedCares.length}/${dbCares.length}</span>
+                `;
             } else { 
-                subPageHeader.style.display = 'none'; 
+                document.getElementById('sub-page-header').style.display = 'none'; 
             }
 
             if (currentActiveBottom === 'filter') {
@@ -604,12 +617,11 @@
                         <div class="care-list-container">${careListHTML}</div>
                     </div>
                 `;
-                let newCareList = document.querySelector('.care-list-container'); if (newCareList) newCareList.scrollTop = savedScrollPos;
             } 
             else if (currentActiveBottom === 'overview') {
                 const filteredData = getFilteredData(); 
                 const total = filteredData.length;
-                let donutGradientStr = ''; let donutLabel = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
+                let donutGradientStr = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
                 let centerImageURL = 'https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true';
 
                 if (currentActiveCircle === 'people') {
@@ -633,8 +645,9 @@
                     if (unkCount > 0) pItems.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#BDC3C7' });
                     
                     pItems.sort((a,b) => a.label.localeCompare(b.label, 'th'));
-                    donutGradientStr = generateDonutGradient(pItems);
-                    centerImageURL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; 
+
+                    donutGradientStr = makeConic(pItems);
+                    centerImageURL = 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'; // ไอคอนคน
 
                     donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; padding-right:5px;">`;
                     pItems.forEach(item => {
@@ -691,7 +704,7 @@
                             `);
                         }
                     });
-                    donutGradientStr = generateDonutGradient(segments);
+                    donutGradientStr = makeConic(segments);
                     donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; max-height:150px; overflow-y:auto; padding-right:5px;">${legendItems.join('')}</div>`;
                 }
                 
@@ -774,25 +787,23 @@
                 setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
             } else {
+                // หน้ารายชื่อ (ค้นหาแบบ Realtime)
                 contentArea.innerHTML = `
                     <div style="position: sticky; top: -10px; padding: 10px 0; background: var(--bg-app); z-index: 5; margin-bottom: 10px;">
                         <div style="position: relative;">
                             <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-text);"></i>
-                            <input type="text" placeholder="ค้นหา ชื่อ, กลุ่มแคร์, สถานภาพ..." oninput="renderDirectoryList(this.value)" style="width: 100%; padding: 12px 15px 12px 40px; border-radius: 12px; border: 1px solid #E2E8F0; outline: none; font-family: 'Prompt', sans-serif; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <input type="text" placeholder="ค้นหา ชื่อ, กลุ่มแคร์, สถานภาพ..." oninput="window.renderDirectoryList(this.value)" style="width: 100%; padding: 12px 15px 12px 40px; border-radius: 12px; border: 1px solid #E2E8F0; outline: none; font-family: 'Prompt', sans-serif; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                         </div>
                     </div>
                     <div id="directory-list-container"></div>
                 `;
-                renderDirectoryList('');
+                window.renderDirectoryList('');
             }
         }
 
     // ==========================================
-    // 🔐 ระบบกดรหัส PIN (อยู่ที่เดียว ห้ามซ้ำ)
+    // 🔐 ระบบกดรหัส PIN
     // ==========================================
-    let pinInput = ''; 
-    const dots = document.querySelectorAll('.dot');
-    
     function pressKey(num) { 
         if (pinInput.length < 4) { 
             pinInput += num; 
@@ -809,6 +820,7 @@
     }
     
     function renderDots() { 
+        const dots = document.querySelectorAll('.dot'); 
         dots.forEach((dot, index) => { 
             if (index < pinInput.length) dot.classList.add('filled');
             else dot.classList.remove('filled');
@@ -825,7 +837,7 @@
             renderDots(); 
         } 
     }
-
+    
     function showAlert(t, m) { 
         document.getElementById('alert-title-text').innerText = t; 
         document.getElementById('alert-msg-text').innerText = m; 
