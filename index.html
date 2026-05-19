@@ -428,7 +428,7 @@
 
             </div>
 
-            <div class="link-forgot" onclick="showAlert('ลืมรหัส PIN', '+12345')">ลืมรหัส PIN Code</div>
+            <div class="link-forgot" onclick="showAlert('ลืมรหัส PIN', 'ลืมรหัสใช่มั้ยล่ะ +12345')">ลืมรหัส PIN Code</div>
 
         </div>
 
@@ -1476,7 +1476,7 @@
 
         function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
 
-        function validatePin() { if (pinInput === '5555') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
+        function validatePin() { if (pinInput === '7856') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
 
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
 
