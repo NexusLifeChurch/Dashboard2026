@@ -187,13 +187,15 @@
 <body>
 
     <div id="app-container">
+        <!-- Screen 1: Splash Screen -->
         <div id="screen-splash">
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.003</div>
+            <div class="version-tag">version #3.004</div>
         </div>
 
+        <!-- Screen 2: PIN Screen -->
         <div id="screen-pin">
             <div class="pin-logo"><span class="nx-label">Nx</span><span class="life-label">Life</span></div>
             <div class="pin-title">กรอกรหัส PIN</div>
@@ -217,6 +219,7 @@
             <div class="link-forgot" onclick="showAlert('ลืมรหัส PIN', 'ลืมรหัสใช่มั้ยล่ะ +12345')">ลืมรหัส PIN Code</div>
         </div>
 
+        <!-- Screen 3: Home Dashboard -->
         <div id="screen-home">
             <div class="content-scroll">
                 
@@ -279,6 +282,7 @@
             </div>
         </div>
 
+        <!-- Custom Alert Popup -->
         <div id="custom-alert">
             <div class="alert-box">
                 <div class="alert-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
@@ -288,6 +292,7 @@
             </div>
         </div>
         
+        <!-- Fullscreen Image View Overlay -->
         <div id="fs-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease;">
             <button class="fs-close" onclick="closeFullScreen()" style="position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:10001;"><i class="fa-solid fa-xmark"></i></button>
             <img id="fs-img" style="max-width:95%; max-height:80%; object-fit:contain; border-radius:8px;">
@@ -331,7 +336,23 @@
 
         function fetchAllSheetsData() {
             fetch(API_URL)
-                .then(res => res.json())
+                .then(res => {
+                    const contentType = res.headers.get("content-type");
+                    if (!res.ok) {
+                        throw new Error(`HTTP error! status: ${res.status}`);
+                    }
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        return res.json();
+                    } else {
+                        return res.text().then(text => {
+                            // ดักจับกรณีหน้าเว็บถูกเปลี่ยนเส้นทางไปเป็น HTML (เช่น หน้า Google Sign-in หรือ Apps Script Error)
+                            if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html") || text.trim().startsWith("<script")) {
+                                throw new Error("หลังบ้านส่งข้อมูลกลับมาเป็น HTML แทนที่จะเป็น JSON (ส่วนใหญ่มักเกิดจากการตั้งค่าสิทธิ์ 'Access' ในขั้นตอนการ Deploy Web App เป็นอย่างอื่นที่ไม่ใช่ 'Anyone') \n\nโปรดตรวจสอบสิทธิ์ในการ Deploy หลังบ้านอีกครั้งครับ");
+                            }
+                            throw new Error("ข้อมูลที่ส่งกลับมามีรูปแบบไม่ถูกต้อง (ไม่ใช่ JSON)");
+                        });
+                    }
+                })
                 .then(responseObj => {
                     dbCares = responseObj.cares || [];
                     dbCares.sort((a, b) => String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true }));
@@ -363,7 +384,10 @@
                     masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
                     updateDashboardView();
                 })
-                .catch(err => console.error('Error parsing Data:', err));
+                .catch(err => {
+                    console.error('Error parsing Data:', err);
+                    showAlert('ข้อผิดพลาดระบบข้อมูล', err.message);
+                });
         }
 
         function getFilteredData() {
@@ -390,10 +414,30 @@
             });
         }
 
+        // 🌟 [ปรับปรุงใหม่] เพิ่มกลไกการสร้าง "เส้นคั่นสีขาว (Segment Divider)" ขนาด 0.8% ระหว่างชิ้นส่วนวงโดนัท
         function generateDonutGradient(segments) {
             let currentTotal = 0; let gradParts = [];
-            segments.forEach(s => { if (s.percent > 0) { let end = currentTotal + s.percent; gradParts.push(`${s.color} ${currentTotal}% ${end}%`); currentTotal = end; } });
-            return gradParts.length === 0 ? '#E2E8F0' : `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
+            let activeSegments = segments.filter(s => s.percent > 0);
+            
+            if (activeSegments.length === 0) return '#E2E8F0';
+            
+            activeSegments.forEach((s, idx) => {
+                let end = currentTotal + s.percent;
+                
+                // ถ้ามีข้อมูลมากกว่า 1 ชิ้น ให้ทำเส้นแบ่งสีขาวเพื่อเพิ่มความโมเดิร์นและเห็นชัดเจน
+                if (activeSegments.length > 1) {
+                    let gap = 0.8; // สัดส่วนขนาดเส้นคั่นสีขาว 0.8%
+                    let segmentEnd = end - gap;
+                    
+                    gradParts.push(`${s.color} ${currentTotal}% ${segmentEnd}%`);
+                    gradParts.push(`#FFFFFF ${segmentEnd}% ${end}%`); // เส้นคั่นสีขาวสวยๆ
+                } else {
+                    gradParts.push(`${s.color} ${currentTotal}% ${end}%`);
+                }
+                currentTotal = end;
+            });
+            
+            return `conic-gradient(${gradParts.join(', ')}, #E2E8F0 ${currentTotal}% 100%)`;
         }
 
         function calculateStats(statsArray) {
@@ -569,13 +613,14 @@
                         let pFemale = total > 0 ? Math.round((femaleCount / total) * 100) : 0; 
                         let pUnk = total > 0 ? Math.round((unkCount / total) * 100) : 0;
 
-                        donutGradientStr = generateDonutGradient([ { percent: pMale, color: '#82949C' }, { percent: pFemale, color: '#AC858C' }, { percent: pUnk, color: '#BDC3C7' } ]);
+                        // 🌟 [ปรับปรุงเฉดสีใหม่ - ทางเลือกที่ 2+] กรมสนเข้ม (#3D5A5F), ชมพูกุหลาบดินเผา (#C36B6B), เทาอบอุ่นดิน (#8E8378)
+                        donutGradientStr = generateDonutGradient([ { percent: pMale, color: '#3D5A5F' }, { percent: pFemale, color: '#C36B6B' }, { percent: pUnk, color: '#8E8378' } ]);
                         
                         let pItems = [
-                            { label: 'ชาย', count: maleCount, percent: pMale, color: '#82949C' },
-                            { label: 'หญิง', count: femaleCount, percent: pFemale, color: '#AC858C' }
+                            { label: 'ชาย', count: maleCount, percent: pMale, color: '#3D5A5F' },
+                            { label: 'หญิง', count: femaleCount, percent: pFemale, color: '#C36B6B' }
                         ];
-                        if (unkCount > 0) pItems.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#BDC3C7' });
+                        if (unkCount > 0) pItems.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#8E8378' });
                         pItems.sort((a,b) => a.label.localeCompare(b.label, 'th'));
 
                         donutLegendHTML = `<div style="display:flex; flex-direction:column; width:100%; padding-right:5px;">`;
