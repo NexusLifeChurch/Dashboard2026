@@ -382,7 +382,7 @@
 
             </div>
 
-            <div class="version-tag">version #3.002</div>
+            <div class="version-tag">version #3.003</div>
 
         </div>
 
@@ -660,22 +660,29 @@
                 .catch(err => console.error('Error parsing Data:', err));
         }
 
+
         function getFilteredData() {
             return dbMembers.filter(m => {
                 let nxl = m.Nxl_Status;
                 let statusMatch = true;
                 
+                // ด่านที่ 1: เงื่อนไขประเภทสมาชิก (Status Mode)
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
                     const commStatuses = ['Fm-Reg', 'Fm-UnReg', 'Fm-Kids', 'Fr-', 'Fr-NxC', 'Fr-OTH', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
                     statusMatch = commStatuses.includes(nxl);
                 } else if (masterFilterSettings.statusMode === 'SEND') {
                     const sendStatuses = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
                     statusMatch = sendStatuses.includes(nxl);
-                }
+                } // ถ้าเป็น 'ALL' statusMatch จะเป็น true เสมอ
                 
-                let kidsMatch = masterFilterSettings.includeKids ? true : (nxl !== 'Fm-Kids');
+                // ด่านที่ 2: เงื่อนไขเด็กรวมหรือไม่รวม (Kids Match)
+                // ⚠️ [แก้ไขแล้ว] เปลี่ยนมาเช็คจาก CareName ว่าต้องไม่ใช่ 'Life Kids'
+                let kidsMatch = masterFilterSettings.includeKids ? true : (m.CareName !== 'Life Kids');
+                
+                // ด่านที่ 3: เงื่อนไขกลุ่มแคร์ (Care Match)
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
                 
+                // ต้องผ่านทั้ง 3 ด่าน (AND Logic)
                 return statusMatch && kidsMatch && careMatch;
             });
         }
