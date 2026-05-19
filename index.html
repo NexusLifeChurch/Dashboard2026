@@ -552,6 +552,28 @@
         function validatePin() { if (pinInput === '3456') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
+
+    // --- ส่วนเสริม: ระบบจัดการ PIN (Step 1) ---
+        function getPinStatus() {
+            const status = localStorage.getItem('nx_pin_status');
+            const attempts = localStorage.getItem('nx_pin_attempts') || 0;
+            return {
+                isSet: status === 'set', // ตรวจสอบว่าเคยตั้งรหัสหรือยัง
+                attempts: parseInt(attempts)
+            };
+        }
+
+        function savePin(pin) {
+            localStorage.setItem('nx_pin_code', pin); // บันทึกรหัสจริง
+            localStorage.setItem('nx_pin_status', 'set'); // ตั้งสถานะว่าตั้งรหัสแล้ว
+            localStorage.setItem('nx_pin_attempts', 0); // รีเซ็ตจำนวนครั้งที่ผิด
+        }
+
+        function resetPinSystem() {
+            localStorage.removeItem('nx_pin_code');
+            localStorage.setItem('nx_pin_status', 'not_set');
+            localStorage.setItem('nx_pin_attempts', 0);
+        }
     </script>
 </body>
 </html>
