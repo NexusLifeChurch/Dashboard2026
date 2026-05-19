@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community version #1.0.140</title>
+    <title>NxLife Community version #1.0.145</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -128,52 +128,37 @@
         .alert-icon { font-size: 40px; color: #EF4444; margin-bottom: 12px; }
         .alert-title { font-size: 18px; font-weight: 700; color: var(--charcoal); margin-bottom: 5px; }
         .alert-msg { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.5; }
-        .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* รายชื่อ & Profile */
-        .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid #E2E8F0; border-radius: 12px; background: white;}
+        /* รายชื่อ & Profile (ส่วนเพิ่มเติมใหม่) */
+        .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid #E2E8F0; border-radius: 12px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .member-list-item:active { transform:scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .member-photo-container { width:48px; height:48px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; display:flex; justify-content:center; align-items:center; background:var(--orange-soft); color:var(--orange); font-size:20px; font-weight:800; }
+        .member-photo-container { width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center; background:var(--orange-soft); color:var(--orange); font-size:18px; font-weight:800; }
         .member-photo-container img { width:100%; height:100%; object-fit:cover; }
         .member-info-container { flex:1; overflow:hidden; }
-        .member-name { font-weight:700; font-size:15px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .member-subdata { font-size:12px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-        .member-arrow { color:#CBD5E1; font-size:14px; margin-left: 5px; }
+        .member-name { font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .member-subdata { font-size:11px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-        /* โมดอลรูปเต็มจอ */
-        #fs-photo-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; }
-        #fs-photo-img { max-width:90%; max-height:80%; object-fit:contain; border-radius: 8px;}
-        .close-fs-photo { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; backdrop-filter:blur(4px); z-index:10001; cursor:pointer; }
-        .download-photo-btn { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--charcoal); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10001; transition:background 0.2s; }
-        
-        /* Profile Popup แบบใหม่ (คลีนๆ) */
+        /* Full Screen Overlay */
+        #fs-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; }
+        #fs-img { max-width:95%; max-height:80%; object-fit:contain; border-radius: 8px; }
+        .fs-close { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:10001; }
+        .fs-download { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--orange); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); z-index:10001; }
+
+        /* Profile Modal (Minimal) */
         #profile-popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px); }
         #profile-popup-content { background:white; width:100%; max-width:320px; border-radius:24px; padding:30px 20px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-        .profile-close-btn { position:absolute; top:15px; right:15px; background:#F1F5F9; color:var(--gray-text); border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; transition:0.2s; }
-        .profile-img-wrap { width:90px; height:90px; margin: 0 auto 15px auto; border-radius:50%; border: 2px solid var(--gray-border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow:hidden; position:relative; display:flex; justify-content:center; align-items:center; background:var(--orange-soft); color:var(--orange); font-size:36px; font-weight:800; cursor:pointer; }
 </style>
 </head>
 <body>
-
-    <script>
-        setTimeout(function() {
-            var spl = document.getElementById('screen-splash');
-            var pin = document.getElementById('screen-pin');
-            if(spl) spl.style.opacity = '0';
-            setTimeout(function() { 
-                if(spl) spl.style.display = 'none'; 
-                if(pin) pin.style.transform = 'translateX(0)'; 
-            }, 600);
-        }, 2000);
-    </script>
 
     <div id="app-container">
         <div id="screen-splash">
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">Version 1.0.140</div>
+            <div class="version-tag">Version 1.0.145</div>
         </div>
 
         <div id="screen-pin">
@@ -197,11 +182,11 @@
                 <button class="btn-key btn-del" onclick="delKey()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
             <div class="link-forgot" onclick="showAlert('ลืมรหัส PIN', '+12345')">ลืมรหัส PIN Code</div>
-            <div class="version-tag" style="bottom: 20px;">Version 1.0.140</div>
         </div>
 
         <div id="screen-home">
             <div class="content-scroll">
+                
                 <div id="home-top-section">
                     <div class="home-header">
                         <div class="greet-text">
@@ -216,6 +201,7 @@
                             <span>COMMUNITY</span>
                         </div>
                     </div>
+                    
                     <div class="horizontal-menu" id="circle-hub-menu">
                         <div class="menu-btn" onclick="selectCircleMenu('care', this)"><div class="icon-circle"><i class="fa-solid fa-people-roof" style="font-size: 24px;"></i></div><span class="menu-txt">กลุ่มแคร์</span></div>
                         <div class="menu-btn" onclick="selectCircleMenu('people', this)"><div class="icon-circle"><i class="fa-solid fa-user-group"></i></div><span class="menu-txt">กลุ่มคน</span></div>
@@ -244,15 +230,18 @@
                         <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
                     </div>
                 </div>
+
             </div>
             
             <div class="nav-bar">
                 <div class="nav-btn" id="nav-overview" onclick="handleBottomNav('overview', this)"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
                 <div class="nav-btn" id="nav-directory" onclick="handleBottomNav('directory', this)"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
+                
                 <div class="nav-btn active" id="nav-home" onclick="handleBottomNav('home', this)">
                     <div class="home-fab"><i class="fa-solid fa-house"></i></div>
                     <span>หน้าหลัก</span>
                 </div>
+                
                 <div class="nav-btn" id="nav-filter" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
                 <div class="nav-btn" id="nav-profile" onclick="handleBottomNav('profile', this)"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
             </div>
@@ -267,10 +256,10 @@
             </div>
         </div>
 
-        <div id="fs-photo-overlay" onclick="if(event.target === this) closeFullScreenPhoto()">
-            <button class="close-fs-photo" onclick="closeFullScreenPhoto()"><i class="fa-solid fa-xmark"></i></button>
-            <img id="fs-photo-img">
-            <a id="download-photo-btn" class="download-photo-btn" target="_blank" download><i class="fa-solid fa-download"></i></a>
+        <div id="fs-overlay" onclick="if(event.target === this) closeFullScreen()">
+            <button class="fs-close" onclick="closeFullScreen()"><i class="fa-solid fa-xmark"></i></button>
+            <img id="fs-img">
+            <a id="fs-dl" class="fs-download" target="_blank" download><i class="fa-solid fa-download"></i></a>
         </div>
 
         <div id="profile-popup" onclick="if(event.target === this) closeProfile()">
@@ -280,8 +269,19 @@
     </div>
 
 <script>
+    // สคริปต์กันแอปค้าง! (ทำงานทันทีก่อนเบราว์เซอร์จะโหลดเสร็จ)
+    setTimeout(function() {
+        const spl = document.getElementById('screen-splash');
+        const pin = document.getElementById('screen-pin');
+        if(spl) spl.style.opacity = '0';
+        setTimeout(function() { 
+            if(spl) spl.style.display = 'none'; 
+            if(pin) pin.style.transform = 'translateX(0)'; 
+        }, 600);
+    }, 2000);
+
     // ==========================================
-    // 🔐 ระบบกดรหัส PIN (เอาของเดิมมาเป๊ะๆ ไม่มีพังแน่นอน)
+    // 🔐 ระบบกดรหัส PIN (เอาของเดิมมาเป๊ะๆ)
     // ==========================================
     let pinInput = '';
     
@@ -301,7 +301,6 @@
     }
     
     function renderDots() { 
-        // ค้นหาจุดไข่ปลาใหม่ทุกครั้งที่มีการกด (แก้ปัญหาค้าง 100%)
         const dots = document.querySelectorAll('.dot'); 
         dots.forEach((dot, index) => { 
             if (index < pinInput.length) dot.classList.add('filled');
@@ -334,6 +333,7 @@
     // 📊 ระบบฐานข้อมูล & ฟิลเตอร์
     // ==========================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
+    
     let dbMembers = [];    
     let dbCares = [];       
     let currentActiveCircle = ''; 
@@ -373,11 +373,11 @@
                     else if (m.IsFemale) normGender = 'หญิง';
                     else if (m.Gender !== '') normGender = 'อื่นๆ';
 
-                    // ดึงค่าจาก M_ID ที่แก้ในหลังบ้านแล้ว (ถ้าไม่มีให้ขึ้น -)
+                    // ดึงค่า M_ID ที่แก้ในหลังบ้านแล้ว
                     let displayId = (m.M_ID && String(m.M_ID).trim() !== '') ? String(m.M_ID).trim() : '-';
 
                     return {
-                        _uid: 'uid_' + index,
+                        _uid: 'uid_' + index, // รหัสอ้างอิงให้ Popup
                         Member_ID: displayId,
                         Care_ID: cid, CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                         Nxl_Status: String(m.Nxl_Status || '').trim(), 
@@ -414,7 +414,7 @@
     }
 
     // ==========================================
-    // 🧰 ฟังก์ชันช่วยเหลือพื้นฐาน (ห้ามลบทิ้งเด็ดขาด)
+    // 🧰 ฟังก์ชันช่วยเหลือ
     // ==========================================
     function generateDonutGradient(segments) {
         let currentTotal = 0; let gradParts = [];
@@ -445,7 +445,7 @@
     function formatGroups(groups) { return (groups.length <= 2) ? groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '') : groups.slice(0, 2).join(', ') + ` และอื่นๆ (รวม ${groups.length})`; }
 
     // ==========================================
-    // 🧭 ระบบนำทางเมนู (Navigation)
+    // 🧭 ระบบนำทางเมนู
     // ==========================================
     window.selectCircleMenu = function(type, element) { 
         document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); 
@@ -474,19 +474,20 @@
     window.resetFilterToDefault = function() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); };
 
     // ==========================================
-    // 🖼️ Profile Popup & Full Screen (สไตล์ Modern)
+    // 🖼️ รูปขยาย & Profile Popup (Minimal Style)
     // ==========================================
-    window.openFullScreenPhoto = function(url, name) {
+    window.openFullScreen = function(url, name) {
         if(!url || url.trim() === '') return;
-        document.getElementById('fs-photo-img').src = url;
-        document.getElementById('download-photo-btn').href = url;
-        document.getElementById('download-photo-btn').download = (name || 'Member') + '_Nexus.jpg';
-        let overlay = document.getElementById('fs-photo-overlay');
-        overlay.style.display = 'flex'; setTimeout(() => { overlay.style.opacity = '1'; }, 10);
+        document.getElementById('fs-img').src = url;
+        document.getElementById('fs-dl').href = url;
+        document.getElementById('fs-dl').download = (name || 'Member') + '_Nexus.jpg';
+        let overlay = document.getElementById('fs-overlay');
+        overlay.style.display = 'flex'; 
+        setTimeout(() => { overlay.style.opacity = '1'; }, 10);
     };
 
-    window.closeFullScreenPhoto = function() {
-        let overlay = document.getElementById('fs-photo-overlay');
+    window.closeFullScreen = function() {
+        let overlay = document.getElementById('fs-overlay');
         if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
     };
 
@@ -499,15 +500,14 @@
         let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
         
         let profileImageHTML = safeUrl !== '' 
-            ? `<img src="${safeUrl}" onclick="openFullScreenPhoto('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
-            : `${initial}`;
+            ? `<img src="${safeUrl}" onclick="openFullScreen('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
+            : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
         
-        // ดีไซน์ใหม่: มินิมอล, โชว์ M_ID แบบเรียบง่าย
         let htmlStr = `
             <div style="background:white; width:100%; max-width:320px; border-radius:24px; padding:30px 20px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
-                <button onclick="closeProfile()" class="profile-close-btn"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:#F1F5F9; color:var(--gray-text); border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; transition:0.2s;"><i class="fa-solid fa-xmark"></i></button>
                 
-                <div class="profile-img-wrap">
+                <div style="width:90px; height:90px; margin: 0 auto 15px auto; border-radius:50%; border: 2px solid var(--gray-border); box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow:hidden; position:relative;">
                     ${profileImageHTML}
                 </div>
                 
@@ -549,7 +549,7 @@
     };
 
     // ==========================================
-    // 🔍 ระบบค้นหา Realtime
+    // 🔍 ฟังก์ชันค้นหา Realtime
     // ==========================================
     window.renderDirectoryList = function(searchTerm) {
         let container = document.getElementById('directory-list-container');
@@ -589,12 +589,12 @@
                 let initial = cleanNameForInitial.charAt(0) || '?';
                 
                 let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '') 
-                    ? `<img src="${m.Url_Image}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">` 
-                    : initial;
+                    ? `<img src="${m.Url_Image}" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` 
+                    : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; background:var(--orange-soft); color:var(--orange); border-radius:50%;">${initial}</div>`;
 
                 listHTML += `
                     <div class="member-list-item" onclick="window.openProfile('${m._uid}')">
-                        <div class="member-photo-container">
+                        <div style="width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0;">
                             ${profileImageHTML}
                         </div>
                         <div class="member-info-container">
@@ -609,7 +609,7 @@
     };
 
     // ==========================================
-    // 🖥️ ฟังก์ชันวาดหน้าจอ (จัดเลย์เอาต์กราฟใหม่)
+    // 🖥️ ฟังก์ชันวาดเลย์เอาต์หลักทั้งหมด
     // ==========================================
     function updateDashboardView() {
         let contentArea = document.getElementById('dashboard-content-area'); 
@@ -732,7 +732,7 @@
                     pItems.forEach(item => {
                         if(item.count > 0) {
                             donutLegendHTML += `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px dashed #E2E8F0;">
                                 <div style="color:${item.color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:${item.color};"></div> ${item.label}</div>
                                 <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${item.percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${item.count})</span></div>
                             </div>`;
@@ -776,7 +776,7 @@
                         if(item.count > 0) {
                             segments.push({ percent: percent, color: color });
                             legendItems.push(`
-                                <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px solid #F1F5F9;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; padding: 4px 0; border-bottom: 1px dashed #E2E8F0;">
                                     <div style="color:${color}; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px;"><div style="width:10px; height:10px; border-radius:50%; background:${color};"></div> ${item.label}</div>
                                     <div style="font-weight:800; font-size:12px; color:var(--charcoal);">${percent}% <span style="color:var(--gray-text); font-size:10px; font-weight:normal;">(${item.count})</span></div>
                                 </div>
@@ -866,9 +866,7 @@
                 setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
             } else {
-                // ==========================================
-                // 🔍 แสดงหน้ารายชื่อ + ช่อง Search 
-                // ==========================================
+                // หน้ารายชื่อ (ค้นหาแบบ Realtime)
                 contentArea.innerHTML = `
                     <div style="position: sticky; top: -10px; padding: 10px 0; background: var(--bg-app); z-index: 5; margin-bottom: 10px;">
                         <div style="position: relative;">
