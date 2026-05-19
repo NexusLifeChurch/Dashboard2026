@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NxLife Community</title>
+    <title>NxLife Community version #1.0.135</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -81,9 +81,11 @@
 
         #sub-page-header { display: none; align-items: center; gap: 12px; margin-bottom: 15px; padding: 5px 0 10px; border-bottom: 1px solid var(--gray-border); }
         .sub-header-icon { width: 38px; height: 38px; border-radius: 10px; background: var(--orange-soft); color: var(--orange); display: flex; justify-content: center; align-items: center; font-size: 18px; }
+        .sub-header-text { display: flex; flex-direction: column; }
         #sub-page-topic { font-size: 12px; color: var(--gray-text); font-weight: 600; margin-bottom: 2px; }
         #sub-page-title { font-size: 20px; font-weight: 700; color: var(--charcoal); line-height: 1.1; }
 
+        /* แถบเมนูล่าง */
         .nav-bar { width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--gray-border); flex-shrink: 0; z-index: 50; padding-bottom: env(safe-area-inset-bottom, 0px); }
         .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--gray-text); font-size: 10px; font-weight: 500; cursor: pointer; transition: 0.3s; width: 20%; }
         .nav-btn.active { color: var(--orange); }
@@ -92,7 +94,7 @@
         .nav-btn.active .home-fab { transform: scale(1.08); box-shadow: 0 6px 14px rgba(192, 100, 40, 0.45); }
         .home-fab i { color: white !important; }
 
-        /* Clean Card UI */
+        /* Filter UI */
         .clean-card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid var(--gray-border); }
         .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
         .section-title { font-size: 16px; font-weight: 700; color: var(--charcoal); display: flex; align-items: center; gap: 8px; }
@@ -111,14 +113,15 @@
         input:checked + .slider:before { transform: translateX(22px); }
 
         .care-shortcuts { display: flex; gap: 8px; }
-        .sc-btn { background: white; border: 1px solid var(--gray-border); color: var(--gray-text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
+        .sc-btn { background: white; border: 1px solid var(--gray-border); color: var(--gray-text); padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; font-family: 'Prompt', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: 0.2s; }
         .sc-btn:active { background: #F1F5F9; }
         .care-list-container { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-top: 15px; border-top: 1px dashed var(--gray-border); margin-top: 15px; }
         .care-item { display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: var(--charcoal); }
         .care-checkbox-label { display: flex; align-items: center; gap: 10px; cursor: pointer; width: 100%; }
         .care-checkbox-label input { width: 18px; height: 18px; accent-color: var(--orange); cursor: pointer; }
+        .only-link { color: var(--orange); font-weight: 600; cursor: pointer; }
 
-        /* Custom Alert Popup */
+        /* Custom Alert */
         #custom-alert { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
         #custom-alert.show { display: flex; animation: fadeIn 0.2s ease-out forwards; }
         .alert-box { background: white; width: 100%; max-width: 280px; border-radius: 16px; padding: 25px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); transform: scale(0.9); transition: transform 0.2s; }
@@ -126,16 +129,26 @@
         .alert-icon { font-size: 40px; color: #EF4444; margin-bottom: 12px; }
         .alert-title { font-size: 18px; font-weight: 700; color: var(--charcoal); margin-bottom: 5px; }
         .alert-msg { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.5; }
-        .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* CSS พิเศษสำหรับรูปเต็มจอ (Fullscreen Image) */
-        #fs-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; }
-        #fs-img { max-width:95%; max-height:80%; object-fit:contain; border-radius:8px; }
-        .fs-close { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; cursor:pointer; z-index:10001; }
-        .fs-download { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--orange); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); z-index:10001; }
+        /* ส่วนสไตล์ใหม่สำหรับรายชื่อ, โมดอลรูป, และโปรไฟล์ที่เพิ่มขึ้นมา */
+        .member-list-item { padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition:transform 0.1s, box-shadow 0.2s; border: 1px solid transparent; border-radius: 12px; background: white;}
+        .member-list-item:active { transform:scale(0.98); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .member-photo-container { width:45px; height:45px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0; overflow:hidden; display:flex; align-items:center; justify-content:center;}
+        .member-photo-container img { width:100%; height:100%; object-fit:cover; }
+        .member-info-container { flex:1; overflow:hidden; }
+        .member-name { font-weight:700; font-size:15px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .member-subdata { font-size:12px; color:var(--gray-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .member-arrow { color:#CBD5E1; font-size:14px; margin-left: 5px; }
 
-        /* Profile Modal Background */
+        /* โมดอลรูปเต็มจอ */
+        #fs-photo-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; }
+        #fs-photo-img { max-width:90%; max-height:80%; object-fit:contain; border-radius: 8px;}
+        .close-fs-photo { position:absolute; top:30px; right:20px; background:rgba(255,255,255,0.2); border:none; color:white; width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:20px; backdrop-filter:blur(4px); z-index:10001; cursor:pointer; }
+        .download-photo-btn { position:absolute; bottom:40px; left:50%; transform:translateX(-50%); background:var(--orange); color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; text-decoration:none; box-shadow:0 4px 10px rgba(0,0,0,0.3); z-index:10001; transition:background 0.2s; }
+        
+        /* Profile Popup */
         #profile-popup { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.6); z-index:9999; justify-content:center; align-items:center; opacity:0; transition: opacity 0.3s ease; padding: 20px; backdrop-filter: blur(4px); }
 </style>
 </head>
@@ -158,7 +171,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">Version 1.1.0 (Search & Minimal)</div>
+            <div class="version-tag">version #1.0.135</div>
         </div>
 
         <div id="screen-pin">
@@ -182,6 +195,7 @@
                 <button class="btn-key btn-del" onclick="delKey()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
             <div class="link-forgot" onclick="showAlert('ลืมรหัส PIN', '+12345')">ลืมรหัส PIN Code</div>
+            <div class="version-tag" style="bottom: 20px;">version #1.0.135</div>
         </div>
 
         <div id="screen-home">
@@ -220,28 +234,16 @@
                     <div id="sub-page-filters" style="display:none; flex-direction:column; align-items:flex-end; gap:4px;"></div>
                 </div>
 
-                <div class="feed-list" id="dashboard-content-area">
-                    <div class="info-card">
-                        <div class="card-ico"><i class="fa-solid fa-house-user"></i></div>
-                        <div class="card-txt"><h3>Family</h3><p>สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง</p></div>
-                    </div>
-                    <div class="info-card">
-                        <div class="card-ico"><i class="fa-solid fa-user-plus"></i></div>
-                        <div class="card-txt"><h3>Friend</h3><p>ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโต</p></div>
-                    </div>
-                </div>
-
+                <div class="feed-list" id="dashboard-content-area"></div>
             </div>
             
             <div class="nav-bar">
                 <div class="nav-btn" id="nav-overview" onclick="handleBottomNav('overview', this)"><i class="fa-solid fa-chart-pie"></i><span>ภาพรวม</span></div>
                 <div class="nav-btn" id="nav-directory" onclick="handleBottomNav('directory', this)"><i class="fa-regular fa-address-book"></i><span>รายชื่อ</span></div>
-                
                 <div class="nav-btn active" id="nav-home" onclick="handleBottomNav('home', this)">
                     <div class="home-fab"><i class="fa-solid fa-house"></i></div>
                     <span>หน้าหลัก</span>
                 </div>
-                
                 <div class="nav-btn" id="nav-filter" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
                 <div class="nav-btn" id="nav-profile" onclick="handleBottomNav('profile', this)"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
             </div>
@@ -256,27 +258,76 @@
             </div>
         </div>
 
-        <div id="fs-overlay">
-            <button class="fs-close" onclick="closeFullScreen()"><i class="fa-solid fa-xmark"></i></button>
-            <img id="fs-img">
-            <a id="fs-dl" class="fs-download" target="_blank" download><i class="fa-solid fa-download"></i></a>
+        <div id="fs-photo-overlay" onclick="if(event.target === this) closeFullScreenPhoto()">
+            <button class="close-fs-photo" onclick="closeFullScreenPhoto()"><i class="fa-solid fa-xmark"></i></button>
+            <img id="fs-photo-img">
+            <a id="download-photo-btn" class="download-photo-btn" target="_blank" download><i class="fa-solid fa-download"></i></a>
         </div>
 
-        <div id="profile-popup">
+        <div id="profile-popup" onclick="if(event.target === this) closeProfile()">
             <div id="profile-popup-content"></div>
         </div>
 
     </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
+    // ==========================================
+    // 🔐 ระบบกดรหัส PIN (เอาของเดิมมาเป๊ะๆ ไม่มีพัง)
+    // ==========================================
+    let pinInput = '';
+    function pressKey(num) { 
+        if (pinInput.length < 4) { 
+            pinInput += num; 
+            renderDots(); 
+            if (pinInput.length === 4) setTimeout(validatePin, 300); 
+        } 
+    }
+    
+    function delKey() { 
+        if (pinInput.length > 0) { 
+            pinInput = pinInput.slice(0, -1); 
+            renderDots(); 
+        } 
+    }
+    
+    function renderDots() { 
+        const dots = document.querySelectorAll('.dot'); 
+        dots.forEach((dot, index) => { 
+            if (index < pinInput.length) dot.classList.add('filled');
+            else dot.classList.remove('filled');
+        }); 
+    }
+    
+    function validatePin() { 
+        if (pinInput === '5555') { 
+            document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; 
+            document.getElementById('screen-home').classList.add('visible'); 
+        } else { 
+            showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); 
+            pinInput = ''; 
+            renderDots(); 
+        } 
+    }
 
+    function showAlert(t, m) { 
+        document.getElementById('alert-title-text').innerText = t; 
+        document.getElementById('alert-msg-text').innerText = m; 
+        document.getElementById('custom-alert').classList.add('show'); 
+    }
+    
+    function closeAlert() { 
+        document.getElementById('custom-alert').classList.remove('show'); 
+    }
+
+    // ==========================================
+    // 📊 ระบบฐานข้อมูล & ฟิลเตอร์
+    // ==========================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
     let dbMembers = [];    
     let dbCares = [];       
     let currentActiveCircle = ''; 
     let currentActiveBottom = 'home';
     let masterFilterSettings = { statusMode: 'COMMUNITY', includeKids: false, selectedCares: [] };
-    let pinInput = '';
 
     const circleContext = {
         'care': { name: 'กลุ่มแคร์', icon: 'fa-people-roof' },
@@ -289,8 +340,7 @@
 
     window.addEventListener('DOMContentLoaded', () => {
         fetchAllSheetsData();
-        setupProfilePopup(); 
-        setupFullScreenPhoto();
+        updateDashboardView(); // วาดหน้า Home รอไว้เลย
     });
 
     function fetchAllSheetsData() {
@@ -313,11 +363,11 @@
                     else if (m.IsFemale) normGender = 'หญิง';
                     else if (m.Gender !== '') normGender = 'อื่นๆ';
 
-                    // ดักจับ Member_ID ถ้าว่างให้ใส่ '-'
-                    let displayId = (m.Member_ID && String(m.Member_ID).trim() !== '') ? String(m.Member_ID).trim() : '-';
+                    // ดึงค่าจาก M_ID (แก้ไขตามที่พี่แจ้ง) ถ้าไม่มีให้แสดง -
+                    let displayId = (m.M_ID && String(m.M_ID).trim() !== '') ? String(m.M_ID).trim() : '-';
 
                     return {
-                        _uid: 'uid_' + index, // รหัสอ้างอิงลับสำหรับกดดู Profile
+                        _uid: 'uid_' + index, // รหัสอ้างอิงลับสำหรับกดเปิด Profile
                         Member_ID: displayId,
                         Care_ID: cid, CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
                         Nxl_Status: String(m.Nxl_Status || '').trim(), 
@@ -329,7 +379,6 @@
 
                 if (hasUnmappedCares) dbCares.push({ Care_ID: 'UNMAPPED_CARE', CareName: 'ไม่ระบุแคร์/อื่นๆ', Is_Active: true });
                 masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
-                updateDashboardView();
             })
             .catch(err => console.error('Error fetching Data:', err));
     }
@@ -356,29 +405,19 @@
     // ==========================================
     // 🖼️ Profile & Full Screen Image (ดีไซน์มินิมอล)
     // ==========================================
-    function setupFullScreenPhoto() {
-        let div = document.getElementById('fs-overlay');
-        div.addEventListener('click', function(e) { if (e.target === div || e.target === document.getElementById('fs-img')) window.closeFullScreen(); });
-    }
-
-    window.openFullScreen = function(url, name) {
-        if(!url) return;
-        document.getElementById('fs-img').src = url;
-        document.getElementById('fs-dl').href = url;
-        document.getElementById('fs-dl').download = (name || 'Member') + '_Nexus.jpg';
-        let overlay = document.getElementById('fs-overlay');
+    window.openFullScreenPhoto = function(url, name) {
+        if(!url || url.trim() === '') return;
+        document.getElementById('fs-photo-img').src = url;
+        document.getElementById('download-photo-btn').href = url;
+        document.getElementById('download-photo-btn').download = (name || 'Member') + '_Nexus.jpg';
+        let overlay = document.getElementById('fs-photo-overlay');
         overlay.style.display = 'flex'; setTimeout(() => { overlay.style.opacity = '1'; }, 10);
     };
 
-    window.closeFullScreen = function() {
-        let overlay = document.getElementById('fs-overlay');
+    window.closeFullScreenPhoto = function() {
+        let overlay = document.getElementById('fs-photo-overlay');
         if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
     };
-
-    function setupProfilePopup() {
-        let div = document.getElementById('profile-popup');
-        div.addEventListener('click', function(e) { if (e.target === div) window.closeProfile(); });
-    }
 
     window.openProfile = function(uid) {
         let member = dbMembers.find(m => m._uid === uid);
@@ -389,10 +428,10 @@
         let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
         
         let profileImageHTML = safeUrl !== '' 
-            ? `<img src="${safeUrl}" onclick="openFullScreen('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
+            ? `<img src="${safeUrl}" onclick="openFullScreenPhoto('${safeUrl}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
             : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
         
-        // ดีไซน์ใหม่: คลีน สะอาด ทันสมัย พื้นขาว ล้วน
+        // ดีไซน์ใหม่: คลีน สะอาด ทันสมัย 
         let htmlStr = `
             <div style="background:white; width:100%; max-width:320px; border-radius:24px; padding:30px 20px; position:relative; transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 40px rgba(0,0,0,0.15);">
                 <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:#F1F5F9; color:var(--gray-text); border:none; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; cursor:pointer; transition:0.2s;"><i class="fa-solid fa-xmark"></i></button>
@@ -440,7 +479,7 @@
     };
 
     // ==========================================
-    // 🖥️ เรนเดอร์ Dashboard (รวมระบบค้นหา Realtime)
+    // 🖥️ ระบบควบคุม Dashboard & Menu
     // ==========================================
     window.selectCircleMenu = function(type, element) { document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveCircle = type; handleBottomNav('overview', document.getElementById('nav-overview')); };
     window.handleBottomNav = function(target, element) { document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveBottom = target; updateDashboardView(); };
@@ -524,7 +563,7 @@
                     : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:800; background:var(--orange-soft); color:var(--orange); border-radius:50%;">${initial}</div>`;
 
                 listHTML += `
-                    <div style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s; background: white; border-radius: 12px; border: 1px solid #E2E8F0;" onclick="window.openProfile('${m._uid}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                    <div style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s; background: white; border-radius: 12px; border: 1px solid transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.02);" onclick="window.openProfile('${m._uid}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
                         <div style="width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0;">
                             ${profileImageHTML}
                         </div>
@@ -541,6 +580,7 @@
 
     function updateDashboardView() {
         let contentArea = document.getElementById('dashboard-content-area'); 
+        if(!contentArea) return;
         let activeCtx = circleContext[currentActiveCircle] || circleContext[''];
         let viewTitle = (currentActiveBottom === 'overview') ? 'ภาพรวม' : 'รายชื่อ';
 
@@ -643,7 +683,6 @@
                         { label: 'หญิง', count: femaleCount, percent: pFemale, color: '#AC858C' }
                     ];
                     if (unkCount > 0) pItems.push({ label: 'อื่นๆ/ไม่ระบุ', count: unkCount, percent: pUnk, color: '#BDC3C7' });
-                    
                     pItems.sort((a,b) => a.label.localeCompare(b.label, 'th'));
 
                     donutGradientStr = makeConic(pItems);
@@ -787,7 +826,9 @@
                 setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
             } else {
-                // หน้ารายชื่อ (ค้นหาแบบ Realtime)
+                // ==========================================
+                // 🔍 หน้ารายชื่อ (ค้นหาแบบ Realtime)
+                // ==========================================
                 contentArea.innerHTML = `
                     <div style="position: sticky; top: -10px; padding: 10px 0; background: var(--bg-app); z-index: 5; margin-bottom: 10px;">
                         <div style="position: relative;">
@@ -800,53 +841,6 @@
                 window.renderDirectoryList('');
             }
         }
-
-    // ==========================================
-    // 🔐 ระบบกดรหัส PIN
-    // ==========================================
-    function pressKey(num) { 
-        if (pinInput.length < 4) { 
-            pinInput += num; 
-            renderDots(); 
-            if (pinInput.length === 4) setTimeout(validatePin, 300); 
-        } 
-    }
-    
-    function delKey() { 
-        if (pinInput.length > 0) { 
-            pinInput = pinInput.slice(0, -1); 
-            renderDots(); 
-        } 
-    }
-    
-    function renderDots() { 
-        const dots = document.querySelectorAll('.dot'); 
-        dots.forEach((dot, index) => { 
-            if (index < pinInput.length) dot.classList.add('filled');
-            else dot.classList.remove('filled');
-        }); 
-    }
-    
-    function validatePin() { 
-        if (pinInput === '5555') { 
-            document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; 
-            document.getElementById('screen-home').classList.add('visible'); 
-        } else { 
-            showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); 
-            pinInput = ''; 
-            renderDots(); 
-        } 
-    }
-    
-    function showAlert(t, m) { 
-        document.getElementById('alert-title-text').innerText = t; 
-        document.getElementById('alert-msg-text').innerText = m; 
-        document.getElementById('custom-alert').classList.add('show'); 
-    }
-    
-    function closeAlert() { 
-        document.getElementById('custom-alert').classList.remove('show'); 
-    }
 </script>
 </body>
 </html>
