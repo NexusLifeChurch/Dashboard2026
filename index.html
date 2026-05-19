@@ -96,7 +96,7 @@
 
 
 
-        .version-tag {
+        .-tag {
 
             position: absolute; bottom: 15px; width: 100%; text-align: center;
 
@@ -382,7 +382,7 @@
 
             </div>
 
-            <div class="version-tag">version #1.0.121</div>
+            <div class="version-tag">version #3.001</div>
 
         </div>
 
@@ -656,121 +656,83 @@
 
 
 
+// ... [โค้ดส่วนบนสุด คงเดิม] ...
+
         function fetchAllSheetsData() {
-
             fetch(API_URL)
-
                 .then(res => res.json())
-
                 .then(responseObj => {
-
                     dbCares = responseObj.cares || [];
-
                     dbCares.sort((a, b) => String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true }));
 
-
-
                     let validCareIds = new Set(dbCares.map(c => c.Care_ID));
-
                     let rawMembers = responseObj.members || [];
-
                     let hasUnmappedCares = false;
 
-
-
                     dbMembers = rawMembers.map(m => {
-
                         let cid = m.Care_ID;
-
                         if (cid === '' || !validCareIds.has(cid)) { cid = 'UNMAPPED_CARE'; hasUnmappedCares = true; }
 
-
-
-                        let normGender = 'ไม่ระบุ';
-
-                        if (m.IsMale) normGender = 'ชาย';
-
-                        else if (m.IsFemale) normGender = 'หญิง';
-
-                        else if (m.Gender !== '') normGender = 'อื่นๆ';
-
-
+                        // [แก้ Conflict 2] ใช้ Text ตรงๆ จากหลังบ้าน 
+                        let normGender = String(m.Gender || '').trim();
+                        if (normGender === '') normGender = 'ไม่ระบุ';
 
                         return {
-
-                            Member_ID: m.Member_ID || m.FullName_Display, 
-
+                            M_ID: m.M_ID || m.FullName_Display, // [แก้ Conflict 1] เปลี่ยนเป็น M_ID
                             Care_ID: cid,
-
-                            CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : m.CareName,
-
+                            CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : String(m.CareName || '').trim(),
                             Nxl_Status: String(m.Nxl_Status || '').trim(), 
-
                             Classify: String(m.Classify || 'ไม่ระบุ').trim(), 
-
                             Gender: normGender, 
-
                             FullName_Display: m.FullName_Display,
-
-                            Url_Image: m.Url_Image || '', 
-
-                            IsKids: m.IsKids
-
+                            Url_Image: m.Url_Image || '' 
+                            // [แก้ Conflict 3] ตัด IsKids ทิ้งทั้งหมด
                         };
-
                     });
 
-
-
                     if (hasUnmappedCares) dbCares.push({ Care_ID: 'UNMAPPED_CARE', CareName: 'ไม่ระบุแคร์/อื่นๆ', Is_Active: true });
-
                     masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
-
                     updateDashboardView();
-
                 })
-
                 .catch(err => console.error('Error parsing Data:', err));
-
         }
-
-
 
         function getFilteredData() {
-
             return dbMembers.filter(m => {
-
-                let statusMatch = true;
-
                 let nxl = m.Nxl_Status;
-
+                let statusMatch = true;
                 
-
+                // ด่านที่ 1: เงื่อนไขประเภทสมาชิก (Status Mode)
                 if (masterFilterSettings.statusMode === 'COMMUNITY') {
-
                     const commStatuses = ['Fm-Reg', 'Fm-UnReg', 'Fm-Kids', 'Fr-', 'Fr-NxC', 'Fr-OTH', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
-
                     statusMatch = commStatuses.includes(nxl);
-
                 } else if (masterFilterSettings.statusMode === 'SEND') {
-
-                    const sendStatuses = ['Send-OTH', 'Send-NxC', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
-
+                    const sendStatuses = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
                     statusMatch = sendStatuses.includes(nxl);
-
-                }
-
+                } // ถ้าเป็น 'ALL' statusMatch จะเป็น true เสมอ
                 
-
-                let kidsMatch = masterFilterSettings.includeKids ? true : !m.IsKids;
-
+                // ด่านที่ 2: เงื่อนไขเด็กรวมหรือไม่รวม (Kids Match)
+                let kidsMatch = masterFilterSettings.includeKids ? true : (nxl !== 'Fm-Kids');
+                
+                // ด่านที่ 3: เงื่อนไขกลุ่มแคร์ (Care Match)
                 let careMatch = masterFilterSettings.selectedCares.includes(m.Care_ID);
-
+                
+                // ต้องผ่านทั้ง 3 ด่าน (AND Logic)
                 return statusMatch && kidsMatch && careMatch;
-
             });
-
         }
+
+// ... [ฟังก์ชัน generateDonutGradient, calculateStats คงเดิม] ...
+
+        // ⚠️ จุดแก้ไขเล็กๆ เพิ่มเติมเพื่อให้ UI ไม่พัง (นำบรรทัดนี้ไปเปลี่ยนในโค้ดคุณ)
+        function openProfile(memberId) {
+            let member = dbMembers.find(m => m.M_ID === memberId); // เปลี่ยน Member_ID เป็น M_ID
+// ... [โค้ดในฟังก์ชัน openProfile คงเดิม] ...
+
+        // ⚠️ ในฟังก์ชัน updateDashboardView() ตรงส่วนที่วนลูปสร้างการ์ดรายชื่อ
+        // ให้หาบรรทัด let safeId และเปลี่ยนเป็น m.M_ID ดังนี้:
+                            let safeId = String(m.M_ID).replace(/'/g, "\\'"); 
+// ... [โค้ดส่วนล่างสุด คงเดิม] ...
 
 
 
