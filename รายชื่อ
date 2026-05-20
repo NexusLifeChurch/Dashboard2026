@@ -186,7 +186,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.4</div>
+            <div class="version-tag">version #3.0.5</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -656,6 +656,89 @@ function fetchAllSheetsData() {
             </span>
         </div>`;
 }   
+    function renderDirectoryView(contentArea) {
+    const filteredData = getFilteredData();
+
+    if (filteredData.length === 0) {
+        contentArea.innerHTML = `
+            <div class="clean-card" style="text-align:center; padding:40px 20px;">
+                <i class="fa-regular fa-folder-open" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i>
+                <p style="font-size:13px; color:var(--gray-text);">ไม่พบรายชื่อภายใต้ตัวกรองนี้</p>
+            </div>`;
+        return;
+    }
+
+    let groupedData = {};
+
+    filteredData.forEach(m => {
+        let groupKey = currentActiveCircle === 'people'
+            ? (m.Nxl_Status || 'ไม่ระบุ')
+            : (m.CareName || 'ไม่ระบุ');
+
+        if (!groupedData[groupKey]) groupedData[groupKey] = [];
+        groupedData[groupKey].push(m);
+    });
+
+    let sortedGroupKeys = Object.keys(groupedData).sort((a, b) =>
+        a.localeCompare(b, 'th')
+    );
+
+    let listHTML = '';
+
+    sortedGroupKeys.forEach(groupName => {
+        groupedData[groupName].sort((a, b) =>
+            a.FullName_Display.localeCompare(b.FullName_Display, 'th')
+        );
+
+        listHTML += `
+            <div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:15px; border-bottom: 2px solid var(--orange-soft); padding-bottom:4px;">
+                ${groupName}
+                <span style="color:var(--gray-text); font-size:11px; font-weight:normal;">
+                    (${groupedData[groupName].length} คน)
+                </span>
+            </div>`;
+
+        groupedData[groupName].forEach(m => {
+            listHTML += createMemberListItem(m);
+        });
+    });
+
+    contentArea.innerHTML = listHTML;
+}
+    function createMemberListItem(m) {
+    let cleanNameForInitial = m.FullName_Display
+        ? m.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '')
+        : '';
+
+    let initial = cleanNameForInitial.charAt(0) || '?';
+    let safeId = String(m.M_ID).replace(/'/g, "\\'");
+
+    let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '')
+        ? `<img src="${m.Url_Image}" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">`
+        : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange); border-radius:50%;">${initial}</div>`;
+
+    return `
+        <div style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s; background: white; border-radius: 12px; border: 1px solid transparent;"
+            onclick="openProfile('${safeId}')"
+            onmousedown="this.style.transform='scale(0.98)'"
+            onmouseup="this.style.transform='scale(1)'">
+
+            <div style="width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0;">
+                ${profileImageHTML}
+            </div>
+
+            <div style="flex:1; overflow:hidden;">
+                <div style="font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    ${m.FullName_Display}
+                </div>
+                <div style="font-size:11px; color:var(--gray-text);">
+                    แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}
+                </div>
+            </div>
+
+            <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:12px;"></i>
+        </div>`;
+}
         function updateDashboardView() {
             let careListContainer = document.querySelector('.care-list-container');
             let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
@@ -840,50 +923,9 @@ function fetchAllSheetsData() {
                     
                     setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
-                } else {
-                    const filteredData = getFilteredData();
-                    if (filteredData.length === 0) {
-                        contentArea.innerHTML = `<div class="clean-card" style="text-align:center; padding:40px 20px;"><i class="fa-regular fa-folder-open" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i><p style="font-size:13px; color:var(--gray-text);">ไม่พบรายชื่อภายใต้ตัวกรองนี้</p></div>`;
-                        return;
-                    }
-
-                    let groupedData = {};
-                    filteredData.forEach(m => {
-                        let groupKey = currentActiveCircle === 'people' ? (m.Nxl_Status || 'ไม่ระบุ') : (m.CareName || 'ไม่ระบุ');
-                        if (!groupedData[groupKey]) groupedData[groupKey] = [];
-                        groupedData[groupKey].push(m);
-                    });
-
-                    let sortedGroupKeys = Object.keys(groupedData).sort((a,b) => a.localeCompare(b, 'th'));
-                    let listHTML = '';
-                    sortedGroupKeys.forEach(groupName => {
-                        groupedData[groupName].sort((a, b) => a.FullName_Display.localeCompare(b.FullName_Display, 'th'));
-                        listHTML += `<div style="font-weight:800; color:var(--orange); margin: 20px 0 8px 5px; font-size:15px; border-bottom: 2px solid var(--orange-soft); padding-bottom:4px;">${groupName} <span style="color:var(--gray-text); font-size:11px; font-weight:normal;">(${groupedData[groupName].length} คน)</span></div>`;
-                        
-                        groupedData[groupName].forEach(m => {
-                            let cleanNameForInitial = m.FullName_Display ? m.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '') : '';
-                            let initial = cleanNameForInitial.charAt(0) || '?';
-                            let safeId = String(m.M_ID).replace(/'/g, "\\'"); 
-                            
-                            let profileImageHTML = (m.Url_Image && m.Url_Image.trim() !== '') 
-                                ? `<img src="${m.Url_Image}" loading="lazy" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` 
-                                : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange); border-radius:50%;">${initial}</div>`;
-
-                            listHTML += `
-                                <div style="padding: 12px 15px; display:flex; align-items:center; gap:12px; margin-bottom:8px; cursor:pointer; transition: transform 0.1s; background: white; border-radius: 12px; border: 1px solid transparent;" onclick="openProfile('${safeId}')" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
-                                    <div style="width:42px; height:42px; border-radius:50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink:0;">
-                                        ${profileImageHTML}
-                                    </div>
-                                    <div style="flex:1; overflow:hidden;">
-                                        <div style="font-weight:700; font-size:14px; color:var(--charcoal); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.FullName_Display}</div>
-                                        <div style="font-size:11px; color:var(--gray-text);">แคร์: ${m.CareName} | สถานภาพ: ${m.Classify}</div>
-                                    </div>
-                                    <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:12px;"></i>
-                                </div>`;
-                        });
-                    });
-                    contentArea.innerHTML = listHTML;
-                }
+                    } else {
+            renderDirectoryView(contentArea);
+        }    
             }
         }
 
