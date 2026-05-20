@@ -266,7 +266,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.11</div>
+            <div class="version-tag">version #3.0.12</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -793,7 +793,7 @@ function renderHomeView(contentArea) {
 }   
 
 function handleDirectorySearch(value) {
-    directorySearchText = String(value || '').toLowerCase();
+    directorySearchText = String(value || '');
 
     const contentArea = document.getElementById('dashboard-content-area');
     renderDirectoryView(contentArea);
@@ -847,16 +847,20 @@ function handleDirectorySearch(value) {
     const baseFilteredData = getFilteredData();
     
     const filteredData = baseFilteredData.filter(m => {
-        if (!directorySearchText) return true;
-    
-        const searchPool = [
-            m.FullName_Display,
-            m.CareName,
-            m.Nxl_Status
-        ].join(' ').toLowerCase();
-    
-        return searchPool.includes(directorySearchText);
-    });
+    const query = directorySearchText.trim().toLowerCase();
+
+    if (!query) return true;
+
+    const searchPool = [
+        m.FullName_Display,
+        m.CareName,
+        m.Classify
+    ]
+    .map(value => String(value || '').toLowerCase())
+    .join(' ');
+
+    return searchPool.includes(query);
+});
     
     const searchHTML = createDirectorySearchHTML();
     
