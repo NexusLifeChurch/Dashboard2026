@@ -266,7 +266,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.10</div>
+            <div class="version-tag">version #3.0.11</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -792,10 +792,20 @@ function renderHomeView(contentArea) {
         </div>`;
 }   
 
-        function handleDirectorySearch(value) {
-        directorySearchText = String(value || '').trim().toLowerCase();
-        updateDashboardView();
-    }
+function handleDirectorySearch(value) {
+    directorySearchText = String(value || '').toLowerCase();
+
+    const contentArea = document.getElementById('dashboard-content-area');
+    renderDirectoryView(contentArea);
+
+    setTimeout(() => {
+        const input = document.getElementById('directory-search-input');
+        if (input) {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+    }, 0);
+}
 
     function clearDirectorySearch() {
         directorySearchText = '';
@@ -809,6 +819,7 @@ function renderHomeView(contentArea) {
                     <i class="fa-solid fa-magnifying-glass"></i>
     
                     <input
+                        id="directory-search-input"
                         class="directory-search-input"
                         type="text"
                         value="${directorySearchText}"
@@ -826,7 +837,7 @@ function renderHomeView(contentArea) {
                 </div>
     
                 <div class="search-result-note">
-                    ค้นหาแบบเรียลไทม์จากชื่อสมาชิก ชื่อเล่น แคร์ และสถานภาพ
+                    ค้นหาได้จากชื่อสมาชิก ชื่อเล่น กลุ่มแคร์ และรหัสสถานภาพ
                 </div>
             </div>
         `;
@@ -841,10 +852,7 @@ function renderHomeView(contentArea) {
         const searchPool = [
             m.FullName_Display,
             m.CareName,
-            m.Nxl_Status,
-            m.Classify,
-            m.Gender,
-            m.M_ID
+            m.Nxl_Status
         ].join(' ').toLowerCase();
     
         return searchPool.includes(directorySearchText);
