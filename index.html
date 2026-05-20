@@ -1097,7 +1097,7 @@ function getTodayOtp() {
     const dayMonth = Number(day + month);   // เช่น 2005
     const monthDay = Number(month + day);   // เช่น 0520 = 520
 
-    const otp = dayMonth + monthDay;
+    const otp = dayMonth + monthDay + 1970;
 
     return String(otp).padStart(4, '0').slice(-4);
 }
