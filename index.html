@@ -177,6 +177,18 @@
         .alert-msg { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.5; }
         .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Skeleton Loading */
+.skeleton-box {
+    background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+    background-size: 200% 100%;
+    animation: skeletonLoading 1.2s infinite;
+}
+
+@keyframes skeletonLoading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 </style>
 </head>
 <body>
@@ -187,7 +199,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.5</div>
+            <div class="version-tag">version #3.0.6</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -476,8 +488,31 @@ function fetchAllSheetsData() {
         function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
         function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
 
-        // 🌟 สร้าง HTML สำหรับการ์ดแนวนอน (รูป 1:1 ซ้าย, ข้อความขวา) ตามดีไซน์ที่เฮียต้องการ
-        function renderNewsFeedHTML() {
+            function renderNewsSkeletonHTML() {
+            return `
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px; padding:0 4px;">
+                    <h3 style="font-size:16px; font-weight:800; color:var(--charcoal); margin:0;">
+                        <i class="fa-solid fa-book-open" style="color:var(--orange); margin-right:6px;"></i> คู่มือและคำนิยาม
+                    </h3>
+                </div>
+        
+                ${[1, 2, 3].map(() => `
+                    <div class="clean-card" style="padding:12px; margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+                        <div class="skeleton-box" style="width:80px; height:80px; border-radius:12px; flex-shrink:0;"></div>
+        
+                        <div style="flex:1;">
+                            <div class="skeleton-box" style="width:70%; height:16px; border-radius:8px; margin-bottom:10px;"></div>
+                            <div class="skeleton-box" style="width:95%; height:12px; border-radius:8px; margin-bottom:8px;"></div>
+                            <div class="skeleton-box" style="width:50%; height:12px; border-radius:8px;"></div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+    
+            // 🌟 สร้าง HTML สำหรับการ์ดแนวนอน (รูป 1:1 ซ้าย, ข้อความขวา) ตามดีไซน์ที่เฮียต้องการ
+
+            function renderNewsFeedHTML() {
             if (dbNews.length === 0) {
                 return `<div style="text-align:center; padding:40px 20px; color:var(--gray-text); font-size:14px;"><i class="fa-solid fa-spinner fa-spin" style="margin-bottom:12px; font-size:26px; color:var(--orange);"></i><br>กำลังโหลดข้อมูล...</div>`;
             }
@@ -526,9 +561,14 @@ function fetchAllSheetsData() {
             setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
 
-    function renderHomeView(contentArea) {
+function renderHomeView(contentArea) {
     document.getElementById('home-top-section').style.display = 'block';
     document.getElementById('sub-page-header').style.display = 'none';
+
+    if (dbNews.length === 0) {
+        contentArea.innerHTML = renderNewsSkeletonHTML();
+        return;
+    }
 
     contentArea.innerHTML = renderNewsFeedHTML();
 }
