@@ -189,6 +189,73 @@
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+    /* Directory Search */
+.directory-search-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: linear-gradient(to bottom, var(--bg-app) 75%, rgba(250, 247, 242, 0));
+    padding: 4px 0 12px;
+    margin-bottom: 8px;
+}
+
+.directory-search-box {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    border-radius: 18px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+    backdrop-filter: blur(10px);
+}
+
+.directory-search-box i {
+    color: var(--orange);
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.directory-search-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: 'Prompt', sans-serif;
+    font-size: 13px;
+    color: var(--charcoal);
+}
+
+.directory-search-input::placeholder {
+    color: #94A3B8;
+}
+
+.directory-search-clear {
+    border: none;
+    background: #F1F5F9;
+    color: var(--gray-text);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.directory-search-clear.show {
+    display: flex;
+}
+
+.search-result-note {
+    font-size: 11px;
+    color: var(--gray-text);
+    margin: 4px 6px 10px;
+}
+    
 </style>
 </head>
 <body>
@@ -199,7 +266,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.9</div>
+            <div class="version-tag">version #3.0.10</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -326,6 +393,7 @@
 
         let currentActiveCircle = ''; 
         let currentActiveBottom = 'home';
+        let directorySearchText = '';
 
         let masterFilterSettings = { statusMode: 'COMMUNITY', includeKids: false, selectedCares: [] };
 const STORAGE_KEYS = {
@@ -723,14 +791,73 @@ function renderHomeView(contentArea) {
             </span>
         </div>`;
 }   
-    function renderDirectoryView(contentArea) {
-    const filteredData = getFilteredData();
 
+        function handleDirectorySearch(value) {
+        directorySearchText = String(value || '').trim().toLowerCase();
+        updateDashboardView();
+    }
+
+    function clearDirectorySearch() {
+        directorySearchText = '';
+        updateDashboardView();
+    }
+    
+    function createDirectorySearchHTML() {
+        return `
+            <div class="directory-search-wrap">
+                <div class="directory-search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+    
+                    <input
+                        class="directory-search-input"
+                        type="text"
+                        value="${directorySearchText}"
+                        placeholder="ค้นหาชื่อจริง ชื่อเล่น กลุ่มแคร์ หรือสถานภาพ"
+                        oninput="handleDirectorySearch(this.value)"
+                    >
+    
+                    <button
+                        class="directory-search-clear ${directorySearchText ? 'show' : ''}"
+                        onclick="clearDirectorySearch()"
+                        type="button"
+                    >
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+    
+                <div class="search-result-note">
+                    ค้นหาแบบเรียลไทม์จากชื่อสมาชิก ชื่อเล่น แคร์ และสถานภาพ
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderDirectoryView(contentArea) {
+    const baseFilteredData = getFilteredData();
+    
+    const filteredData = baseFilteredData.filter(m => {
+        if (!directorySearchText) return true;
+    
+        const searchPool = [
+            m.FullName_Display,
+            m.CareName,
+            m.Nxl_Status,
+            m.Classify,
+            m.Gender,
+            m.M_ID
+        ].join(' ').toLowerCase();
+    
+        return searchPool.includes(directorySearchText);
+    });
+    
+    const searchHTML = createDirectorySearchHTML();
+    
     if (filteredData.length === 0) {
         contentArea.innerHTML = `
+            ${searchHTML}
             <div class="clean-card" style="text-align:center; padding:40px 20px;">
                 <i class="fa-regular fa-folder-open" style="font-size:40px; color:#E2E8F0; margin-bottom:15px;"></i>
-                <p style="font-size:13px; color:var(--gray-text);">ไม่พบรายชื่อภายใต้ตัวกรองนี้</p>
+                <p style="font-size:13px; color:var(--gray-text);">ไม่พบรายชื่อที่ตรงกับการค้นหา</p>
             </div>`;
         return;
     }
@@ -770,7 +897,7 @@ function renderHomeView(contentArea) {
         });
     });
 
-    contentArea.innerHTML = listHTML;
+contentArea.innerHTML = searchHTML + listHTML;
 }
     function createMemberListItem(m) {
     let cleanNameForInitial = m.FullName_Display
