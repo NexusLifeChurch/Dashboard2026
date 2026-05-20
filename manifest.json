@@ -1,0 +1,14 @@
+{
+  "name": "NxLife Dashboard",
+  "short_name": "NxLife",
+  "display": "standalone",
+  "background_color": "#FAF7F2",
+  "theme_color": "#C06428",
+  "icons": [
+    {
+      "src": "https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/Life%20Apps%20Logo.jpg?raw=true",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
