@@ -186,7 +186,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.007</div>
+            <div class="version-tag">version #3.0.1</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -327,7 +327,6 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             fetchAllSheetsData();
-            fetchNewsData(); 
             setupProfilePopup(); 
         });
 
@@ -340,65 +339,68 @@
             }
         }, 2000);
 
-        // 🌟 ดึงข้อมูลจาก Code.gs เท่านั้น (ลบข้อมูลจำลองหนักๆ ทิ้งตามที่เฮียขอ)
-        function fetchNewsData() {
-            if (typeof google !== 'undefined' && google.script) {
-                google.script.run
-                    .withSuccessHandler(data => {
-                        dbNews = data;
-                        if (currentActiveBottom === 'home') updateDashboardView();
-                    })
-                    .withFailureHandler(error => {
-                        console.error("Error loading definitions:", error);
-                        // ถ้าเกิด Error แจ้งให้ทราบเบาๆ
-                        dbNews = [{ID: -1, Title: "ไม่สามารถเชื่อมต่อข้อมูลได้", Excerpt: "เกิดข้อผิดพลาดในการดึงข้อมูลจากระบบ กรุณาตรวจสอบการตั้งค่า Code.gs", ImageURL: "", Detail: ""}];
-                        if (currentActiveBottom === 'home') updateDashboardView();
-                    })
-                    .getStories();
-            } else {
-                // สำหรับกรณีเปิดไฟล์ .html ตรงๆ ไม่ผ่านระบบ Apps Script
-                dbNews = [{ID: -1, Title: "ทดสอบหน้าจอ (นอกระบบ)", Excerpt: "นี่คือการแสดงผลจำลอง เพราะเปิดไฟล์นอกระบบ Google Apps Script", ImageURL: "", Detail: ""}];
-                if (currentActiveBottom === 'home') updateDashboardView();
+function fetchAllSheetsData() {
+    fetch(API_URL + '?action=dashboard')
+        .then(res => res.json())
+        .then(responseObj => {
+            if (!responseObj.success) {
+                console.error('API Error:', responseObj.error);
+                showAlert('โหลดข้อมูลไม่สำเร็จ', responseObj.error || 'ไม่ทราบสาเหตุ');
+                return;
             }
-        }
 
-        function fetchAllSheetsData() {
-            fetch(API_URL)
-                .then(res => res.json())
-                .then(responseObj => {
-                    dbCares = responseObj.cares || [];
-                    dbCares.sort((a, b) => String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true }));
+            dbCares = responseObj.cares || [];
+            dbNews = responseObj.stories || [];
 
-                    let validCareIds = new Set(dbCares.map(c => c.Care_ID));
-                    let rawMembers = responseObj.members || [];
-                    let hasUnmappedCares = false;
+            dbCares.sort((a, b) =>
+                String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true })
+            );
 
-                    dbMembers = rawMembers.map(m => {
-                        let cid = m.Care_ID;
-                        if (cid === '' || !validCareIds.has(cid)) { cid = 'UNMAPPED_CARE'; hasUnmappedCares = true; }
-                        let normGender = String(m.Gender || '').trim();
-                        if (normGender === '') normGender = 'ไม่ระบุ';
+            let validCareIds = new Set(dbCares.map(c => c.Care_ID));
+            let rawMembers = responseObj.members || [];
+            let hasUnmappedCares = false;
 
-                        return {
-                            M_ID: m.M_ID || m.FullName_Display, 
-                            Care_ID: cid,
-                            CareName: cid === 'UNMAPPED_CARE' ? 'ไม่ระบุแคร์/อื่นๆ' : String(m.CareName || '').trim(),
-                            Nxl_Status: String(m.Nxl_Status || '').trim(), 
-                            Classify: String(m.Classify || 'ไม่ระบุ').trim(), 
-                            Gender: normGender, 
-                            FullName_Display: m.FullName_Display,
-                            Url_Image: m.Url_Image || '' 
-                        };
-                    });
+            dbMembers = rawMembers.map(m => {
+                let cid = m.Care_ID || '';
 
-                    if (hasUnmappedCares) dbCares.push({ Care_ID: 'UNMAPPED_CARE', CareName: 'ไม่ระบุแคร์/อื่นๆ', Is_Active: true });
-                    masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); 
-                    updateDashboardView();
-                })
-                .catch(err => {
-                    console.error('Error parsing Data:', err);
+                if (cid === '' || !validCareIds.has(cid)) {
+                    cid = 'UNMAPPED_CARE';
+                    hasUnmappedCares = true;
+                }
+
+                let normGender = String(m.Gender || m.gender || '').trim();
+                if (normGender === '') normGender = 'ไม่ระบุ';
+
+                return {
+                    M_ID: m.M_ID || m.FullName_Display || m.fullName,
+                    Care_ID: cid,
+                    CareName: cid === 'UNMAPPED_CARE'
+                        ? 'ไม่ระบุแคร์/อื่นๆ'
+                        : String(m.CareName || m.careName || '').trim(),
+                    Nxl_Status: String(m.Nxl_Status || '').trim(),
+                    Classify: String(m.Classify || m.classify || 'ไม่ระบุ').trim(),
+                    Gender: normGender,
+                    FullName_Display: m.FullName_Display || m.fullName || 'ไม่ระบุชื่อ',
+                    Url_Image: m.Url_Image || m.profileImage || ''
+                };
+            });
+
+            if (hasUnmappedCares) {
+                dbCares.push({
+                    Care_ID: 'UNMAPPED_CARE',
+                    CareName: 'ไม่ระบุแคร์/อื่นๆ',
+                    Is_Active: true
                 });
-        }
+            }
+
+            masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID);
+            updateDashboardView();
+        })
+        .catch(err => {
+            console.error('Error loading dashboard data:', err);
+            showAlert('เชื่อมต่อไม่ได้', 'กรุณาตรวจสอบ API_URL หรือการ Deploy ของ Apps Script');
+        });
+}
 
         function getFilteredData() {
             return dbMembers.filter(m => {
