@@ -330,7 +330,9 @@
         let masterFilterSettings = { statusMode: 'COMMUNITY', includeKids: false, selectedCares: [] };
 const STORAGE_KEYS = {
     NEWS_CACHE: 'nxlife_news_cache',
-    PIN_CODE: 'nxlife_pin_code'
+    PIN_CODE: 'nxlife_pin_code',
+    PIN_FAIL_COUNT: 'nxlife_pin_fail_count',
+    PIN_LOCK_UNTIL: 'nxlife_pin_lock_until'
 };
         const circleContext = {
             'care': { name: 'กลุ่มแคร์', icon: 'fa-people-roof' },
@@ -1086,37 +1088,77 @@ let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
             setTimeout(() => { popup.style.display = 'none'; }, 300);
         }
 
-    const PIN_MASTER_PASSWORD = '7412';
+function getTodayOtp() {
+    const today = new Date();
+
+    const day = String(today.getDate()).padStart(2, '0');
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+
+    const dayMonth = Number(day + month);   // เช่น 2005
+    const monthDay = Number(month + day);   // เช่น 0520 = 520
+
+    const otp = dayMonth + monthDay;
+
+    return String(otp).padStart(4, '0').slice(-4);
+}
+    
+const MAX_PIN_ATTEMPTS = 5;
+const PIN_LOCK_MINUTES = 30;
     
     let pinInput = '';
     let pinMode = 'UNLOCK';
     let tempNewPin = '';
     const dots = document.querySelectorAll('.dot');
     
-    function initPinSystem() {
-        const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
-    
-        if (savedPin) {
-            pinMode = 'UNLOCK';
-            setPinTitle('กรอกรหัส PIN');
-        } else {
-            pinMode = 'MASTER_FOR_NEW_PIN';
-            setPinTitle('กรอก Password เพื่อตั้ง PIN');
-        }
-    
-        resetPinInput();
+function initPinSystem() {
+    if (isPinLocked()) {
+        showLockMessage();
+        return;
     }
-    
-    function pressKey(num) {
-        if (pinInput.length >= 4) return;
-    
-        pinInput += String(num);
-        renderDots();
-    
-        if (pinInput.length === 4) {
-            setTimeout(handlePinComplete, 250);
-        }
+
+    const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
+
+    if (savedPin) {
+        pinMode = 'UNLOCK';
+        setPinTitle('กรอกรหัส PIN');
+    } else {
+        pinMode = 'MASTER_FOR_NEW_PIN';
+        setPinTitle('กรอก OTP เพื่อสร้าง PIN');
+        showAlert(
+            'ยังไม่มีรหัส PIN',
+            'กรุณาติดต่อขอ OTP สำหรับสร้างรหัส PIN ได้ที่ Admin NxLife'
+        );
     }
+
+    resetPinInput();
+}
+    
+function pressKey(num) {
+    if (pinMode === 'LOCKED') {
+        if (isPinLocked()) {
+            showLockMessage();
+            return;
+        }
+
+        clearPinFailState();
+        initPinSystem();
+        return;
+    }
+
+    if (isPinLocked()) {
+        showLockMessage();
+        return;
+    }
+
+    if (pinInput.length >= 4) return;
+
+    pinInput += String(num);
+    renderDots();
+
+    if (pinInput.length === 4) {
+        setTimeout(handlePinComplete, 250);
+    }
+}
     
     function delKey() {
         if (pinInput.length > 0) {
@@ -1155,27 +1197,29 @@ let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
         }
     }
     
-    function validateSavedPin() {
-        const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
-    
-        if (pinInput === savedPin) {
-            unlockApp();
-        } else {
-            showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง');
-            resetPinInput();
-        }
+function validateSavedPin() {
+    const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
+
+    if (pinInput === savedPin) {
+        clearPinFailState();
+        unlockApp();
+    } else {
+        registerPinFail();
     }
+}
     
-    function validateMasterPassword() {
-        if (pinInput === PIN_MASTER_PASSWORD) {
-            pinMode = 'SET_NEW_PIN';
-            setPinTitle('ตั้งรหัส PIN ใหม่ 4 หลัก');
-            resetPinInput();
-        } else {
-            showAlert('Password ไม่ถูกต้อง', 'กรุณาติดต่อ Admin');
-            resetPinInput();
-        }
+function validateMasterPassword() {
+    const todayOtp = getTodayOtp();
+
+    if (pinInput === todayOtp) {
+        clearPinFailState();
+        pinMode = 'SET_NEW_PIN';
+        setPinTitle('ตั้งรหัส PIN ใหม่ 4 หลัก');
+        resetPinInput();
+    } else {
+        registerPinFail();
     }
+}
     
     function confirmNewPin() {
         if (pinInput !== tempNewPin) {
@@ -1199,13 +1243,23 @@ let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
         unlockApp();
     }
     
-    function startResetPinFlow() {
-        localStorage.removeItem(STORAGE_KEYS.PIN_CODE);
-        tempNewPin = '';
-        pinMode = 'MASTER_FOR_RESET';
-        setPinTitle('กรอก Password เพื่อ Reset PIN');
-        resetPinInput();
+function startResetPinFlow() {
+    if (isPinLocked()) {
+        showLockMessage();
+        return;
     }
+
+    localStorage.removeItem(STORAGE_KEYS.PIN_CODE);
+    tempNewPin = '';
+    pinMode = 'MASTER_FOR_RESET';
+    setPinTitle('กรอก OTP เพื่อ Reset PIN');
+    resetPinInput();
+
+    showAlert(
+        'Reset PIN',
+        'กรุณาติดต่อขอ OTP สำหรับสร้างรหัส PIN ใหม่ได้ที่ Admin NxLife'
+    );
+}
     
     function unlockApp() {
         document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
@@ -1221,11 +1275,59 @@ let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
         const title = document.querySelector('.pin-title');
         if (title) title.innerText = text;
     }
+
+function isPinLocked() {
+    const lockUntil = Number(localStorage.getItem(STORAGE_KEYS.PIN_LOCK_UNTIL) || 0);
+    return Date.now() < lockUntil;
+}
+
+function showLockMessage() {
+    const lockUntil = Number(localStorage.getItem(STORAGE_KEYS.PIN_LOCK_UNTIL) || 0);
+    const remainMs = Math.max(lockUntil - Date.now(), 0);
+    const remainMin = Math.ceil(remainMs / 60000);
+
+    pinMode = 'LOCKED';
+    setPinTitle(`ถูกล็อกชั่วคราว ${remainMin} นาที`);
+    resetPinInput();
+
+    showAlert(
+        'ใส่รหัสผิดเกินกำหนด',
+        `ระบบถูกล็อกชั่วคราว กรุณารอประมาณ ${remainMin} นาที แล้วลองใหม่อีกครั้ง`
+    );
+}
+
+function registerPinFail() {
+    let failCount = Number(localStorage.getItem(STORAGE_KEYS.PIN_FAIL_COUNT) || 0);
+    failCount += 1;
+
+    if (failCount >= MAX_PIN_ATTEMPTS) {
+        const lockUntil = Date.now() + (PIN_LOCK_MINUTES * 60 * 1000);
+
+        localStorage.setItem(STORAGE_KEYS.PIN_FAIL_COUNT, '0');
+        localStorage.setItem(STORAGE_KEYS.PIN_LOCK_UNTIL, String(lockUntil));
+
+        showLockMessage();
+        return;
+    }
+
+    localStorage.setItem(STORAGE_KEYS.PIN_FAIL_COUNT, String(failCount));
+
+    const remain = MAX_PIN_ATTEMPTS - failCount;
+    showAlert(
+        'รหัสไม่ถูกต้อง',
+        `กรุณาลองใหม่อีกครั้ง เหลือโอกาสอีก ${remain} ครั้ง`
+    );
+
+    resetPinInput();
+}
+
+function clearPinFailState() {
+    localStorage.removeItem(STORAGE_KEYS.PIN_FAIL_COUNT);
+    localStorage.removeItem(STORAGE_KEYS.PIN_LOCK_UNTIL);
+}
+    
     function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
 </script>
 </body>
 </html>
-
-
-*************************
