@@ -186,7 +186,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.005</div>
+            <div class="version-tag">version #3.007</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -340,9 +340,8 @@
             }
         }, 2000);
 
-        // 🌟 ฟังก์ชันดึงข้อมูลแบบมี Fallback ป้องกันหน้าจอค้าง
+        // 🌟 ดึงข้อมูลจาก Code.gs เท่านั้น (ลบข้อมูลจำลองหนักๆ ทิ้งตามที่เฮียขอ)
         function fetchNewsData() {
-            // เช็คว่าเปิดบน Google Apps Script หรือไม่
             if (typeof google !== 'undefined' && google.script) {
                 google.script.run
                     .withSuccessHandler(data => {
@@ -351,21 +350,15 @@
                     })
                     .withFailureHandler(error => {
                         console.error("Error loading definitions:", error);
-                        // ถ้าดึงข้อมูลพัง ให้ส่งข้อมูลแจ้งเตือน เพื่อไม่ให้โหลดค้าง
-                        dbNews = [{ID: -1, Title: "ไม่สามารถโหลดข้อมูลได้", Excerpt: "เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง", ImageURL: "", Detail: ""}];
+                        // ถ้าเกิด Error แจ้งให้ทราบเบาๆ
+                        dbNews = [{ID: -1, Title: "ไม่สามารถเชื่อมต่อข้อมูลได้", Excerpt: "เกิดข้อผิดพลาดในการดึงข้อมูลจากระบบ กรุณาตรวจสอบการตั้งค่า Code.gs", ImageURL: "", Detail: ""}];
                         if (currentActiveBottom === 'home') updateDashboardView();
                     })
                     .getStories();
             } else {
-                // 💡 [แก้ไขปัญหาทดสอบเครื่องตัวเอง] ถ้าเปิด HTML ธรรมดา มันจะดึงข้อมูลจำลองมาให้เห็นหน้าตา Card เลย จะได้ไม่ค้าง!
-                console.warn("Running outside Apps Script. Loading mock definitions for UI preview.");
-                setTimeout(() => {
-                    dbNews = [
-                        { ID: 1, Title: "Family (สมาชิกหลัก)", Excerpt: "สมาชิกหลักที่ผูกพันและร่วมสร้างชุมชนอย่างต่อเนื่อง มีส่วนร่วมและรับผิดชอบ", Detail: "Family คือกลุ่มสมาชิกที่เป็นหัวใจสำคัญของคริสตจักร ได้รับการดูแลอย่างใกล้ชิด...", ImageURL: "https://images.unsplash.com/photo-1511895426328-dc8714191300?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" },
-                        { ID: 2, Title: "Friend (ผู้มาเยือน)", Excerpt: "ผู้มาเยือนที่กำลังทำความรู้จักและเริ่มต้นเติบโตไปกับชุมชนของเรา", Detail: "Friend คือกลุ่มคนที่เพิ่งเริ่มเข้ามาสัมผัสบรรยากาศของชุมชน...", ImageURL: "https://images.unsplash.com/photo-1529156069898-49953eb1b5ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" }
-                    ];
-                    if (currentActiveBottom === 'home') updateDashboardView();
-                }, 1000);
+                // สำหรับกรณีเปิดไฟล์ .html ตรงๆ ไม่ผ่านระบบ Apps Script
+                dbNews = [{ID: -1, Title: "ทดสอบหน้าจอ (นอกระบบ)", Excerpt: "นี่คือการแสดงผลจำลอง เพราะเปิดไฟล์นอกระบบ Google Apps Script", ImageURL: "", Detail: ""}];
+                if (currentActiveBottom === 'home') updateDashboardView();
             }
         }
 
@@ -480,30 +473,30 @@
         function careSelectOnly(id) { masterFilterSettings.selectedCares = [id]; updateDashboardView(); }
         function resetFilterToDefault() { masterFilterSettings.statusMode = 'COMMUNITY'; masterFilterSettings.includeKids = false; masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
 
-        // 🌟 สร้าง HTML สำหรับการ์ดคำนิยาม (เปลี่ยน Wording ให้เข้ากับบริบท)
+        // 🌟 สร้าง HTML สำหรับการ์ดแนวนอน (รูป 1:1 ซ้าย, ข้อความขวา) ตามดีไซน์ที่เฮียต้องการ
         function renderNewsFeedHTML() {
             if (dbNews.length === 0) {
                 return `<div style="text-align:center; padding:40px 20px; color:var(--gray-text); font-size:14px;"><i class="fa-solid fa-spinner fa-spin" style="margin-bottom:12px; font-size:26px; color:var(--orange);"></i><br>กำลังโหลดข้อมูล...</div>`;
             }
             
-            // เปลี่ยนหัวข้อจากข่าวสาร เป็น คู่มือและคำนิยาม
             let html = `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:12px; padding:0 4px;"><h3 style="font-size:16px; font-weight:800; color:var(--charcoal); margin:0;"><i class="fa-solid fa-book-open" style="color:var(--orange); margin-right:6px;"></i> คู่มือและคำนิยาม</h3></div>`;
             
             dbNews.forEach(story => {
-                if(story.ID === -1) { // ดักจับกรณี Error
-                    html += `<div class="clean-card" style="text-align:center; color:#EF4444;"><i class="fa-solid fa-triangle-exclamation" style="font-size:24px; margin-bottom:10px;"></i><br>${story.Title}</div>`;
+                if(story.ID === -1) { 
+                    html += `<div class="clean-card" style="text-align:center; color:#EF4444;"><i class="fa-solid fa-triangle-exclamation" style="font-size:24px; margin-bottom:10px;"></i><br><span style="font-weight:bold;">${story.Title}</span><br><span style="font-size:12px; color:var(--gray-text);">${story.Excerpt}</span></div>`;
                     return;
                 }
 
-                // ดีไซน์ Minimal Card พร้อมปุ่มอ่านต่อแบบ Chevron Right ตรงตามคอนเซปต์
+                // 🌟 โครงสร้างแบบแนวนอน ประหยัดพื้นที่: รูป 1:1 ไว้ซ้ายสุด อ่านต่ออยู่ติดคำโปรย
                 html += `
-                <div class="clean-card" style="padding:16px; margin-bottom:16px; cursor:pointer; transition:transform 0.2s; box-shadow:0 4px 15px rgba(0,0,0,0.03);" onclick="openNewsDetail(${story.ID})" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
-                    <img src="${story.ImageURL}" style="width:100%; height:160px; object-fit:cover; border-radius:12px; margin-bottom:14px; background:#F1F5F9;" onerror="this.src='https://via.placeholder.com/600x400?text=No+Image'">
-                    <h3 style="font-size:17px; font-weight:700; color:var(--charcoal); margin-bottom:6px; line-height:1.3;">${story.Title}</h3>
-                    <p style="font-size:13px; color:var(--gray-text); margin-bottom:14px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.5;">${story.Excerpt}</p>
-                    <div style="font-size:13px; font-weight:700; color:var(--orange); display:flex; align-items:center; justify-content:space-between; border-top: 1px dashed var(--gray-border); padding-top: 12px;">
-                        <span>อ่านรายละเอียด</span>
-                        <div style="width: 26px; height: 26px; background: var(--orange-soft); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fa-solid fa-chevron-right" style="font-size:10px;"></i></div>
+                <div class="clean-card" style="padding:12px; margin-bottom:12px; cursor:pointer; transition:transform 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.04); display:flex; gap:12px; align-items:center;" onclick="openNewsDetail(${story.ID})" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                    <img src="${story.ImageURL}" style="width:80px; height:80px; object-fit:cover; border-radius:12px; flex-shrink:0; background:#F1F5F9;" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                    <div style="flex:1; overflow:hidden;">
+                        <h3 style="font-size:15px; font-weight:700; color:var(--charcoal); margin-bottom:4px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${story.Title}</h3>
+                        <p style="font-size:12px; color:var(--gray-text); margin-bottom:6px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.4;">${story.Excerpt}</p>
+                        <div style="font-size:12px; font-weight:700; color:var(--orange); display:inline-flex; align-items:center; gap:4px;">
+                            อ่านต่อ <i class="fa-solid fa-chevron-right" style="font-size:10px;"></i>
+                        </div>
                     </div>
                 </div>`;
             });
