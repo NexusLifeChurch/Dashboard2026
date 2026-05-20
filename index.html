@@ -186,7 +186,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.2</div>
+            <div class="version-tag">version #3.0.3</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -531,6 +531,93 @@ function fetchAllSheetsData() {
 
     contentArea.innerHTML = renderNewsFeedHTML();
 }
+    function renderFilterView(contentArea, savedScrollPos) {
+    let careListHTML = '';
+
+    if (dbCares.length === 0) {
+        careListHTML = `
+            <div style="text-align: center; padding: 20px 0;">
+                <i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i>
+                <div style="font-size: 14px; font-weight: 600; color: var(--gray-text);">กำลังดึงข้อมูล...</div>
+            </div>`;
+    } else {
+        dbCares.forEach(care => {
+            let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : '';
+
+            careListHTML += `
+                <div class="care-item">
+                    <label class="care-checkbox-label">
+                        <input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')">
+                        <span>${care.CareName}</span>
+                    </label>
+                    <span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span>
+                </div>`;
+        });
+    }
+
+    contentArea.innerHTML = `
+        <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="flex: 1;">
+                <h2 style="font-size: 22px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; line-height:1.2;">
+                    <i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล
+                </h2>
+                <p style="font-size: 12px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p>
+            </div>
+            <button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-top:2px;">
+                <i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น
+            </button>
+        </div>
+
+        <div class="clean-card">
+            <div class="section-title">
+                <i class="fa-regular fa-id-badge" style="color: var(--orange);"></i> ประเภทสมาชิก
+            </div>
+
+            <div class="seg-control">
+                <div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div>
+                <div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div>
+                <div class="seg-btn ${masterFilterSettings.statusMode === 'SEND' ? 'active' : ''}" onclick="setStatusMode('SEND')">Send</div>
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding: 16px 20px;">
+            <div class="toggle-wrapper">
+                <div>
+                    <div class="section-title" style="margin-bottom:0;">
+                        <i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)
+                    </div>
+                </div>
+
+                <label class="switch">
+                    <input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="clean-card">
+            <div class="section-header">
+                <div class="section-title" style="margin-bottom:0;">
+                    <i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care
+                </div>
+
+                <div class="care-shortcuts">
+                    <button class="sc-btn" onclick="careSelectAll()">
+                        <i class="fa-regular fa-square-check"></i> เลือกทั้งหมด
+                    </button>
+
+                    <button class="sc-btn" onclick="careClearAll()">
+                        <i class="fa-regular fa-square"></i> ล้างการเลือก
+                    </button>
+                </div>
+            </div>
+
+            <div class="care-list-container">${careListHTML}</div>
+        </div>`;
+
+    let newCareList = document.querySelector('.care-list-container');
+    if (newCareList) newCareList.scrollTop = savedScrollPos;
+}
         function updateDashboardView() {
             let careListContainer = document.querySelector('.care-list-container');
             let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
@@ -548,13 +635,8 @@ function fetchAllSheetsData() {
                 } else { subPageHeader.style.display = 'none'; }
 
                 if (currentActiveBottom === 'filter') {
-                    let careListHTML = '';
-                    if(dbCares.length === 0) { careListHTML = `<div style="text-align: center; padding: 20px 0;"><i class="fa-regular fa-folder-open" style="font-size: 40px; color: #E2E8F0; margin-bottom: 10px;"></i><div style="font-size: 14px; font-weight: 600; color: var(--gray-text);">กำลังดึงข้อมูล...</div></div>`; } 
-                    else { dbCares.forEach(care => { let isChecked = masterFilterSettings.selectedCares.includes(care.Care_ID) ? 'checked' : ''; careListHTML += `<div class="care-item"><label class="care-checkbox-label"><input type="checkbox" ${isChecked} onchange="toggleCareCheckbox('${care.Care_ID}')"><span>${care.CareName}</span></label><span class="only-link" onclick="careSelectOnly('${care.Care_ID}')">Only</span></div>`; }); }
-
-                    contentArea.innerHTML = `<div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: flex-start;"><div style="flex: 1;"><h2 style="font-size: 22px; color: var(--charcoal); display: flex; align-items: center; gap: 8px; margin-bottom: 4px; line-height:1.2;"><i class="fa-solid fa-sliders" style="color: var(--orange);"></i> ภาพรวมข้อมูล</h2><p style="font-size: 12px; color: var(--gray-text);">จัดการแสดงผลและกรองข้อมูล</p></div><button onclick="resetFilterToDefault()" style="border: 1px solid var(--orange); background: white; color: var(--orange); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; margin-top:2px;"><i class="fa-solid fa-rotate-left"></i> ตัวกรองเริ่มต้น</button></div><div class="clean-card"><div class="section-title"><i class="fa-regular fa-id-badge" style="color: var(--orange);"></i> ประเภทสมาชิก</div><div class="seg-control"><div class="seg-btn ${masterFilterSettings.statusMode === 'ALL' ? 'active' : ''}" onclick="setStatusMode('ALL')">ALL</div><div class="seg-btn ${masterFilterSettings.statusMode === 'COMMUNITY' ? 'active' : ''}" onclick="setStatusMode('COMMUNITY')">Community</div><div class="seg-btn ${masterFilterSettings.statusMode === 'SEND' ? 'active' : ''}" onclick="setStatusMode('SEND')">Send</div></div></div><div class="clean-card" style="padding: 16px 20px;"><div class="toggle-wrapper"><div><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-child-reaching" style="color: var(--orange);"></i> รวม คริสตจักรเด็ก (Life Kids)</div></div><label class="switch"><input type="checkbox" ${masterFilterSettings.includeKids ? 'checked' : ''} onchange="toggleKidsSwitch(this)"><span class="slider"></span></label></div></div><div class="clean-card"><div class="section-header"><div class="section-title" style="margin-bottom:0;"><i class="fa-solid fa-users-line" style="color: var(--orange);"></i> เลือกกลุ่ม Care</div><div class="care-shortcuts"><button class="sc-btn" onclick="careSelectAll()"><i class="fa-regular fa-square-check"></i> เลือกทั้งหมด</button><button class="sc-btn" onclick="careClearAll()"><i class="fa-regular fa-square"></i> ล้างการเลือก</button></div></div><div class="care-list-container">${careListHTML}</div></div>`;
-                    let newCareList = document.querySelector('.care-list-container'); if (newCareList) newCareList.scrollTop = savedScrollPos;
-                } 
+                    renderFilterView(contentArea, savedScrollPos);
+                }
                 else if (currentActiveBottom === 'overview') {
                     const filteredData = getFilteredData(); const total = filteredData.length;
                     let donutGradientStr = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
