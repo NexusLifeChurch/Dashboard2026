@@ -223,7 +223,7 @@
                 <button class="btn-key" onclick="pressKey(0)">0</button>
                 <button class="btn-key btn-del" onclick="delKey()"><i class="fa-solid fa-delete-left"></i></button>
             </div>
-            <div class="link-forgot" onclick="showAlert('ลืมรหัส PIN', 'ลืมรหัสใช่มั้ยล่ะ +12345')">ลืมรหัส PIN Code</div>
+<div class="link-forgot" onclick="startResetPinFlow()">ลืมรหัส / Reset PIN</div>
         </div>
 
         <!-- Screen 3: Home Dashboard -->
@@ -328,7 +328,10 @@
         let currentActiveBottom = 'home';
 
         let masterFilterSettings = { statusMode: 'COMMUNITY', includeKids: false, selectedCares: [] };
-
+const STORAGE_KEYS = {
+    NEWS_CACHE: 'nxlife_news_cache',
+    PIN_CODE: 'nxlife_pin_code'
+};
         const circleContext = {
             'care': { name: 'กลุ่มแคร์', icon: 'fa-people-roof' },
             'people': { name: 'กลุ่มคน', icon: 'fa-user-group' },
@@ -339,8 +342,10 @@
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-            fetchAllSheetsData();
-            setupProfilePopup(); 
+    loadNewsFromLocalStorage();
+    fetchAllSheetsData();
+    setupProfilePopup(); 
+    initPinSystem();
         });
 
         setTimeout(function() {
@@ -352,6 +357,24 @@
             }
         }, 2000);
 
+function loadNewsFromLocalStorage() {
+    const cachedNews = localStorage.getItem(STORAGE_KEYS.NEWS_CACHE);
+
+    if (!cachedNews) return;
+
+    try {
+        dbNews = JSON.parse(cachedNews);
+
+        if (currentActiveBottom === 'home') {
+            const contentArea = document.getElementById('dashboard-content-area');
+            if (contentArea) renderHomeView(contentArea);
+        }
+    } catch (err) {
+        console.warn('News cache error:', err);
+        localStorage.removeItem(STORAGE_KEYS.NEWS_CACHE);
+    }
+}
+    
 function fetchAllSheetsData() {
     fetch(API_URL + '?action=dashboard')
         .then(res => res.json())
@@ -364,6 +387,7 @@ function fetchAllSheetsData() {
 
             dbCares = responseObj.cares || [];
             dbNews = responseObj.stories || [];
+            localStorage.setItem(STORAGE_KEYS.NEWS_CACHE, JSON.stringify(dbNews));
 
             dbCares.sort((a, b) =>
                 String(a.Care_ID).localeCompare(String(b.Care_ID), 'th', { numeric: true })
@@ -1062,13 +1086,142 @@ let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
             setTimeout(() => { popup.style.display = 'none'; }, 300);
         }
 
-
-        let pinInput = ''; const dots = document.querySelectorAll('.dot');
-        function pressKey(num) { if (pinInput.length < 4) { pinInput += num; renderDots(); if (pinInput.length === 4) setTimeout(validatePin, 300); } }
-        function delKey() { if (pinInput.length > 0) { pinInput = pinInput.slice(0, -1); renderDots(); } }
-        function renderDots() { dots.forEach((dot, index) => { dot.classList.toggle('filled', index < pinInput.length); }); }
-        function validatePin() { if (pinInput === '7856') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
-        function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
+    const PIN_MASTER_PASSWORD = '7412';
+    
+    let pinInput = '';
+    let pinMode = 'UNLOCK';
+    let tempNewPin = '';
+    const dots = document.querySelectorAll('.dot');
+    
+    function initPinSystem() {
+        const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
+    
+        if (savedPin) {
+            pinMode = 'UNLOCK';
+            setPinTitle('กรอกรหัส PIN');
+        } else {
+            pinMode = 'MASTER_FOR_NEW_PIN';
+            setPinTitle('กรอก Password เพื่อตั้ง PIN');
+        }
+    
+        resetPinInput();
+    }
+    
+    function pressKey(num) {
+        if (pinInput.length >= 4) return;
+    
+        pinInput += String(num);
+        renderDots();
+    
+        if (pinInput.length === 4) {
+            setTimeout(handlePinComplete, 250);
+        }
+    }
+    
+    function delKey() {
+        if (pinInput.length > 0) {
+            pinInput = pinInput.slice(0, -1);
+            renderDots();
+        }
+    }
+    
+    function renderDots() {
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('filled', index < pinInput.length);
+        });
+    }
+    
+    function handlePinComplete() {
+        if (pinMode === 'UNLOCK') {
+            validateSavedPin();
+            return;
+        }
+    
+        if (pinMode === 'MASTER_FOR_NEW_PIN' || pinMode === 'MASTER_FOR_RESET') {
+            validateMasterPassword();
+            return;
+        }
+    
+        if (pinMode === 'SET_NEW_PIN') {
+            tempNewPin = pinInput;
+            pinMode = 'CONFIRM_NEW_PIN';
+            setPinTitle('กรอก PIN อีกครั้งเพื่อยืนยัน');
+            resetPinInput();
+            return;
+        }
+    
+        if (pinMode === 'CONFIRM_NEW_PIN') {
+            confirmNewPin();
+        }
+    }
+    
+    function validateSavedPin() {
+        const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
+    
+        if (pinInput === savedPin) {
+            unlockApp();
+        } else {
+            showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาลองใหม่อีกครั้ง');
+            resetPinInput();
+        }
+    }
+    
+    function validateMasterPassword() {
+        if (pinInput === PIN_MASTER_PASSWORD) {
+            pinMode = 'SET_NEW_PIN';
+            setPinTitle('ตั้งรหัส PIN ใหม่ 4 หลัก');
+            resetPinInput();
+        } else {
+            showAlert('Password ไม่ถูกต้อง', 'กรุณาติดต่อ Admin');
+            resetPinInput();
+        }
+    }
+    
+    function confirmNewPin() {
+        if (pinInput !== tempNewPin) {
+            showAlert('PIN ไม่ตรงกัน', 'กรุณาตั้ง PIN ใหม่อีกครั้ง');
+            tempNewPin = '';
+            pinMode = 'SET_NEW_PIN';
+            setPinTitle('ตั้งรหัส PIN ใหม่ 4 หลัก');
+            resetPinInput();
+            return;
+        }
+    
+        localStorage.setItem(STORAGE_KEYS.PIN_CODE, tempNewPin);
+    
+        showAlert('ตั้งค่า PIN สำเร็จ', 'ใช้ PIN นี้สำหรับเข้าสู่ระบบครั้งถัดไป');
+    
+        tempNewPin = '';
+        pinMode = 'UNLOCK';
+        setPinTitle('กรอกรหัส PIN');
+        resetPinInput();
+    
+        unlockApp();
+    }
+    
+    function startResetPinFlow() {
+        localStorage.removeItem(STORAGE_KEYS.PIN_CODE);
+        tempNewPin = '';
+        pinMode = 'MASTER_FOR_RESET';
+        setPinTitle('กรอก Password เพื่อ Reset PIN');
+        resetPinInput();
+    }
+    
+    function unlockApp() {
+        document.getElementById('screen-pin').style.transform = 'translateX(-100%)';
+        document.getElementById('screen-home').classList.add('visible');
+    }
+    
+    function resetPinInput() {
+        pinInput = '';
+        renderDots();
+    }
+    
+    function setPinTitle(text) {
+        const title = document.querySelector('.pin-title');
+        if (title) title.innerText = text;
+    }
+    function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
 </script>
 </body>
