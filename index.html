@@ -176,11 +176,6 @@
         .alert-msg { font-size: 13px; color: var(--gray-text); margin-bottom: 20px; line-height: 1.5; }
         .alert-btn { background: var(--charcoal); color: white; border: none; width: 100%; padding: 10px; border-radius: 8px; font-size: 15px; font-weight: 600; font-family: 'Prompt', sans-serif; cursor: pointer; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .news-section { margin: 20px; padding: 15px; background: #fff; border-radius: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .news-item { padding: 10px 0; border-bottom: 1px solid #eee; }
-        .news-item h3 { color: #C06428; margin: 0 0 5px 0; font-size: 16px; }
-        .news-item p { margin: 0; font-size: 14px; color: #666; }
-    
 </style>
 </head>
 <body>
@@ -378,7 +373,6 @@
                     let rawMembers = responseObj.members || [];
                     let hasUnmappedCares = false;
 
-                    dbNews = data.stories || [];
                     dbMembers = rawMembers.map(m => {
                         let cid = m.Care_ID;
                         if (cid === '' || !validCareIds.has(cid)) { cid = 'UNMAPPED_CARE'; hasUnmappedCares = true; }
@@ -782,21 +776,6 @@
         function validatePin() { if (pinInput === '7856') { document.getElementById('screen-pin').style.transform = 'translateX(-100%)'; document.getElementById('screen-home').classList.add('visible'); } else { showAlert('รหัส PIN ไม่ถูกต้อง', 'กรุณาติดต่อ Admin'); pinInput = ''; renderDots(); } }
         function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
-        function renderNews(stories) {
-                    const container = document.getElementById('news-container');
-                    if (!container) return;
-                    container.innerHTML = stories.map(s => `
-                        <div class="news-item">
-                            <h3>${s.Title || 'ไม่มีหัวข้อ'}</h3>
-                            <p>${s.Content || ''}</p>
-                        </div>
-                    `).join('');
-                }
-
-     <div id="news-section" class="news-section">
-        <h2 style="font-size: 18px; margin-bottom: 10px;">รูปแบบความสัมพันธ์ใน NxLife</h2>
-        <div id="news-container"></div>
-    </div>
 </script>
 </body>
 </html>
