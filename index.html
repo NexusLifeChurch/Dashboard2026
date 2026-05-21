@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.1.1</div>
+            <div class="version-tag">version #3.1.2</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1940,30 +1940,48 @@ function setupPinSettingsPopup() {
         z-index:12000;
         justify-content:center;
         align-items:center;
-        padding:20px;
-        backdrop-filter:blur(5px);
+        padding:22px;
+        backdrop-filter:blur(8px);
         opacity:0;
         transition:opacity 0.25s ease;
     `;
 
     popup.innerHTML = `
         <div id="pin-settings-box" style="
-            background:white;
+            background:linear-gradient(180deg,#FFFFFF 0%,#FFFCF8 100%);
             width:100%;
-            max-width:340px;
-            border-radius:24px;
-            padding:24px 20px 22px;
-            box-shadow:0 20px 40px rgba(15,23,42,0.18);
-            transform:scale(0.94);
+            max-width:360px;
+            border-radius:28px;
+            padding:22px 20px 20px;
+            box-shadow:0 24px 60px rgba(15,23,42,0.22);
+            transform:translateY(12px) scale(0.96);
             transition:transform 0.25s ease;
+            border:1px solid rgba(255,255,255,0.85);
         ">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-                <div>
-                    <div style="font-size:18px; font-weight:800; color:var(--charcoal); line-height:1.2;">
-                        ตั้งค่า PIN ใหม่
+            <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:18px;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <div style="
+                        width:44px;
+                        height:44px;
+                        border-radius:16px;
+                        background:var(--orange-soft);
+                        color:var(--orange);
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        box-shadow:0 6px 16px rgba(192,100,40,0.12);
+                    ">
+                        <i class="fa-solid fa-lock"></i>
                     </div>
-                    <div style="font-size:12px; color:var(--gray-text); margin-top:4px;">
-                        กรอกรหัสเดิม และยืนยันรหัสใหม่ 2 ครั้ง
+
+                    <div>
+                        <div style="font-size:19px; font-weight:800; color:var(--charcoal); line-height:1.2;">
+                            ตั้งค่า PIN ใหม่
+                        </div>
+                        <div style="font-size:12px; color:var(--gray-text); margin-top:4px; line-height:1.5;">
+                            กรอกรหัสเดิม แล้วตั้งรหัสใหม่ 2 ครั้ง
+                        </div>
                     </div>
                 </div>
 
@@ -1978,72 +1996,46 @@ function setupPinSettingsPopup() {
                     align-items:center;
                     justify-content:center;
                     cursor:pointer;
+                    flex-shrink:0;
                 ">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <div style="display:flex; flex-direction:column; gap:12px;">
-                <label style="font-size:12px; font-weight:700; color:var(--charcoal);">
-                    PIN เดิม
-                    <input id="old-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="กรอก PIN เดิม" style="
-                        width:100%;
-                        margin-top:6px;
-                        padding:12px 14px;
-                        border-radius:14px;
-                        border:1px solid var(--gray-border);
-                        outline:none;
-                        font-size:16px;
-                        letter-spacing:4px;
-                        font-family:'Prompt', sans-serif;
-                    ">
-                </label>
-
-                <label style="font-size:12px; font-weight:700; color:var(--charcoal);">
-                    PIN ใหม่
-                    <input id="new-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="ตั้ง PIN ใหม่ 4 หลัก" style="
-                        width:100%;
-                        margin-top:6px;
-                        padding:12px 14px;
-                        border-radius:14px;
-                        border:1px solid var(--gray-border);
-                        outline:none;
-                        font-size:16px;
-                        letter-spacing:4px;
-                        font-family:'Prompt', sans-serif;
-                    ">
-                </label>
-
-                <label style="font-size:12px; font-weight:700; color:var(--charcoal);">
-                    ยืนยัน PIN ใหม่
-                    <input id="confirm-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="กรอก PIN ใหม่อีกครั้ง" style="
-                        width:100%;
-                        margin-top:6px;
-                        padding:12px 14px;
-                        border-radius:14px;
-                        border:1px solid var(--gray-border);
-                        outline:none;
-                        font-size:16px;
-                        letter-spacing:4px;
-                        font-family:'Prompt', sans-serif;
-                    ">
-                </label>
+            <div style="
+                background:#FFFFFF;
+                border:1px solid var(--gray-border);
+                border-radius:22px;
+                padding:14px;
+                box-shadow:0 8px 24px rgba(15,23,42,0.04);
+                display:flex;
+                flex-direction:column;
+                gap:12px;
+            ">
+                ${createPinInputHTML('old-pin-input', 'PIN เดิม', 'กรอก PIN เดิม', 'fa-key')}
+                ${createPinInputHTML('new-pin-input', 'PIN ใหม่', 'ตั้ง PIN ใหม่ 4 หลัก', 'fa-shield-halved')}
+                ${createPinInputHTML('confirm-pin-input', 'ยืนยัน PIN ใหม่', 'กรอก PIN ใหม่อีกครั้ง', 'fa-circle-check')}
             </div>
 
             <button onclick="saveNewPinFromSettings()" style="
                 width:100%;
-                margin-top:18px;
+                margin-top:16px;
                 border:none;
-                background:var(--orange);
+                background:linear-gradient(135deg,#C06428,#D9772F);
                 color:white;
-                padding:12px;
-                border-radius:14px;
+                padding:13px;
+                border-radius:16px;
                 font-family:'Prompt', sans-serif;
                 font-size:14px;
                 font-weight:800;
                 cursor:pointer;
-                box-shadow:0 8px 18px rgba(192,100,40,0.25);
+                box-shadow:0 10px 22px rgba(192,100,40,0.28);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:8px;
             ">
+                <i class="fa-solid fa-floppy-disk"></i>
                 บันทึก PIN ใหม่
             </button>
 
@@ -2051,15 +2043,20 @@ function setupPinSettingsPopup() {
                 width:100%;
                 margin-top:10px;
                 border:1px solid var(--gray-border);
-                background:white;
+                background:rgba(255,255,255,0.78);
                 color:var(--gray-text);
-                padding:10px;
-                border-radius:14px;
+                padding:11px;
+                border-radius:16px;
                 font-family:'Prompt', sans-serif;
                 font-size:12px;
                 font-weight:700;
                 cursor:pointer;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:7px;
             ">
+                <i class="fa-solid fa-rotate-left"></i>
                 ลืม PIN เดิม / ใช้ OTP จาก Admin
             </button>
         </div>
@@ -2071,6 +2068,51 @@ function setupPinSettingsPopup() {
         if (e.target === popup) closePinSettings();
     });
 }
+
+    function createPinInputHTML(id, label, placeholder, icon) {
+    return `
+        <label style="display:block;">
+            <div style="
+                font-size:12px;
+                font-weight:800;
+                color:var(--charcoal);
+                margin-bottom:7px;
+                display:flex;
+                align-items:center;
+                gap:7px;
+            ">
+                <i class="fa-solid ${icon}" style="color:var(--orange); font-size:11px;"></i>
+                ${label}
+            </div>
+
+            <input
+                id="${id}"
+                type="password"
+                inputmode="numeric"
+                maxlength="4"
+                placeholder="${placeholder}"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)"
+                style="
+                    width:100%;
+                    padding:13px 14px;
+                    border-radius:16px;
+                    border:1px solid #E2E8F0;
+                    outline:none;
+                    font-size:18px;
+                    letter-spacing:6px;
+                    font-family:'Prompt', sans-serif;
+                    font-weight:700;
+                    color:var(--charcoal);
+                    background:#FAFAFA;
+                    transition:all 0.2s ease;
+                "
+                onfocus="this.style.borderColor='var(--orange)'; this.style.background='#FFFFFF'; this.style.boxShadow='0 0 0 4px rgba(192,100,40,0.08)'"
+                onblur="this.style.borderColor='#E2E8F0'; this.style.background='#FAFAFA'; this.style.boxShadow='none'"
+            >
+        </label>
+    `;
+}
+    
 function openPinSettings() {
     const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
 
