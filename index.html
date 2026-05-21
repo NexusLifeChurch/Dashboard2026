@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.15</div>
+            <div class="version-tag">version #3.0.16</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -743,12 +743,10 @@ function openNewsDetail(id) {
     document.getElementById('news-detail-body').innerText = story.Detail || 'ไม่มีรายละเอียดเพิ่มเติม';
 
     imgEl.src = story.ImageURL || FALLBACK_IMAGE_URL;
-    imgEl.onclick = function () {
+imgEl.onclick = function () {
     const imageUrl = story.ImageURL || FALLBACK_IMAGE_URL;
-    const imageName = story.Title || 'NxLife-News';
-
-    openFullScreen(imageUrl, imageName);
-    };
+    window.open(imageUrl, '_blank');
+};
 
     let overlay = document.getElementById('news-overlay-view');
     overlay.style.display = 'flex';
