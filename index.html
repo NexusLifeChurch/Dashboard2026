@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.17</div>
+            <div class="version-tag">version #3.0.18</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1180,12 +1180,36 @@ function setBirthdayMonth(month) {
     }
 
     let filtered = dbBirthdays.filter(member => {
-        if (selectedBirthdayMonth === 0) {
-            return member.Birth_Month === null || member.Birth_Month === undefined;
-        }
+    // 1) ใช้ Master Filter: ประเภทสมาชิก
+    let statusMatch = true;
 
-        return Number(member.Birth_Month) === Number(selectedBirthdayMonth);
-    });
+    if (masterFilterSettings.statusMode === 'COMMUNITY') {
+        const commStatuses = ['Fm-Reg', 'Fm-UnReg', 'Fm-Kids', 'Fr-', 'Fr-NxC', 'Fr-OTH', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
+        statusMatch = commStatuses.includes(member.Nxl_Status);
+    } else if (masterFilterSettings.statusMode === 'SEND') {
+        const sendStatuses = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
+        statusMatch = sendStatuses.includes(member.Nxl_Status);
+    }
+
+    // 2) ใช้ Master Filter: รวม/ไม่รวม Life Kids
+    const kidsMatch = masterFilterSettings.includeKids
+        ? true
+        : (member.CareName !== 'Life Kids');
+
+    // 3) ใช้ Master Filter: Care ที่เลือก
+    const careMatch = masterFilterSettings.selectedCares.includes(member.Care_ID);
+
+    // 4) ใช้ตัวเลือกเดือน
+    let monthMatch = false;
+
+    if (selectedBirthdayMonth === 0) {
+        monthMatch = member.Birth_Month === null || member.Birth_Month === undefined;
+    } else {
+        monthMatch = Number(member.Birth_Month) === Number(selectedBirthdayMonth);
+    }
+
+    return statusMatch && kidsMatch && careMatch && monthMatch;
+});
 
     filtered.sort((a, b) => {
         const aDay = Number(a.Birth_Day || 99);
