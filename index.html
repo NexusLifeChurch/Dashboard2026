@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.2</div>
+            <div class="version-tag">version #3.2.3</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2057,6 +2057,56 @@ function closeProfileDetailOverlay() {
     if (tab === 'spiritual') {
         return renderProfileSpiritualFullPage(detail);
     }
+
+function renderProfileDetailFullPage(tab, detail) {
+    if (tab === 'contact') {
+        return renderProfileContactFullPage(detail);
+    }
+
+    if (tab === 'spiritual') {
+        return renderProfileSpiritualFullPage(detail);
+    }
+
+    if (tab === 'memo') {
+        return renderProfileMemoFullPage(detail);
+    }
+
+    const emptyMap = {
+        activity: {
+            title: 'ประวัติกิจกรรม',
+            icon: 'fa-calendar-check',
+            desc: 'เตรียมเชื่อมต่อข้อมูลจาก Mbr_Activitys ในขั้นถัดไป'
+        }
+    };
+
+    const data = emptyMap[tab] || emptyMap.activity;
+
+    return `
+        <div class="clean-card" style="text-align:center; padding:38px 22px;">
+            <div style="
+                width:56px;
+                height:56px;
+                border-radius:20px;
+                background:var(--orange-soft);
+                color:var(--orange);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin:0 auto 14px;
+                font-size:24px;
+            ">
+                <i class="fa-solid ${data.icon}"></i>
+            </div>
+            <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
+                ${data.title}
+            </div>
+            <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                ${data.desc}
+            </div>
+        </div>
+    `;
+}
+        
     const emptyMap = {
         spiritual: {
             title: 'เรื่องราวความเชื่อ',
@@ -2102,6 +2152,308 @@ function closeProfileDetailOverlay() {
         </div>
     `;
 }
+
+function renderProfileMemoFullPage(detail) {
+    const member = detail && detail.member ? detail.member : {};
+    const notes = detail && Array.isArray(detail.notes) ? detail.notes : [];
+    const memberId = member.M_ID || '';
+
+    if (notes.length === 0) {
+        return `
+            <div style="margin-bottom:14px;">
+                <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
+                    ${member.FullName_Display || 'บันทึก Memo'}
+                </div>
+                <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
+                    ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''}
+                </div>
+            </div>
+
+            <div class="clean-card" style="text-align:center; padding:38px 22px;">
+                <div style="
+                    width:56px;
+                    height:56px;
+                    border-radius:20px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    margin:0 auto 14px;
+                    font-size:24px;
+                ">
+                    <i class="fa-solid fa-note-sticky"></i>
+                </div>
+                <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
+                    ยังไม่มีบันทึก
+                </div>
+                <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                    ยังไม่พบ Memo ของสมาชิกคนนี้
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div style="margin-bottom:14px;">
+            <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
+                ${member.FullName_Display || 'บันทึก Memo'}
+            </div>
+            <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
+                ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''} • ${notes.length} บันทึก
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding:14px; border-radius:20px;">
+            <div style="font-size:13px; font-weight:800; color:var(--charcoal); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <div style="width:28px; height:28px; border-radius:9px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-note-sticky"></i>
+                </div>
+                รายการบันทึก
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                ${notes.map((note, index) => createMemoListItemHTML(note, index, memberId)).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function createMemoListItemHTML(note, index, memberId) {
+    const hasImage = note.Url_Image && String(note.Url_Image).trim() !== '';
+
+    return `
+        <div onclick="openMemoDetail('${memberId}', ${index})" style="
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:16px;
+            padding:12px;
+            cursor:pointer;
+            display:flex;
+            gap:10px;
+            align-items:flex-start;
+            box-shadow:0 3px 10px rgba(15,23,42,0.03);
+        ">
+            <div style="
+                width:42px;
+                height:42px;
+                border-radius:14px;
+                background:var(--orange-soft);
+                color:var(--orange);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                flex-shrink:0;
+                font-size:16px;
+            ">
+                <i class="fa-solid ${hasImage ? 'fa-image' : 'fa-note-sticky'}"></i>
+            </div>
+
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:11px; color:var(--gray-text); margin-bottom:4px;">
+                    ${note.Timestamp_Display || '-'}
+                </div>
+                <div style="
+                    font-size:14px;
+                    font-weight:700;
+                    color:var(--charcoal);
+                    line-height:1.45;
+                    display:-webkit-box;
+                    -webkit-line-clamp:2;
+                    -webkit-box-orient:vertical;
+                    overflow:hidden;
+                ">
+                    ${note.Note_Content || '-'}
+                </div>
+            </div>
+
+            <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:11px; margin-top:14px;"></i>
+        </div>
+    `;
+}
+
+function openMemoDetail(memberId, noteIndex) {
+    const detail = memberDetailCache[String(memberId)];
+    if (!detail || !Array.isArray(detail.notes)) return;
+
+    const note = detail.notes[noteIndex];
+    if (!note) return;
+
+    setupMemoDetailPopup();
+
+    const popup = document.getElementById('memo-detail-popup');
+    const content = document.getElementById('memo-detail-content');
+
+    const imageHTML = note.Url_Image
+        ? `
+            <div style="margin-top:14px;">
+                <img
+                    src="${note.Url_Image}"
+                    onclick="openFullScreen('${note.Url_Image}', 'Memo-Image')"
+                    style="
+                        width:100%;
+                        max-height:280px;
+                        object-fit:contain;
+                        border-radius:16px;
+                        background:#F8FAFC;
+                        border:1px solid var(--gray-border);
+                        cursor:zoom-in;
+                    "
+                    onerror="this.onerror=null; this.style.display='none';"
+                >
+                <div style="font-size:11px; color:var(--gray-text); text-align:center; margin-top:6px;">
+                    แตะรูปเพื่อขยาย
+                </div>
+            </div>
+        `
+        : '';
+
+    content.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px;">
+            <div>
+                <div style="font-size:18px; font-weight:800; color:var(--charcoal); line-height:1.25;">
+                    รายละเอียด Memo
+                </div>
+                <div style="font-size:12px; color:var(--gray-text); margin-top:4px;">
+                    ${note.Timestamp_Display || '-'}
+                </div>
+            </div>
+
+            <button onclick="closeMemoDetail()" style="
+                width:34px;
+                height:34px;
+                border:none;
+                border-radius:50%;
+                background:#F1F5F9;
+                color:var(--charcoal);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                cursor:pointer;
+                flex-shrink:0;
+            ">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div style="
+            background:var(--orange-soft);
+            color:var(--orange);
+            padding:8px 12px;
+            border-radius:14px;
+            display:inline-flex;
+            align-items:center;
+            gap:7px;
+            font-size:12px;
+            font-weight:800;
+            margin-bottom:12px;
+        ">
+            <i class="fa-solid fa-note-sticky"></i>
+            ${note.Note_Type || 'Memo'}
+        </div>
+
+        <div style="
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:18px;
+            padding:16px;
+            box-shadow:0 6px 18px rgba(15,23,42,0.04);
+        ">
+            ${createMemoDetailRow('เนื้อหา', note.Note_Content || '-', 'fa-align-left')}
+            ${createMemoDetailRow('Tag / รายละเอียดเพิ่ม', note.Note_Tag || '-', 'fa-tag')}
+            ${createMemoDetailRow('บันทึกโดย', note.Created_By || '-', 'fa-user-pen', false)}
+
+            ${imageHTML}
+        </div>
+    `;
+
+    popup.style.display = 'flex';
+    setTimeout(() => {
+        popup.style.opacity = '1';
+        document.getElementById('memo-detail-box').style.transform = 'scale(1)';
+    }, 10);
+}
+
+function setupMemoDetailPopup() {
+    if (document.getElementById('memo-detail-popup')) return;
+
+    const popup = document.createElement('div');
+    popup.id = 'memo-detail-popup';
+    popup.style.cssText = `
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(15,23,42,0.62);
+        z-index:40000;
+        justify-content:center;
+        align-items:center;
+        padding:18px;
+        opacity:0;
+        transition:opacity 0.25s ease;
+        backdrop-filter:blur(6px);
+    `;
+
+    popup.innerHTML = `
+        <div id="memo-detail-box" style="
+            width:100%;
+            max-width:390px;
+            max-height:calc(100dvh - 36px);
+            overflow-y:auto;
+            background:linear-gradient(180deg,#FFFFFF 0%,#FFFCF8 100%);
+            border-radius:24px;
+            padding:20px;
+            box-shadow:0 22px 60px rgba(15,23,42,0.22);
+            transform:scale(0.94);
+            transition:transform 0.25s ease;
+        ">
+            <div id="memo-detail-content"></div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.addEventListener('click', function (e) {
+        if (e.target === popup) closeMemoDetail();
+    });
+}
+
+function closeMemoDetail() {
+    const popup = document.getElementById('memo-detail-popup');
+    const box = document.getElementById('memo-detail-box');
+
+    if (!popup || !box) return;
+
+    popup.style.opacity = '0';
+    box.style.transform = 'scale(0.94)';
+
+    setTimeout(() => {
+        popup.style.display = 'none';
+    }, 250);
+}
+
+function createMemoDetailRow(label, value, icon, hasBorder = true) {
+    return `
+        <div style="
+            display:flex;
+            gap:10px;
+            padding:11px 0;
+            border-bottom:${hasBorder ? '1px solid #F1F5F9' : 'none'};
+        ">
+            <i class="fa-solid ${icon}" style="color:var(--orange); font-size:13px; width:18px; margin-top:4px;"></i>
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:11px; color:var(--gray-text); margin-bottom:3px;">${label}</div>
+                <div style="font-size:14px; font-weight:600; color:var(--charcoal); line-height:1.65; white-space:pre-line; word-break:break-word;">
+                    ${value}
+                </div>
+            </div>
+        </div>
+    `;
+}
+    
+    
 function renderProfileSpiritualFullPage(detail) {
     const spiritual = detail && detail.spiritual ? detail.spiritual : {};
     const member = detail && detail.member ? detail.member : {};
