@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.20</div>
+            <div class="version-tag">version #3.0.21</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -486,6 +486,7 @@
         let dbMembers = [];    
         let dbCares = [];  
         let dbNews = []; // ตัวแปรเก็บข้อมูลคำนิยาม
+        
         let dbBirthdays = [];
         let selectedBirthdayMonth = new Date().getMonth() + 1;
         let birthdaySortMode = 'birthday';
@@ -1146,7 +1147,7 @@ function setBirthdayMonth(month) {
     updateDashboardView();
 }
 
-    function createBirthdayCard(member) {
+   function createBirthdayCard(member) {
     let cleanNameForInitial = member.FullName_Display
         ? member.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '')
         : '';
@@ -1159,8 +1160,20 @@ function setBirthdayMonth(month) {
         : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; background:var(--orange-soft); color:var(--orange); border-radius:50%;">${initial}</div>`;
 
     return `
-        <div class="clean-card" onclick="openProfile('${safeId}')" style="padding:14px; display:flex; align-items:center; gap:12px; cursor:pointer; margin-bottom:10px;">
-            <div style="width:46px; height:46px; border-radius:50%; flex-shrink:0;">
+        <div
+            class="clean-card"
+            onclick="openProfile('${safeId}')"
+            style="
+                padding:14px;
+                display:flex;
+                align-items:center;
+                gap:12px;
+                cursor:pointer;
+                margin-bottom:10px;
+                box-shadow:0 4px 14px rgba(15,23,42,0.04);
+            "
+        >
+            <div style="width:48px; height:48px; border-radius:50%; flex-shrink:0; border:2px solid white; box-shadow:0 2px 8px rgba(15,23,42,0.08);">
                 ${profileImageHTML}
             </div>
 
@@ -1169,23 +1182,188 @@ function setBirthdayMonth(month) {
                     ${member.FullName_Display}
                 </div>
 
-                <div style="font-size:12px; color:var(--gray-text); margin-top:3px;">
-                    🎂 ${member.Birth_Display || 'ไม่มีข้อมูล'}
-                    ${member.Age !== null && member.Age !== undefined ? ` | อายุ ${member.Age}` : ''}
+                <div style="font-size:12px; color:var(--gray-text); margin-top:4px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span>🎂 ${member.Birth_Display || 'ไม่มีข้อมูล'}</span>
+                    ${member.Age !== null && member.Age !== undefined ? `<span>• อายุ ${member.Age}</span>` : ''}
                 </div>
 
-                <div style="font-size:11px; color:var(--gray-text); margin-top:3px;">
-                    แคร์: ${member.CareName || 'ไม่ระบุ'} | ${member.Nxl_Status || '-'}
+                <div style="font-size:11px; color:var(--gray-text); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    <i class="fa-solid fa-people-roof" style="color:var(--orange); margin-right:4px;"></i>
+                    ${member.CareName || 'ไม่ระบุแคร์'}
+                    <span style="margin:0 4px;">|</span>
+                    ${member.Nxl_Status || '-'}
                 </div>
             </div>
 
-            <div style="font-size:11px; font-weight:800; color:var(--orange); background:var(--orange-soft); padding:5px 8px; border-radius:999px;">
-                ${member.Classify || 'อื่นๆ'}
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                ${getClassifyBadgeHTML(member.Classify)}
+                <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:11px;"></i>
             </div>
         </div>
     `;
 }
-    function renderBirthdayView(contentArea) {
+
+    function setBirthdaySortMode(mode) {
+    birthdaySortMode = mode;
+    updateDashboardView();
+}
+
+function handleBirthdaySearch(value) {
+    birthdaySearchText = String(value || '');
+
+    const contentArea = document.getElementById('dashboard-content-area');
+    renderBirthdayView(contentArea);
+
+    setTimeout(() => {
+        const input = document.getElementById('birthday-search-input');
+        if (input) {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
+    }, 0);
+}
+
+function clearBirthdaySearch() {
+    birthdaySearchText = '';
+    updateDashboardView();
+}
+
+function createBirthdaySearchHTML() {
+    return `
+        <div class="directory-search-wrap">
+            <div class="directory-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+
+                <input
+                    id="birthday-search-input"
+                    class="directory-search-input"
+                    type="text"
+                    value="${birthdaySearchText}"
+                    placeholder="ค้นหาชื่อ ชื่อเล่น หรือวันเกิด เช่น 21 พ.ค."
+                    oninput="handleBirthdaySearch(this.value)"
+                >
+
+                <button
+                    class="directory-search-clear ${birthdaySearchText ? 'show' : ''}"
+                    onclick="clearBirthdaySearch()"
+                    type="button"
+                >
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="search-result-note">
+                ค้นหาได้จากชื่อสมาชิก ชื่อเล่น และวันเกิด
+            </div>
+        </div>
+    `;
+}
+
+function createBirthdaySortHTML() {
+    const sorts = [
+        { value: 'birthday', label: 'วันเกิด', icon: 'fa-cake-candles' },
+        { value: 'age', label: 'อายุ', icon: 'fa-arrow-down-9-1' },
+        { value: 'name', label: 'ชื่อ', icon: 'fa-arrow-down-a-z' },
+        { value: 'care', label: 'แคร์', icon: 'fa-people-roof' }
+    ];
+
+    return `
+        <div class="clean-card" style="padding:12px; margin-bottom:12px;">
+            <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-solid fa-arrow-up-wide-short" style="color:var(--orange);"></i>
+                เรียงตาม
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+                ${sorts.map(sort => `
+                    <button
+                        onclick="setBirthdaySortMode('${sort.value}')"
+                        style="
+                            border:1px solid ${birthdaySortMode === sort.value ? 'var(--orange)' : 'var(--gray-border)'};
+                            background:${birthdaySortMode === sort.value ? 'var(--orange)' : '#FFFFFF'};
+                            color:${birthdaySortMode === sort.value ? '#FFFFFF' : 'var(--gray-text)'};
+                            border-radius:12px;
+                            padding:9px 4px;
+                            font-family:'Prompt', sans-serif;
+                            font-size:11px;
+                            font-weight:700;
+                            cursor:pointer;
+                            display:flex;
+                            flex-direction:column;
+                            align-items:center;
+                            gap:4px;
+                            box-shadow:${birthdaySortMode === sort.value ? '0 6px 14px rgba(192,100,40,0.20)' : '0 2px 8px rgba(15,23,42,0.03)'};
+                        "
+                    >
+                        <i class="fa-solid ${sort.icon}" style="font-size:13px;"></i>
+                        ${sort.label}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function getClassifyBadgeHTML(classify) {
+    const value = String(classify || '').trim();
+
+    let config = {
+        label: 'อื่นๆ',
+        icon: 'fa-circle-question',
+        bg: '#F1F5F9',
+        color: '#64748B'
+    };
+
+    if (value === 'Family') {
+        config = {
+            label: 'Family',
+            icon: 'fa-house-heart',
+            bg: '#FDF3EC',
+            color: '#C06428'
+        };
+    } else if (value === 'Friends') {
+        config = {
+            label: 'Friends',
+            icon: 'fa-seedling',
+            bg: '#ECFDF5',
+            color: '#059669'
+        };
+    } else if (value === 'ส่งออก' || value === 'Send') {
+        config = {
+            label: 'Send',
+            icon: 'fa-paper-plane',
+            bg: '#EFF6FF',
+            color: '#2563EB'
+        };
+    } else if (value === 'Bye') {
+        config = {
+            label: 'Bye',
+            icon: 'fa-door-open',
+            bg: '#F8FAFC',
+            color: '#64748B'
+        };
+    }
+
+    return `
+        <div style="
+            background:${config.bg};
+            color:${config.color};
+            padding:5px 8px;
+            border-radius:999px;
+            font-size:10px;
+            font-weight:800;
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            white-space:nowrap;
+        ">
+            <i class="fa-solid ${config.icon}"></i>
+            ${config.label}
+        </div>
+    `;
+}
+    
+function renderBirthdayView(contentArea) {
     if (dbBirthdays.length === 0) {
         contentArea.innerHTML = `
             <div style="text-align:center; padding:40px 20px; color:var(--gray-text); font-size:14px;">
@@ -1196,40 +1374,76 @@ function setBirthdayMonth(month) {
     }
 
     let filtered = dbBirthdays.filter(member => {
-    // 1) ใช้ Master Filter: ประเภทสมาชิก
-    let statusMatch = true;
+        // 1) Master Filter: ประเภทสมาชิก
+        let statusMatch = true;
 
-    if (masterFilterSettings.statusMode === 'COMMUNITY') {
-        const commStatuses = ['Fm-Reg', 'Fm-UnReg', 'Fm-Kids', 'Fr-', 'Fr-NxC', 'Fr-OTH', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
-        statusMatch = commStatuses.includes(member.Nxl_Status);
-    } else if (masterFilterSettings.statusMode === 'SEND') {
-        const sendStatuses = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
-        statusMatch = sendStatuses.includes(member.Nxl_Status);
-    }
+        if (masterFilterSettings.statusMode === 'COMMUNITY') {
+            const commStatuses = ['Fm-Reg', 'Fm-UnReg', 'Fm-Kids', 'Fr-', 'Fr-NxC', 'Fr-OTH', 'Fr-Rtn-OTH', 'Fr-Rtn-NxC'];
+            statusMatch = commStatuses.includes(member.Nxl_Status);
+        } else if (masterFilterSettings.statusMode === 'SEND') {
+            const sendStatuses = ['Fr-Rtn-OTH', 'Fr-Rtn-NxC', 'Send-OTH', 'Send-NxC'];
+            statusMatch = sendStatuses.includes(member.Nxl_Status);
+        }
 
-    // 2) ใช้ Master Filter: รวม/ไม่รวม Life Kids
-    const kidsMatch = masterFilterSettings.includeKids
-        ? true
-        : (member.CareName !== 'Life Kids');
+        // 2) Master Filter: เด็ก
+        const kidsMatch = masterFilterSettings.includeKids
+            ? true
+            : (member.CareName !== 'Life Kids');
 
-    // 3) ใช้ Master Filter: Care ที่เลือก
-    const careMatch = masterFilterSettings.selectedCares.includes(member.Care_ID);
+        // 3) Master Filter: แคร์
+        const careMatch = masterFilterSettings.selectedCares.includes(member.Care_ID);
 
-    // 4) ใช้ตัวเลือกเดือน
-    let monthMatch = false;
+        // 4) Month Filter
+        let monthMatch = false;
 
-    if (selectedBirthdayMonth === 0) {
-        monthMatch = member.Birth_Month === null || member.Birth_Month === undefined;
-    } else {
-        monthMatch = Number(member.Birth_Month) === Number(selectedBirthdayMonth);
-    }
+        if (selectedBirthdayMonth === 0) {
+            monthMatch = member.Birth_Month === null || member.Birth_Month === undefined;
+        } else {
+            monthMatch = Number(member.Birth_Month) === Number(selectedBirthdayMonth);
+        }
 
-    return statusMatch && kidsMatch && careMatch && monthMatch;
-});
+        // 5) Search
+        const query = birthdaySearchText.trim().toLowerCase();
+        let searchMatch = true;
+
+        if (query) {
+            const searchPool = [
+                member.FullName_Display,
+                member.Birth_Display
+            ]
+            .map(value => String(value || '').toLowerCase())
+            .join(' ');
+
+            searchMatch = searchPool.includes(query);
+        }
+
+        return statusMatch && kidsMatch && careMatch && monthMatch && searchMatch;
+    });
 
     filtered.sort((a, b) => {
+        if (birthdaySortMode === 'age') {
+            const aAge = Number(a.Age || 0);
+            const bAge = Number(b.Age || 0);
+            return bAge - aAge;
+        }
+
+        if (birthdaySortMode === 'name') {
+            return String(a.FullName_Display || '').localeCompare(String(b.FullName_Display || ''), 'th');
+        }
+
+        if (birthdaySortMode === 'care') {
+            const careCompare = String(a.Care_ID || '').localeCompare(String(b.Care_ID || ''), 'th', { numeric: true });
+            if (careCompare !== 0) return careCompare;
+
+            return String(a.FullName_Display || '').localeCompare(String(b.FullName_Display || ''), 'th');
+        }
+
+        const aMonth = Number(a.Birth_Month || 99);
+        const bMonth = Number(b.Birth_Month || 99);
         const aDay = Number(a.Birth_Day || 99);
         const bDay = Number(b.Birth_Day || 99);
+
+        if (aMonth !== bMonth) return aMonth - bMonth;
         return aDay - bDay;
     });
 
@@ -1238,7 +1452,7 @@ function setBirthdayMonth(month) {
         : `
             <div class="clean-card" style="text-align:center; padding:35px 20px;">
                 <i class="fa-regular fa-calendar-xmark" style="font-size:34px; color:#CBD5E1; margin-bottom:12px;"></i>
-                <p style="font-size:13px; color:var(--gray-text);">ไม่พบข้อมูลวันเกิดในเดือนนี้</p>
+                <p style="font-size:13px; color:var(--gray-text);">ไม่พบข้อมูลวันเกิดตามเงื่อนไขนี้</p>
             </div>`;
 
     contentArea.innerHTML = `
@@ -1248,14 +1462,19 @@ function setBirthdayMonth(month) {
                 วันเกิด
             </h2>
             <p style="font-size:12px; color:var(--gray-text);">
-                เลือกเดือนเพื่อดูรายชื่อสมาชิกที่มีวันเกิด
+                เลือกเดือน ค้นหา และเรียงรายชื่อเพื่อดูแลสมาชิกในช่วงเวลาสำคัญ
             </p>
         </div>
 
         ${createBirthdayMonthSelectorHTML()}
 
-        <div style="font-size:12px; color:var(--gray-text); margin:0 4px 10px;">
-            พบ ${filtered.length} คน
+        ${createBirthdaySearchHTML()}
+
+        ${createBirthdaySortHTML()}
+
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--gray-text); margin:0 4px 10px;">
+            <span>พบ ${filtered.length} คน</span>
+            <span>ตัวกรอง: ${masterFilterSettings.statusMode}${masterFilterSettings.includeKids ? ' + เด็ก' : ' - เด็ก'}</span>
         </div>
 
         ${listHTML}
