@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.7</div>
+            <div class="version-tag">version #3.2.8</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1929,7 +1929,7 @@ function openProfile(memberId) {
             ${createProfileMiniRow('เพศ', member.Gender || '-', 'fa-venus-mars', 'var(--charcoal)', false)}
         </div>
 
-        <div style="margin:0 20px;">
+        <div id="profile-tabs" style="margin:0 20px;">
             ${createProfileTabsHTML('contact', member.M_ID)}
         </div>
     `;
@@ -1942,13 +1942,14 @@ function openProfile(memberId) {
         document.getElementById('profile-popup-content').style.transform = 'scale(1)';
     }, 10);
 
-    fetchMemberDetail(member.M_ID)
-        .then(detail => {
-            updateProfileMemberNote(detail);
-        })
-        .catch(err => {
-            console.error('Preload profile detail error:', err);
-        });
+fetchMemberDetail(member.M_ID)
+    .then(detail => {
+        updateProfileMemberNote(detail);
+        refreshProfileTabs(member.M_ID);
+    })
+    .catch(err => {
+        console.error('Preload profile detail error:', err);
+    });
 }
 function createProfileMiniRow(label, value, icon, valueColor = 'var(--charcoal)', hasBorder = true) {
     return `
@@ -1960,7 +1961,49 @@ function createProfileMiniRow(label, value, icon, valueColor = 'var(--charcoal)'
         </div>
     `;
 }
+function getProfileTabBadge(detail, tabId) {
+    if (!detail) return '';
 
+    if (tabId === 'contact') {
+        const c = detail.contact || {};
+        const hasContact = [
+            c.Email,
+            c.Phone,
+            c.LineID,
+            c.Line_Display_Name,
+            c.Contact_Channel,
+            c.Shipping_Address,
+            c.Shipping_Phone
+        ].some(value => String(value || '').trim() !== '');
+
+        return hasContact ? '•' : '';
+    }
+
+    if (tabId === 'spiritual') {
+        const s = detail.spiritual || {};
+        const hasSpiritual = [
+            s.Believe_Date,
+            s.Baptism_Period,
+            s.OldChurch_Name,
+            s.Source_Channel,
+            s.Interest
+        ].some(value => String(value || '').trim() !== '');
+
+        return hasSpiritual ? '•' : '';
+    }
+
+    if (tabId === 'memo') {
+        const count = Array.isArray(detail.notes) ? detail.notes.length : 0;
+        return count > 0 ? String(count) : '';
+    }
+
+    if (tabId === 'activity') {
+        const count = Array.isArray(detail.activities) ? detail.activities.length : 0;
+        return count > 0 ? String(count) : '';
+    }
+
+    return '';
+}
 function createProfileTabsHTML(activeTab, memberId) {
     const tabs = [
         { id: 'contact', label: 'Contact', icon: 'fa-address-book' },
@@ -1969,32 +2012,71 @@ function createProfileTabsHTML(activeTab, memberId) {
         { id: 'activity', label: 'Activity', icon: 'fa-calendar-check' }
     ];
 
+    const detail = memberDetailCache[String(memberId)] || null;
+
     return `
         <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
-            ${tabs.map(tab => `
-                <button onclick="openProfileDetailOverlay('${memberId}', '${tab.id}')" style="
-                    border:none;
-                    background:#FFFFFF;
-                    color:var(--orange);
-                    border-radius:16px;
-                    padding:10px 4px;
-                    font-family:'Prompt', sans-serif;
-                    font-size:10px;
-                    font-weight:800;
-                    cursor:pointer;
-                    box-shadow:var(--shadow-menu);
-                    display:flex;
-                    flex-direction:column;
-                    align-items:center;
-                    gap:5px;
-                ">
-                    <i class="fa-solid ${tab.icon}" style="font-size:16px;"></i>
-                    ${tab.label}
-                </button>
-            `).join('')}
+            ${tabs.map(tab => {
+                const badge = getProfileTabBadge(detail, tab.id);
+
+                return `
+                    <button onclick="openProfileDetailOverlay('${memberId}', '${tab.id}')" style="
+                        position:relative;
+                        border:none;
+                        background:#FFFFFF;
+                        color:var(--orange);
+                        border-radius:16px;
+                        padding:10px 4px;
+                        font-family:'Prompt', sans-serif;
+                        font-size:10px;
+                        font-weight:800;
+                        cursor:pointer;
+                        box-shadow:var(--shadow-menu);
+                        display:flex;
+                        flex-direction:column;
+                        align-items:center;
+                        gap:5px;
+                    ">
+                        ${badge ? `
+                            <span style="
+                                position:absolute;
+                                top:-6px;
+                                right:-4px;
+                                min-width:${badge === '•' ? '12px' : '18px'};
+                                height:18px;
+                                padding:0 5px;
+                                border-radius:999px;
+                                background:#EF4444;
+                                color:#FFFFFF;
+                                font-size:${badge === '•' ? '14px' : '10px'};
+                                font-weight:900;
+                                line-height:18px;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                box-shadow:0 4px 10px rgba(239,68,68,0.28);
+                                border:2px solid #FFFFFF;
+                            ">
+                                ${badge}
+                            </span>
+                        ` : ''}
+
+                        <i class="fa-solid ${tab.icon}" style="font-size:16px;"></i>
+                        ${tab.label}
+                    </button>
+                `;
+            }).join('')}
         </div>
     `;
 }
+
+function refreshProfileTabs(memberId) {
+    const tabsArea = document.getElementById('profile-tabs');
+    if (!tabsArea) return;
+
+    tabsArea.innerHTML = createProfileTabsHTML(currentProfileTab || 'contact', memberId);
+}
+    
 function openProfileDetailOverlay(memberId, tab) {
     setupProfileDetailOverlay();
 
