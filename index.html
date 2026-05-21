@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.21</div>
+            <div class="version-tag">version #3.1.0</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -427,7 +427,10 @@
                 </div>
                 
                 <div class="nav-btn" id="nav-filter" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
-                <div class="nav-btn" id="nav-profile" onclick="handleBottomNav('profile', this)"><i class="fa-regular fa-user"></i><span>โปรไฟล์</span></div>
+                <div class="nav-btn" id="nav-settings" onclick="openPinSettings()">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>ตั้งค่า</span>
+                </div>
             </div>
         </div>
 
@@ -513,10 +516,11 @@ const STORAGE_KEYS = {
         };
 
         window.addEventListener('DOMContentLoaded', () => {
-    loadNewsFromLocalStorage();
-    fetchAllSheetsData();
-    setupProfilePopup(); 
-    initPinSystem();
+            loadNewsFromLocalStorage();
+            fetchAllSheetsData();
+            setupProfilePopup(); 
+            setupPinSettingsPopup();
+            initPinSystem();
         });
 
         setTimeout(function() {
@@ -1919,7 +1923,260 @@ function validateMasterPassword() {
     
         unlockApp();
     }
-    
+
+function setupPinSettingsPopup() {
+    if (document.getElementById('pin-settings-popup')) return;
+
+    const popup = document.createElement('div');
+    popup.id = 'pin-settings-popup';
+    popup.style.cssText = `
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(15,23,42,0.62);
+        z-index:12000;
+        justify-content:center;
+        align-items:center;
+        padding:20px;
+        backdrop-filter:blur(5px);
+        opacity:0;
+        transition:opacity 0.25s ease;
+    `;
+
+    popup.innerHTML = `
+        <div id="pin-settings-box" style="
+            background:white;
+            width:100%;
+            max-width:340px;
+            border-radius:24px;
+            padding:24px 20px 22px;
+            box-shadow:0 20px 40px rgba(15,23,42,0.18);
+            transform:scale(0.94);
+            transition:transform 0.25s ease;
+        ">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                <div>
+                    <div style="font-size:18px; font-weight:800; color:var(--charcoal); line-height:1.2;">
+                        ตั้งค่า PIN ใหม่
+                    </div>
+                    <div style="font-size:12px; color:var(--gray-text); margin-top:4px;">
+                        กรอกรหัสเดิม และยืนยันรหัสใหม่ 2 ครั้ง
+                    </div>
+                </div>
+
+                <button onclick="closePinSettings()" style="
+                    width:34px;
+                    height:34px;
+                    border:none;
+                    border-radius:50%;
+                    background:#F1F5F9;
+                    color:var(--gray-text);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    cursor:pointer;
+                ">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <label style="font-size:12px; font-weight:700; color:var(--charcoal);">
+                    PIN เดิม
+                    <input id="old-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="กรอก PIN เดิม" style="
+                        width:100%;
+                        margin-top:6px;
+                        padding:12px 14px;
+                        border-radius:14px;
+                        border:1px solid var(--gray-border);
+                        outline:none;
+                        font-size:16px;
+                        letter-spacing:4px;
+                        font-family:'Prompt', sans-serif;
+                    ">
+                </label>
+
+                <label style="font-size:12px; font-weight:700; color:var(--charcoal);">
+                    PIN ใหม่
+                    <input id="new-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="ตั้ง PIN ใหม่ 4 หลัก" style="
+                        width:100%;
+                        margin-top:6px;
+                        padding:12px 14px;
+                        border-radius:14px;
+                        border:1px solid var(--gray-border);
+                        outline:none;
+                        font-size:16px;
+                        letter-spacing:4px;
+                        font-family:'Prompt', sans-serif;
+                    ">
+                </label>
+
+                <label style="font-size:12px; font-weight:700; color:var(--charcoal);">
+                    ยืนยัน PIN ใหม่
+                    <input id="confirm-pin-input" type="password" inputmode="numeric" maxlength="4" placeholder="กรอก PIN ใหม่อีกครั้ง" style="
+                        width:100%;
+                        margin-top:6px;
+                        padding:12px 14px;
+                        border-radius:14px;
+                        border:1px solid var(--gray-border);
+                        outline:none;
+                        font-size:16px;
+                        letter-spacing:4px;
+                        font-family:'Prompt', sans-serif;
+                    ">
+                </label>
+            </div>
+
+            <button onclick="saveNewPinFromSettings()" style="
+                width:100%;
+                margin-top:18px;
+                border:none;
+                background:var(--orange);
+                color:white;
+                padding:12px;
+                border-radius:14px;
+                font-family:'Prompt', sans-serif;
+                font-size:14px;
+                font-weight:800;
+                cursor:pointer;
+                box-shadow:0 8px 18px rgba(192,100,40,0.25);
+            ">
+                บันทึก PIN ใหม่
+            </button>
+
+            <button onclick="startResetPinFlow(); closePinSettings();" style="
+                width:100%;
+                margin-top:10px;
+                border:1px solid var(--gray-border);
+                background:white;
+                color:var(--gray-text);
+                padding:10px;
+                border-radius:14px;
+                font-family:'Prompt', sans-serif;
+                font-size:12px;
+                font-weight:700;
+                cursor:pointer;
+            ">
+                ลืม PIN เดิม / ใช้ OTP จาก Admin
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    popup.addEventListener('click', function (e) {
+        if (e.target === popup) closePinSettings();
+    });
+}
+function openPinSettings() {
+    const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
+
+    if (!savedPin) {
+        showAlert(
+            'ยังไม่มี PIN',
+            'กรุณาติดต่อขอ OTP สำหรับสร้างรหัส PIN ได้ที่ Admin NxLife'
+        );
+        startResetPinFlow();
+        return;
+    }
+
+    if (isPinLocked()) {
+        showLockMessage();
+        return;
+    }
+
+    const popup = document.getElementById('pin-settings-popup');
+    const box = document.getElementById('pin-settings-box');
+
+    document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active'));
+    const settingsBtn = document.getElementById('nav-settings');
+    if (settingsBtn) settingsBtn.classList.add('active');
+
+    popup.style.display = 'flex';
+
+    setTimeout(() => {
+        popup.style.opacity = '1';
+        box.style.transform = 'scale(1)';
+        const oldPinInput = document.getElementById('old-pin-input');
+        if (oldPinInput) oldPinInput.focus();
+    }, 10);
+}
+
+function closePinSettings() {
+    const popup = document.getElementById('pin-settings-popup');
+    const box = document.getElementById('pin-settings-box');
+
+    if (!popup || !box) return;
+
+    popup.style.opacity = '0';
+    box.style.transform = 'scale(0.94)';
+
+    setTimeout(() => {
+        popup.style.display = 'none';
+        clearPinSettingsInputs();
+    }, 250);
+}
+
+function clearPinSettingsInputs() {
+    const oldPin = document.getElementById('old-pin-input');
+    const newPin = document.getElementById('new-pin-input');
+    const confirmPin = document.getElementById('confirm-pin-input');
+
+    if (oldPin) oldPin.value = '';
+    if (newPin) newPin.value = '';
+    if (confirmPin) confirmPin.value = '';
+}
+
+function saveNewPinFromSettings() {
+    if (isPinLocked()) {
+        showLockMessage();
+        closePinSettings();
+        return;
+    }
+
+    const savedPin = localStorage.getItem(STORAGE_KEYS.PIN_CODE);
+
+    const oldPin = document.getElementById('old-pin-input').value.trim();
+    const newPin = document.getElementById('new-pin-input').value.trim();
+    const confirmPin = document.getElementById('confirm-pin-input').value.trim();
+
+    if (!/^[0-9]{4}$/.test(oldPin)) {
+        showAlert('PIN เดิมไม่ถูกต้อง', 'กรุณากรอก PIN เดิมเป็นตัวเลข 4 หลัก');
+        return;
+    }
+
+    if (oldPin !== savedPin) {
+        registerPinFail();
+        return;
+    }
+
+    if (!/^[0-9]{4}$/.test(newPin)) {
+        showAlert('PIN ใหม่ไม่ถูกต้อง', 'กรุณาตั้ง PIN ใหม่เป็นตัวเลข 4 หลัก');
+        return;
+    }
+
+    if (newPin !== confirmPin) {
+        showAlert('PIN ไม่ตรงกัน', 'กรุณากรอก PIN ใหม่ทั้งสองช่องให้ตรงกัน');
+        return;
+    }
+
+    if (newPin === oldPin) {
+        showAlert('PIN ซ้ำเดิม', 'กรุณาตั้ง PIN ใหม่ที่ไม่ซ้ำกับรหัสเดิม');
+        return;
+    }
+
+    localStorage.setItem(STORAGE_KEYS.PIN_CODE, newPin);
+    clearPinFailState();
+
+    closePinSettings();
+
+    setTimeout(() => {
+        showAlert('เปลี่ยน PIN สำเร็จ', 'ใช้ PIN ใหม่ในการเข้าสู่ระบบครั้งถัดไป');
+    }, 260);
+}    
 function startResetPinFlow() {
     if (isPinLocked()) {
         showLockMessage();
