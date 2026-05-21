@@ -256,7 +256,89 @@
     color: var(--gray-text);
     margin: 4px 6px 10px;
 }
-    
+
+    /* News Detail Modern Layout */
+.news-detail-hero {
+    width: 100%;
+    padding: 22px 18px 10px;
+    background: linear-gradient(180deg, #FFFFFF 0%, var(--bg-app) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.news-detail-img {
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: #FFFFFF;
+    border-radius: 22px;
+    padding: 10px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    cursor: zoom-in;
+}
+
+.news-zoom-hint {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--gray-text);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.75);
+    border: 1px solid var(--gray-border);
+    padding: 5px 10px;
+    border-radius: 999px;
+}
+
+.news-detail-content {
+    padding: 18px 24px 60px;
+}
+
+.news-detail-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--orange-soft);
+    color: var(--orange);
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 14px;
+}
+
+.news-detail-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--charcoal);
+    line-height: 1.25;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+}
+
+.news-detail-excerpt {
+    font-size: 14px;
+    color: var(--gray-text);
+    line-height: 1.65;
+    margin-bottom: 18px;
+}
+
+.news-detail-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gray-border), transparent);
+    margin: 18px 0;
+}
+
+.news-detail-body {
+    font-size: 15px;
+    color: var(--gray-text);
+    line-height: 1.85;
+    white-space: pre-line;
+    word-break: break-word;
+}
 </style>
 </head>
 <body>
@@ -267,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.12</div>
+            <div class="version-tag">version #3.0.13</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -372,13 +454,29 @@
             <button onclick="closeNewsDetail()" style="position:absolute; top:20px; right:20px; width:40px; height:40px; background:rgba(255,255,255,0.95); border-radius:50%; border:none; display:flex; justify-content:center; align-items:center; z-index:10; box-shadow:0 4px 12px rgba(0,0,0,0.15); font-size:18px; color:var(--charcoal); cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
             
             <div style="flex:1; overflow-y:auto; padding-bottom:50px;">
-<img id="news-detail-img" src="" style="width:100%; aspect-ratio:1/1; height:auto; object-fit:contain; padding:10px; background:linear-gradient(180deg,#FFFFFF,#F8FAFC); border-bottom-left-radius:24px; border-bottom-right-radius:24px; box-shadow:0 4px 20px rgba(0,0,0,0.08); cursor:zoom-in;" onerror="this.onerror=null; this.src='https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true'">                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
-                        <span style="background:var(--orange-soft); color:var(--orange); padding:4px 10px; border-radius:8px; font-size:11px; font-weight:700;"><i class="fa-solid fa-book-bookmark"></i> ข้อมูลสถานภาพ</span>
-                    </div>
-                    <h2 id="news-detail-title" style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.3; margin-bottom:20px;"></h2>
-                    <div id="news-detail-body" style="font-size:15px; color:var(--gray-text); line-height:1.7; white-space:pre-line;"></div>
+<div class="news-detail-hero">
+    <img id="news-detail-img" src="" class="news-detail-img" onerror="this.onerror=null; this.src='https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true'">
+
+                <div class="news-zoom-hint">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                    แตะรูปเพื่อขยาย
                 </div>
             </div>
+            
+            <div class="news-detail-content">
+                <div class="news-detail-badge">
+                    <i class="fa-solid fa-book-bookmark"></i>
+                    ข้อมูลสถานภาพ
+                </div>
+            
+                <h2 id="news-detail-title" class="news-detail-title"></h2>
+            
+                <p id="news-detail-excerpt" class="news-detail-excerpt"></p>
+            
+                <div class="news-detail-divider"></div>
+            
+                <div id="news-detail-body" class="news-detail-body"></div>
+            </div>            </div>
         </div>
 
     </div>
@@ -635,25 +733,25 @@ function fetchAllSheetsData() {
         }
 
         // 🌟 เปิดหน้าต่าง Slide-up Overlay
-        function openNewsDetail(id) {
-            let story = dbNews.find(s => s.ID == id);
-            if (!story) return;
-        
-            const imgEl = document.getElementById('news-detail-img');
-        
-            document.getElementById('news-detail-title').innerText = story.Title;
-            document.getElementById('news-detail-body').innerText = story.Detail || "ไม่มีรายละเอียดเพิ่มเติม";
-        
-            imgEl.src = story.ImageURL;
-            imgEl.style.cursor = 'zoom-in';
-            imgEl.onclick = function () {
-                openFullScreen(story.ImageURL, story.Title || 'NxLife-News');
-            };
-        
-            let overlay = document.getElementById('news-overlay-view');
-            overlay.style.display = 'flex';
-            setTimeout(() => { overlay.style.transform = 'translateY(0)'; }, 10);
-        }
+function openNewsDetail(id) {
+    let story = dbNews.find(s => s.ID == id);
+    if (!story) return;
+
+    const imgEl = document.getElementById('news-detail-img');
+
+    document.getElementById('news-detail-title').innerText = story.Title || 'ไม่มีหัวข้อ';
+    document.getElementById('news-detail-excerpt').innerText = story.Excerpt || '';
+    document.getElementById('news-detail-body').innerText = story.Detail || 'ไม่มีรายละเอียดเพิ่มเติม';
+
+    imgEl.src = story.ImageURL || FALLBACK_IMAGE_URL;
+    imgEl.onclick = function () {
+        openFullScreen(story.ImageURL || FALLBACK_IMAGE_URL, story.Title || 'NxLife-News');
+    };
+
+    let overlay = document.getElementById('news-overlay-view');
+    overlay.style.display = 'flex';
+    setTimeout(() => { overlay.style.transform = 'translateY(0)'; }, 10);
+}
 
         function closeNewsDetail() {
             let overlay = document.getElementById('news-overlay-view');
