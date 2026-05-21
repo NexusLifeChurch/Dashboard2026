@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.1.3</div>
+            <div class="version-tag">version #3.2.0</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -489,6 +489,9 @@
         let dbMembers = [];    
         let dbCares = [];  
         let dbNews = []; // ตัวแปรเก็บข้อมูลคำนิยาม
+        
+        let memberDetailCache = {};
+        let currentProfileTab = 'contact';
         
         let dbBirthdays = [];
         let selectedBirthdayMonth = new Date().getMonth() + 1;
@@ -1690,7 +1693,80 @@ function renderBirthdayView(contentArea) {
             let overlay = document.getElementById('fs-overlay');
             if(overlay) { overlay.style.opacity = '0'; setTimeout(() => { overlay.style.display = 'none'; }, 300); }
         }
+function fetchMemberDetail(memberId) {
+    const id = String(memberId || '').trim();
 
+    if (!id) {
+        return Promise.reject(new Error('Missing memberId'));
+    }
+
+    if (memberDetailCache[id]) {
+        return Promise.resolve(memberDetailCache[id]);
+    }
+
+    return fetch(`${API_URL}?action=member&id=${encodeURIComponent(id)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'ไม่สามารถโหลดข้อมูลสมาชิกได้');
+            }
+
+            memberDetailCache[id] = data;
+            return data;
+        });
+}
+
+function renderProfileContactHTML(detail) {
+    const contact = detail && detail.contact ? detail.contact : {};
+
+    const email = contact.Email || '-';
+    const phone = contact.Phone || '-';
+    const lineId = contact.LineID || '-';
+    const lineName = contact.Line_Display_Name || '-';
+    const contactChannel = contact.Contact_Channel || '-';
+    const shippingAddress = contact.Shipping_Address || '-';
+    const shippingPhone = contact.Shipping_Phone || '-';
+
+    const phoneActionHTML = contact.Phone
+        ? `<a href="tel:${contact.Phone}" style="text-decoration:none; color:white; background:var(--orange); padding:7px 10px; border-radius:10px; font-size:12px; font-weight:700;">โทร</a>`
+        : '';
+
+    return `
+        <div style="background:#FFFFFF; border:1px solid var(--gray-border); border-radius:16px; padding:15px; margin:14px 20px 0;">
+            <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <div style="width:24px; height:24px; border-radius:8px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-address-book"></i>
+                </div>
+                ข้อมูลติดต่อ
+            </div>
+
+            ${createProfileInfoRow('โทรศัพท์', phone, 'fa-phone', phoneActionHTML)}
+            ${createProfileInfoRow('Email', email, 'fa-envelope')}
+            ${createProfileInfoRow('LINE ID', lineId, 'fa-comment')}
+            ${createProfileInfoRow('ชื่อใน LINE', lineName, 'fa-user-tag')}
+            ${createProfileInfoRow('ช่องทางอื่น', contactChannel, 'fa-share-nodes')}
+            ${createProfileInfoRow('ที่อยู่ส่งเอกสาร', shippingAddress, 'fa-location-dot')}
+            ${createProfileInfoRow('เบอร์ส่งเอกสาร', shippingPhone, 'fa-truck-fast')}
+        </div>
+    `;
+}
+
+function createProfileInfoRow(label, value, icon, actionHTML = '') {
+    return `
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:1px solid #F1F5F9;">
+            <div style="display:flex; gap:9px; min-width:0; flex:1;">
+                <i class="fa-solid ${icon}" style="color:var(--orange); font-size:12px; width:16px; margin-top:3px;"></i>
+                <div style="min-width:0;">
+                    <div style="font-size:11px; color:var(--gray-text); margin-bottom:2px;">${label}</div>
+                    <div style="font-size:13px; font-weight:600; color:var(--charcoal); line-height:1.45; word-break:break-word;">${value}</div>
+                </div>
+            </div>
+            ${actionHTML}
+        </div>
+    `;
+}
+
+    
         function setupProfilePopup() {
             if(!document.getElementById('profile-popup')) {
                 let div = document.createElement('div'); div.id = 'profile-popup';
@@ -1699,71 +1775,289 @@ function renderBirthdayView(contentArea) {
                 document.body.appendChild(div); div.addEventListener('click', function(e) { if (e.target === div) closeProfile(); });
             }
         }
+function fetchMemberDetail(memberId) {
+    const id = String(memberId || '').trim();
 
-        function openProfile(memberId) {
-let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
-            if(!member) return;
+    if (!id) {
+        return Promise.reject(new Error('Missing memberId'));
+    }
 
-            let cleanNameForInitial = member.FullName_Display ? member.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '') : '';
-            let initial = cleanNameForInitial.charAt(0) || '?';
-            let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
-            
-            let profileImageHTML = (member.Url_Image && member.Url_Image.trim() !== '') 
-                ? `<img src="${member.Url_Image}" onclick="openFullScreen('${member.Url_Image}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">` 
-                : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
+    if (memberDetailCache[id]) {
+        return Promise.resolve(memberDetailCache[id]);
+    }
 
-            // 🌟 Premium Verification Logic: ตรวจสอบสถานะ Fm-Reg เพื่อให้ดาวพิเศษ
-            let isCoreMember = (member.Nxl_Status === 'Fm-Reg');
-            let starBadgeHTML = isCoreMember 
-                ? `<div style="position:absolute; bottom:2px; right:2px; background:linear-gradient(135deg, #F59E0B, #D97706); color:white; width:28px; height:28px; border-radius:50%; display:flex; justify-content:center; align-items:center; border:3px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.15); font-size:12px; z-index:5;"><i class="fa-solid fa-star"></i></div>` 
-                : '';
+    return fetch(`${API_URL}?action=member&id=${encodeURIComponent(id)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.error || 'ไม่สามารถโหลดข้อมูลสมาชิกได้');
+            }
 
-            // Render หน้าต่างโปรไฟล์ Minimal & Premium ใหม่
-            document.getElementById('profile-popup-content').innerHTML = `
-                <div style="position:absolute; top:0; left:0; width:100%; height:85px; background: var(--orange-soft); border-radius: 24px 24px 0 0; z-index:1;"></div>
-                <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:white; width:32px; height:32px; border-radius:50%; border:none; font-size:14px; color:var(--gray-text); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); z-index:10;"><i class="fa-solid fa-xmark"></i></button>
-                
-                <div style="width:110px; height:110px; border-radius:50%; background:white; margin: 30px auto 10px auto; position:relative; z-index:2; border: 5px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.08);">
-                    <div style="width:100%; height:100%; border-radius:50%; overflow:hidden;">
-                        ${profileImageHTML}
-                    </div>
-                    ${starBadgeHTML}
+            memberDetailCache[id] = data;
+            return data;
+        });
+}
+function openProfile(memberId) {
+    let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
+    if (!member) return;
+
+    currentProfileTab = 'contact';
+
+    let cleanNameForInitial = member.FullName_Display
+        ? member.FullName_Display.replace(/[^ก-๙a-zA-Z0-9]/g, '')
+        : '';
+
+    let initial = cleanNameForInitial.charAt(0) || '?';
+    let safeName = member.FullName_Display ? member.FullName_Display.replace(/'/g, "\\'") : '';
+
+    let profileImageHTML = (member.Url_Image && member.Url_Image.trim() !== '')
+        ? `<img src="${member.Url_Image}" onclick="openFullScreen('${member.Url_Image}', '${safeName}')" style="width:100%; height:100%; object-fit:cover; cursor:pointer;">`
+        : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:36px; font-weight:800; background:var(--orange-soft); color:var(--orange);">${initial}</div>`;
+
+    let isCoreMember = (member.Nxl_Status === 'Fm-Reg');
+
+    let starBadgeHTML = isCoreMember
+        ? `<div style="position:absolute; bottom:2px; right:2px; background:linear-gradient(135deg, #F59E0B, #D97706); color:white; width:28px; height:28px; border-radius:50%; display:flex; justify-content:center; align-items:center; border:3px solid white; box-shadow:0 3px 6px rgba(0,0,0,0.15); font-size:12px; z-index:5;"><i class="fa-solid fa-star"></i></div>`
+        : '';
+
+    document.getElementById('profile-popup-content').innerHTML = `
+        <div style="position:absolute; top:0; left:0; width:100%; height:85px; background:var(--orange-soft); border-radius:24px 24px 0 0; z-index:1;"></div>
+
+        <button onclick="closeProfile()" style="position:absolute; top:15px; right:15px; background:white; width:32px; height:32px; border-radius:50%; border:none; font-size:14px; color:var(--gray-text); cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.05); z-index:10;">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div style="width:110px; height:110px; border-radius:50%; background:white; margin:30px auto 10px auto; position:relative; z-index:2; border:5px solid white; box-shadow:0 8px 20px rgba(0,0,0,0.08);">
+            <div style="width:100%; height:100%; border-radius:50%; overflow:hidden;">
+                ${profileImageHTML}
+            </div>
+            ${starBadgeHTML}
+        </div>
+
+        <div style="text-align:center; padding:0 20px 8px;">
+            <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-bottom:10px; line-height:1.25;">
+                ${member.FullName_Display}
+            </div>
+
+            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-bottom:14px;">
+                <span style="background:white; border:1px solid #FDBA74; color:var(--orange); padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; box-shadow:0 2px 4px rgba(192,100,40,0.05);">
+                    <i class="fa-solid fa-people-roof" style="margin-right:6px; opacity:0.8;"></i>${member.CareName || '-'}
+                </span>
+
+                <span style="background:#F1F5F9; border:1px solid #E2E8F0; color:var(--charcoal); padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;">
+                    <i class="fa-regular fa-id-badge" style="margin-right:6px; opacity:0.8;"></i>${member.Classify || '-'}
+                </span>
+            </div>
+        </div>
+
+        <div style="background:#FFFFFF; border-radius:16px; padding:16px; margin:0 20px 14px; border:1px solid var(--gray-border); box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+            <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <div style="width:24px; height:24px; border-radius:6px; background:var(--orange-soft); color:var(--orange); display:flex; justify-content:center; align-items:center; font-size:12px;">
+                    <i class="fa-solid fa-address-card"></i>
                 </div>
-                
-                <div style="text-align:center; padding: 0 20px 5px;">
-                    <div style="font-size:20px; font-weight:800; color:var(--charcoal); margin-bottom:12px; line-height:1.2;">${member.FullName_Display}</div>
-                    <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin-bottom:20px;">
-                        <span style="background:white; border:1px solid #FDBA74; color:var(--orange); padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; box-shadow:0 2px 4px rgba(192,100,40,0.05);"><i class="fa-solid fa-people-roof" style="margin-right:6px; opacity:0.8;"></i>${member.CareName}</span>
-                        <span style="background:#F1F5F9; border:1px solid #E2E8F0; color:var(--charcoal); padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600;"><i class="fa-regular fa-id-badge" style="margin-right:6px; opacity:0.8;"></i>${member.Classify}</span>
-                    </div>
-                </div>
-                
-                <div style="background:#FFFFFF; border-radius:16px; padding:18px; margin: 0 20px; border: 1px solid var(--gray-border); box-shadow:0 4px 15px rgba(0,0,0,0.02);">
-                    <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:15px; display:flex; align-items:center; gap:8px;">
-                        <div style="width:24px; height:24px; border-radius:6px; background:var(--orange-soft); color:var(--orange); display:flex; justify-content:center; align-items:center; font-size:12px;"><i class="fa-solid fa-address-card"></i></div>
-                        ข้อมูลส่วนตัวเบื้องต้น
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid #F1F5F9; margin-bottom:10px;">
-                        <span style="font-size:13px; color:var(--gray-text);"><i class="fa-regular fa-id-card" style="width:16px; margin-right:4px; opacity:0.7;"></i>รหัสประจำตัว</span>
-                        <span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.M_ID}</span>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px solid #F1F5F9; margin-bottom:10px;">
-                        <span style="font-size:13px; color:var(--gray-text);"><i class="fa-solid fa-signal" style="width:16px; margin-right:4px; opacity:0.7;"></i>สถานภาพ</span>
-                        <span style="font-size:13px; font-weight:700; color:${isCoreMember ? 'var(--orange)' : 'var(--charcoal)'};">${member.Nxl_Status}</span>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:13px; color:var(--gray-text);"><i class="fa-solid fa-venus-mars" style="width:16px; margin-right:4px; opacity:0.7;"></i>เพศ</span>
-                        <span style="font-size:13px; font-weight:700; color:var(--charcoal);">${member.Gender}</span>
-                    </div>
+                ข้อมูลส่วนตัวเบื้องต้น
+            </div>
+
+            ${createProfileMiniRow('รหัสประจำตัว', member.M_ID || '-', 'fa-id-card')}
+            ${createProfileMiniRow('สถานภาพ', member.Nxl_Status || '-', 'fa-signal', isCoreMember ? 'var(--orange)' : 'var(--charcoal)')}
+            ${createProfileMiniRow('เพศ', member.Gender || '-', 'fa-venus-mars', 'var(--charcoal)', false)}
+        </div>
+
+        <div id="profile-tabs" style="margin:0 20px 12px;">
+            ${createProfileTabsHTML('contact', member.M_ID)}
+        </div>
+
+        <div id="profile-detail-area" style="margin:0 20px 24px;">
+            ${createProfileLoadingHTML()}
+        </div>
+    `;
+
+    let popup = document.getElementById('profile-popup');
+    popup.style.display = 'flex';
+
+    setTimeout(() => {
+        popup.style.opacity = '1';
+        document.getElementById('profile-popup-content').style.transform = 'scale(1)';
+    }, 10);
+
+    loadProfileDetail(member.M_ID, 'contact');
+}
+function createProfileMiniRow(label, value, icon, valueColor = 'var(--charcoal)', hasBorder = true) {
+    return `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:${hasBorder ? '10px' : '0'}; border-bottom:${hasBorder ? '1px solid #F1F5F9' : 'none'}; margin-bottom:${hasBorder ? '10px' : '0'};">
+            <span style="font-size:13px; color:var(--gray-text);">
+                <i class="fa-solid ${icon}" style="width:16px; margin-right:4px; opacity:0.7;"></i>${label}
+            </span>
+            <span style="font-size:13px; font-weight:700; color:${valueColor};">${value}</span>
+        </div>
+    `;
+}
+
+function createProfileTabsHTML(activeTab, memberId) {
+    const tabs = [
+        { id: 'contact', label: 'Contact', icon: 'fa-address-book' },
+        { id: 'spiritual', label: 'Spiritual', icon: 'fa-dove' },
+        { id: 'memo', label: 'Memo', icon: 'fa-note-sticky' },
+        { id: 'activity', label: 'Activity', icon: 'fa-calendar-check' }
+    ];
+
+    return `
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+            ${tabs.map(tab => `
+                <button onclick="switchProfileTab('${tab.id}', '${memberId}')" style="
+                    border:none;
+                    background:${activeTab === tab.id ? 'var(--orange)' : '#FFFFFF'};
+                    color:${activeTab === tab.id ? '#FFFFFF' : 'var(--orange)'};
+                    border-radius:16px;
+                    padding:9px 4px;
+                    font-family:'Prompt', sans-serif;
+                    font-size:10px;
+                    font-weight:700;
+                    cursor:pointer;
+                    box-shadow:${activeTab === tab.id ? '0 8px 18px rgba(192,100,40,0.24)' : 'var(--shadow-menu)'};
+                    display:flex;
+                    flex-direction:column;
+                    align-items:center;
+                    gap:5px;
+                ">
+                    <i class="fa-solid ${tab.icon}" style="font-size:15px;"></i>
+                    ${tab.label}
+                </button>
+            `).join('')}
+        </div>
+    `;
+}
+
+function createProfileLoadingHTML() {
+    return `
+        <div style="background:#FFFFFF; border:1px solid var(--gray-border); border-radius:18px; padding:20px; text-align:center; color:var(--gray-text); font-size:13px;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:22px; color:var(--orange); margin-bottom:10px;"></i><br>
+            กำลังโหลดข้อมูล...
+        </div>
+    `;
+}
+
+function switchProfileTab(tab, memberId) {
+    currentProfileTab = tab;
+
+    const tabsArea = document.getElementById('profile-tabs');
+    if (tabsArea) tabsArea.innerHTML = createProfileTabsHTML(tab, memberId);
+
+    loadProfileDetail(memberId, tab);
+}
+
+function loadProfileDetail(memberId, tab) {
+    const area = document.getElementById('profile-detail-area');
+    if (!area) return;
+
+    const cached = memberDetailCache[String(memberId)];
+
+    if (cached) {
+        area.innerHTML = renderProfileTabContent(tab, cached);
+        return;
+    }
+
+    area.innerHTML = createProfileLoadingHTML();
+
+    fetchMemberDetail(memberId)
+        .then(detail => {
+            area.innerHTML = renderProfileTabContent(tab, detail);
+        })
+        .catch(err => {
+            console.error('Profile detail error:', err);
+            area.innerHTML = `
+                <div style="background:#FFFFFF; border:1px solid var(--gray-border); border-radius:18px; padding:20px; text-align:center; color:#EF4444; font-size:13px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size:22px; margin-bottom:10px;"></i><br>
+                    โหลดข้อมูลเพิ่มเติมไม่สำเร็จ
                 </div>
             `;
-            let popup = document.getElementById('profile-popup'); popup.style.display = 'flex';
-            setTimeout(() => { popup.style.opacity = '1'; document.getElementById('profile-popup-content').style.transform = 'scale(1)'; }, 10);
-        }
+        });
+}
 
+function renderProfileTabContent(tab, detail) {
+    if (tab === 'contact') {
+        return renderProfileContactHTML(detail);
+    }
+
+    const labelMap = {
+        spiritual: 'ข้อมูลฝ่ายวิญญาณ',
+        memo: 'บันทึก Memo',
+        activity: 'ประวัติกิจกรรม'
+    };
+
+    return `
+        <div style="background:#FFFFFF; border:1px solid var(--gray-border); border-radius:18px; padding:24px 18px; text-align:center;">
+            <div style="width:42px; height:42px; border-radius:16px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:18px;">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <div style="font-size:14px; font-weight:800; color:var(--charcoal); margin-bottom:5px;">
+                ${labelMap[tab] || 'ข้อมูลเพิ่มเติม'}
+            </div>
+            <div style="font-size:12px; color:var(--gray-text); line-height:1.6;">
+                เตรียมเชื่อมต่อข้อมูลในขั้นถัดไป
+            </div>
+        </div>
+    `;
+}
+
+function renderProfileContactHTML(detail) {
+    const contact = detail && detail.contact ? detail.contact : {};
+    const member = detail && detail.member ? detail.member : {};
+
+    const phone = contact.Phone || '-';
+    const email = contact.Email || '-';
+    const lineId = contact.LineID || '-';
+    const lineName = contact.Line_Display_Name || '-';
+    const contactChannel = contact.Contact_Channel || '-';
+    const shippingAddress = contact.Shipping_Address || '-';
+    const shippingPhone = contact.Shipping_Phone || '-';
+    const memberNote = member.Member_Note || '';
+
+    const phoneActionHTML = contact.Phone
+        ? `<a href="tel:${cleanPhoneNumber(contact.Phone)}" style="text-decoration:none; color:white; background:var(--orange); padding:7px 10px; border-radius:10px; font-size:12px; font-weight:800;">โทร</a>`
+        : '';
+
+    return `
+        <div style="background:#FFFFFF; border:1px solid var(--gray-border); border-radius:18px; padding:16px; box-shadow:0 4px 15px rgba(0,0,0,0.02);">
+            <div style="font-size:12px; font-weight:800; color:var(--charcoal); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                <div style="width:26px; height:26px; border-radius:8px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-address-book"></i>
+                </div>
+                ข้อมูลติดต่อ
+            </div>
+
+            ${memberNote ? createProfileInfoRow('หมายเหตุ', memberNote, 'fa-tag') : ''}
+            ${createProfileInfoRow('โทรศัพท์', phone, 'fa-phone', phoneActionHTML)}
+            ${createProfileInfoRow('Email', email, 'fa-envelope')}
+            ${createProfileInfoRow('LINE ID', lineId, 'fa-comment')}
+            ${createProfileInfoRow('ชื่อใน LINE', lineName, 'fa-user-tag')}
+            ${createProfileInfoRow('ช่องทางอื่น', contactChannel, 'fa-share-nodes')}
+            ${createProfileInfoRow('ที่อยู่ส่งเอกสาร', shippingAddress, 'fa-location-dot')}
+            ${createProfileInfoRow('เบอร์ส่งเอกสาร', shippingPhone, 'fa-truck-fast', '', false)}
+        </div>
+    `;
+}
+
+function createProfileInfoRow(label, value, icon, actionHTML = '', hasBorder = true) {
+    return `
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:10px 0; border-bottom:${hasBorder ? '1px solid #F1F5F9' : 'none'};">
+            <div style="display:flex; gap:9px; min-width:0; flex:1;">
+                <i class="fa-solid ${icon}" style="color:var(--orange); font-size:12px; width:16px; margin-top:3px;"></i>
+                <div style="min-width:0;">
+                    <div style="font-size:11px; color:var(--gray-text); margin-bottom:2px;">${label}</div>
+                    <div style="font-size:13px; font-weight:600; color:var(--charcoal); line-height:1.45; word-break:break-word;">
+                        ${value || '-'}
+                    </div>
+                </div>
+            </div>
+            ${actionHTML}
+        </div>
+    `;
+}
+
+function cleanPhoneNumber(phone) {
+    return String(phone || '').replace(/[^0-9+]/g, '');
+}
         function closeProfile() {
             let popup = document.getElementById('profile-popup'); popup.style.opacity = '0'; document.getElementById('profile-popup-content').style.transform = 'scale(0.9)';
             setTimeout(() => { popup.style.display = 'none'; }, 300);
