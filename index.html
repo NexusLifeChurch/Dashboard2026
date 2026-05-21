@@ -2005,7 +2005,7 @@ function openProfileDetailOverlay(memberId, tab) {
 
     const tabMeta = {
         contact: { title: 'ข้อมูลติดต่อ', icon: 'fa-address-book' },
-        spiritual: { title: 'ข้อมูลฝ่ายวิญญาณ', icon: 'fa-dove' },
+        spiritual: { title: 'เรื่องราวความเชื่อ', icon: 'fa-dove' },
         memo: { title: 'บันทึก Memo', icon: 'fa-note-sticky' },
         activity: { title: 'ประวัติกิจกรรม', icon: 'fa-calendar-check' }
     };
@@ -2115,7 +2115,7 @@ function renderProfileSpiritualFullPage(detail) {
     return `
         <div style="margin-bottom:14px;">
             <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
-                ${member.FullName_Display || 'ข้อมูลฝ่ายวิญญาณ'}
+                ${member.FullName_Display || 'เรื่องราวความเชื่อ'}
             </div>
             <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
                 ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''}
@@ -2127,7 +2127,7 @@ function renderProfileSpiritualFullPage(detail) {
                 <div style="width:28px; height:28px; border-radius:9px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
                     <i class="fa-solid fa-dove"></i>
                 </div>
-                ข้อมูลฝ่ายวิญญาณ
+                เรื่องราวความเชื่อ
             </div>
 
             ${createProfileInfoRow('วันที่รับเชื่อ', believeDate, 'fa-cross')}
@@ -2280,7 +2280,7 @@ function renderProfileTabContent(tab, detail) {
     }
 
     const labelMap = {
-        spiritual: 'ข้อมูลฝ่ายวิญญาณ',
+        spiritual: 'เรื่องราวความเชื่อ',
         memo: 'บันทึก Memo',
         activity: 'ประวัติกิจกรรม'
     };
