@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.1</div>
+            <div class="version-tag">version #3.2.2</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2054,10 +2054,12 @@ function closeProfileDetailOverlay() {
     if (tab === 'contact') {
         return renderProfileContactFullPage(detail);
     }
-
+    if (tab === 'spiritual') {
+        return renderProfileSpiritualFullPage(detail);
+    }
     const emptyMap = {
         spiritual: {
-            title: 'ข้อมูลฝ่ายวิญญาณ',
+            title: 'เรื่องราวความเชื่อ',
             icon: 'fa-dove',
             desc: 'เตรียมเชื่อมต่อข้อมูลจาก Mbr_Spiritual ในขั้นถัดไป'
         },
@@ -2100,7 +2102,42 @@ function closeProfileDetailOverlay() {
         </div>
     `;
 }
+function renderProfileSpiritualFullPage(detail) {
+    const spiritual = detail && detail.spiritual ? detail.spiritual : {};
+    const member = detail && detail.member ? detail.member : {};
 
+    const believeDate = spiritual.Believe_Date || '-';
+    const baptismPeriod = spiritual.Baptism_Period || '-';
+    const oldChurchName = spiritual.OldChurch_Name || '-';
+    const sourceChannel = spiritual.Source_Channel || '-';
+    const interest = spiritual.Interest || '-';
+
+    return `
+        <div style="margin-bottom:14px;">
+            <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
+                ${member.FullName_Display || 'ข้อมูลฝ่ายวิญญาณ'}
+            </div>
+            <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
+                ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''}
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding:18px; border-radius:20px;">
+            <div style="font-size:13px; font-weight:800; color:var(--charcoal); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                <div style="width:28px; height:28px; border-radius:9px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
+                    <i class="fa-solid fa-dove"></i>
+                </div>
+                ข้อมูลฝ่ายวิญญาณ
+            </div>
+
+            ${createProfileInfoRow('วันที่รับเชื่อ', believeDate, 'fa-cross')}
+            ${createProfileInfoRow('วันที่รับบัพติสมาในน้ำ', baptismPeriod, 'fa-water')}
+            ${createProfileInfoRow('คริสตจักรเดิม', oldChurchName, 'fa-church')}
+            ${createProfileInfoRow('ช่องทางที่รู้จัก Nexus Life', sourceChannel, 'fa-route')}
+            ${createProfileInfoRow('สิ่งที่สนใจ', interest, 'fa-seedling', '', false)}
+        </div>
+    `;
+}
 function renderProfileContactFullPage(detail) {
     const contact = detail && detail.contact ? detail.contact : {};
     const member = detail && detail.member ? detail.member : {};
