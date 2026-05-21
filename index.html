@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.8</div>
+            <div class="version-tag">version #3.2.9</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2038,27 +2038,27 @@ function createProfileTabsHTML(activeTab, memberId) {
                         gap:5px;
                     ">
                         ${badge ? `
-                            <span style="
-                                position:absolute;
-                                top:-6px;
-                                right:-4px;
-                                min-width:${badge === '•' ? '12px' : '18px'};
-                                height:18px;
-                                padding:0 5px;
-                                border-radius:999px;
-                                background:#EF4444;
-                                color:#FFFFFF;
-                                font-size:${badge === '•' ? '14px' : '10px'};
-                                font-weight:900;
-                                line-height:18px;
-                                display:flex;
-                                align-items:center;
-                                justify-content:center;
-                                box-shadow:0 4px 10px rgba(239,68,68,0.28);
-                                border:2px solid #FFFFFF;
-                            ">
-                                ${badge}
-                            </span>
+                        <span style="
+                            position:absolute;
+                            top:-6px;
+                            right:-4px;
+                            min-width:${badge === '•' ? '12px' : '18px'};
+                            height:18px;
+                            padding:0 5px;
+                            border-radius:999px;
+                            background:var(--orange);
+                            color:#FFFFFF;
+                            font-size:${badge === '•' ? '14px' : '10px'};
+                            font-weight:900;
+                            line-height:18px;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            box-shadow:0 4px 10px rgba(192,100,40,0.28);
+                            border:2px solid #FFFFFF;
+                        ">
+                            ${badge}
+                        </span>
                         ` : ''}
 
                         <i class="fa-solid ${tab.icon}" style="font-size:16px;"></i>
