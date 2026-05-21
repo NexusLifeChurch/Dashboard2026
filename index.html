@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.0.19</div>
+            <div class="version-tag">version #3.0.20</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -699,9 +699,25 @@ function selectCircleMenu(type, element) {
         fetchBirthdayData();
     }
 
-    handleBottomNav('overview', document.getElementById('nav-overview'));
-}        function handleBottomNav(target, element) { document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active')); if(element) element.classList.add('active'); currentActiveBottom = target; updateDashboardView(); }
-        function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
+    handleBottomNav('overview', document.getElementById('nav-overview'), true);
+}
+function handleBottomNav(target, element, keepCircleContext = false) {
+    document.querySelectorAll('.nav-bar .nav-btn').forEach(btn => btn.classList.remove('active'));
+    if (element) element.classList.add('active');
+
+    if (target !== 'directory') {
+        directorySearchText = '';
+    }
+
+    if (target === 'overview' && !keepCircleContext) {
+        currentActiveCircle = '';
+        document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
+    }
+
+    currentActiveBottom = target;
+    updateDashboardView();
+} 
+    function setStatusMode(mode) { masterFilterSettings.statusMode = mode; updateDashboardView(); }
         function toggleKidsSwitch(el) { masterFilterSettings.includeKids = el.checked; updateDashboardView(); }
         function toggleCareCheckbox(id) { let idx = masterFilterSettings.selectedCares.indexOf(id); if (idx > -1) masterFilterSettings.selectedCares.splice(idx, 1); else masterFilterSettings.selectedCares.push(id); updateDashboardView(); }
         function careSelectAll() { masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID); updateDashboardView(); }
