@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.5</div>
+            <div class="version-tag">version #3.2.4</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2089,55 +2089,11 @@ function renderProfileDetailFullPage(tab, detail) {
             ">
                 <i class="fa-solid ${data.icon}"></i>
             </div>
+
             <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
                 ${data.title}
             </div>
-            <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
-                ${data.desc}
-            </div>
-        </div>
-    `;
-}
-        
-    const emptyMap = {
-        spiritual: {
-            title: 'เรื่องราวความเชื่อ',
-            icon: 'fa-dove',
-            desc: 'เตรียมเชื่อมต่อข้อมูลจาก Mbr_Spiritual ในขั้นถัดไป'
-        },
-        memo: {
-            title: 'บันทึก Memo',
-            icon: 'fa-note-sticky',
-            desc: 'เตรียมเชื่อมต่อข้อมูลจาก Mbr_Notes ในขั้นถัดไป'
-        },
-        activity: {
-            title: 'ประวัติกิจกรรม',
-            icon: 'fa-calendar-check',
-            desc: 'เตรียมเชื่อมต่อข้อมูลจาก Mbr_Activitys ในขั้นถัดไป'
-        }
-    };
 
-    const data = emptyMap[tab] || emptyMap.spiritual;
-
-    return `
-        <div class="clean-card" style="text-align:center; padding:38px 22px;">
-            <div style="
-                width:56px;
-                height:56px;
-                border-radius:20px;
-                background:var(--orange-soft);
-                color:var(--orange);
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                margin:0 auto 14px;
-                font-size:24px;
-            ">
-                <i class="fa-solid ${data.icon}"></i>
-            </div>
-            <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
-                ${data.title}
-            </div>
             <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
                 ${data.desc}
             </div>
