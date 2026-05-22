@@ -2326,7 +2326,7 @@ function renderProfileDetailFullPage(tab, detail) {
                 }
 function createActivityListItemHTML(activity, index, memberId) {
     const thumbnailUrl = activity.Member_Activity_Image_Url || activity.Act_Image_Url || '';
-    const status = activity.Act_Status || 'ไม่ระบุสถานะ';
+    const status = activity.Act_Status || 'ลงทะเบียน';
 
     const thumbnailHTML = thumbnailUrl ? `
         <img src="${thumbnailUrl}" loading="lazy" style="
@@ -2446,7 +2446,7 @@ function createActivityListItemHTML(activity, index, memberId) {
                             <div class="clean-card" style="margin-bottom:14px;">
                                 ${createActivityDetailRow('รหัสกิจกรรม', activity.Act_ID)}
                                 ${createActivityDetailRow('วันที่กิจกรรม', activity.Act_Date_Display)}
-                                ${createActivityDetailRow('สถานะสมาชิก', activity.Act_Status || 'ไม่ระบุสถานะ')}
+                                ${createActivityDetailRow('สถานะสมาชิก', activity.Act_Status || 'ลงทะเบียน')}
                                 ${createActivityDetailRow('รายละเอียดกิจกรรม', activity.Act_Description)}
                                 ${createActivityDetailRow('บันทึกสมาชิก', activity.Note)}
                             </div>
