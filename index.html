@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.13</div>
+            <div class="version-tag">version #3.2.14</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -427,10 +427,10 @@
                 </div>
                 
                 <div class="nav-btn" id="nav-filter" onclick="handleBottomNav('filter', this)"><i class="fa-solid fa-sliders"></i><span>กรองข้อมูล</span></div>
-                <div class="nav-btn" id="nav-settings" onclick="openPinSettings()">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>ตั้งค่า</span>
-                </div>
+        <div class="nav-btn" id="nav-settings" onclick="openSettingsMenu()">
+            <i class="fa-solid fa-gear"></i>
+            <span>ตั้งค่า</span>
+        </div>
             </div>
         </div>
 
@@ -3388,7 +3388,7 @@ function setupPinSettingsPopup() {
                 <i class="fa-solid fa-floppy-disk"></i>
                 บันทึก PIN ใหม่
             </button>
-${createRefreshDataCardHTML()}
+
             <button onclick="startResetPinFlow(); closePinSettings();" style="
                 width:100%;
                 margin-top:10px;
@@ -3789,6 +3789,364 @@ async function refreshAppDataFromSettings() {
         </div>
     `;
 } 
+function setupSettingsMenuPopup() {
+    if (document.getElementById('settings-menu-popup')) return;
+
+    const popup = document.createElement('div');
+    popup.id = 'settings-menu-popup';
+    popup.style.cssText = `
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,0.62);
+        backdrop-filter:blur(8px);
+        z-index:42000;
+        opacity:0;
+        pointer-events:none;
+        transition:opacity 0.25s ease;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:22px;
+    `;
+
+    popup.innerHTML = `
+        <div id="settings-menu-card" style="
+            width:100%;
+            max-width:390px;
+            background:#FFFFFF;
+            border-radius:28px;
+            overflow:hidden;
+            box-shadow:0 24px 70px rgba(15,23,42,0.28);
+            transform:translateY(18px) scale(0.96);
+            transition:transform 0.25s ease;
+        ">
+            <div style="
+                padding:22px 22px 16px;
+                background:linear-gradient(180deg, #FFF7F0 0%, #FFFFFF 100%);
+                position:relative;
+            ">
+                <button onclick="closeSettingsMenu()" style="
+                    position:absolute;
+                    top:16px;
+                    right:16px;
+                    width:36px;
+                    height:36px;
+                    border:none;
+                    border-radius:50%;
+                    background:#F1F5F9;
+                    color:var(--charcoal);
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:15px;
+                ">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <div style="
+                    width:54px;
+                    height:54px;
+                    border-radius:20px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:24px;
+                    margin-bottom:12px;
+                ">
+                    <i class="fa-solid fa-gear"></i>
+                </div>
+
+                <div style="font-size:22px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
+                    ตั้งค่าระบบ
+                </div>
+                <div style="font-size:13px; color:var(--gray-text); line-height:1.6;">
+                    เลือกสิ่งที่ต้องการจัดการ
+                </div>
+            </div>
+
+            <div style="padding:8px 18px 20px; display:flex; flex-direction:column; gap:10px;">
+                <button onclick="openPinSettingsFromMenu()" style="
+                    width:100%;
+                    border:1px solid var(--gray-border);
+                    background:#FFFFFF;
+                    border-radius:20px;
+                    padding:14px;
+                    font-family:'Prompt', sans-serif;
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    gap:12px;
+                    text-align:left;
+                    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+                ">
+                    <div style="
+                        width:44px;
+                        height:44px;
+                        border-radius:16px;
+                        background:var(--orange-soft);
+                        color:var(--orange);
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        flex-shrink:0;
+                    ">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:15px; font-weight:900; color:var(--charcoal); margin-bottom:2px;">
+                            ตั้งค่า PIN ใหม่
+                        </div>
+                        <div style="font-size:12px; color:var(--gray-text); line-height:1.45;">
+                            เปลี่ยนรหัสเข้าใช้งาน 4 หลัก
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:12px;"></i>
+                </button>
+
+                <button onclick="openPinResetConfirmPopup()" style="
+                    width:100%;
+                    border:1px solid var(--gray-border);
+                    background:#FFFFFF;
+                    border-radius:20px;
+                    padding:14px;
+                    font-family:'Prompt', sans-serif;
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    gap:12px;
+                    text-align:left;
+                    box-shadow:0 6px 18px rgba(15,23,42,0.04);
+                ">
+                    <div style="
+                        width:44px;
+                        height:44px;
+                        border-radius:16px;
+                        background:#F8FAFC;
+                        color:#64748B;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        flex-shrink:0;
+                    ">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:15px; font-weight:900; color:var(--charcoal); margin-bottom:2px;">
+                            ลืม PIN
+                        </div>
+                        <div style="font-size:12px; color:var(--gray-text); line-height:1.45;">
+                            รีเซ็ตรหัสเดิม และขอ OTP ใหม่จาก Admin
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:12px;"></i>
+                </button>
+
+                <button id="refresh-data-btn" onclick="refreshAppDataFromSettings()" style="
+                    width:100%;
+                    border:none;
+                    background:var(--orange);
+                    color:#FFFFFF;
+                    border-radius:20px;
+                    padding:15px;
+                    font-family:'Prompt', sans-serif;
+                    cursor:pointer;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    gap:9px;
+                    font-size:14px;
+                    font-weight:900;
+                    box-shadow:0 10px 24px rgba(192,100,40,0.25);
+                    margin-top:4px;
+                ">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                    Refresh Data
+                </button>
+
+                <div id="refresh-data-status" style="
+                    font-size:11px;
+                    color:var(--gray-text);
+                    text-align:center;
+                    min-height:18px;
+                    margin-top:2px;
+                ">
+                    อัปเดตข้อมูลสมาชิก กิจกรรม ข่าว และสถานะล่าสุด
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #settings-menu-popup.active {
+            opacity:1 !important;
+            pointer-events:auto !important;
+        }
+
+        #settings-menu-popup.active #settings-menu-card {
+            transform:translateY(0) scale(1) !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function openSettingsMenu() {
+    setupSettingsMenuPopup();
+
+    const popup = document.getElementById('settings-menu-popup');
+    if (!popup) return;
+
+    popup.classList.add('active');
+}
+
+function closeSettingsMenu() {
+    const popup = document.getElementById('settings-menu-popup');
+    if (!popup) return;
+
+    popup.classList.remove('active');
+}
+
+function openPinSettingsFromMenu() {
+    closeSettingsMenu();
+    openPinSettings();
+}
+
+function setupPinResetConfirmPopup() {
+    if (document.getElementById('pin-reset-confirm-popup')) return;
+
+    const popup = document.createElement('div');
+    popup.id = 'pin-reset-confirm-popup';
+    popup.style.cssText = `
+        position:fixed;
+        inset:0;
+        background:rgba(15,23,42,0.68);
+        backdrop-filter:blur(8px);
+        z-index:43000;
+        opacity:0;
+        pointer-events:none;
+        transition:opacity 0.25s ease;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:24px;
+    `;
+
+    popup.innerHTML = `
+        <div id="pin-reset-confirm-card" style="
+            width:100%;
+            max-width:370px;
+            background:#FFFFFF;
+            border-radius:28px;
+            padding:24px 20px 20px;
+            box-shadow:0 24px 70px rgba(15,23,42,0.3);
+            transform:translateY(18px) scale(0.96);
+            transition:transform 0.25s ease;
+            text-align:center;
+        ">
+            <div style="
+                width:64px;
+                height:64px;
+                border-radius:24px;
+                background:#FFF7ED;
+                color:var(--orange);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:26px;
+                margin:0 auto 14px;
+            ">
+                <i class="fa-solid fa-key"></i>
+            </div>
+
+            <div style="font-size:20px; font-weight:900; color:var(--charcoal); margin-bottom:8px;">
+                ยืนยันการลืม PIN?
+            </div>
+
+            <div style="font-size:13px; color:var(--gray-text); line-height:1.75; margin-bottom:18px;">
+                เมื่อกดลืม PIN แล้ว ระบบจะใช้รหัสเดิมไม่ได้<br>
+                และต้องขอ OTP ใหม่จาก Admin เพื่อยืนยันตัวตน
+            </div>
+
+            <button onclick="confirmPinResetFromMenu()" style="
+                width:100%;
+                border:none;
+                border-radius:17px;
+                padding:13px;
+                background:var(--orange);
+                color:#FFFFFF;
+                font-family:'Prompt', sans-serif;
+                font-size:14px;
+                font-weight:900;
+                cursor:pointer;
+                box-shadow:0 10px 22px rgba(192,100,40,0.24);
+                margin-bottom:10px;
+            ">
+                <i class="fa-solid fa-circle-check" style="margin-right:6px;"></i>
+                ยืนยัน ขอ OTP ใหม่
+            </button>
+
+            <button onclick="closePinResetConfirmPopup()" style="
+                width:100%;
+                border:1px solid var(--gray-border);
+                border-radius:17px;
+                padding:12px;
+                background:#FFFFFF;
+                color:var(--charcoal);
+                font-family:'Prompt', sans-serif;
+                font-size:13px;
+                font-weight:800;
+                cursor:pointer;
+            ">
+                ยกเลิก
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+        #pin-reset-confirm-popup.active {
+            opacity:1 !important;
+            pointer-events:auto !important;
+        }
+
+        #pin-reset-confirm-popup.active #pin-reset-confirm-card {
+            transform:translateY(0) scale(1) !important;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function openPinResetConfirmPopup() {
+    setupPinResetConfirmPopup();
+
+    const popup = document.getElementById('pin-reset-confirm-popup');
+    if (!popup) return;
+
+    popup.classList.add('active');
+}
+
+function closePinResetConfirmPopup() {
+    const popup = document.getElementById('pin-reset-confirm-popup');
+    if (!popup) return;
+
+    popup.classList.remove('active');
+}
+
+function confirmPinResetFromMenu() {
+    closePinResetConfirmPopup();
+    closeSettingsMenu();
+    startResetPinFlow();
+}
+    
     
 </script>
 </body>
