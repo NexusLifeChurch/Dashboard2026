@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.11</div>
+            <div class="version-tag">version #3.2.12</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2324,79 +2324,94 @@ function renderProfileDetailFullPage(tab, detail) {
                         `;
                     }).join('');
                 }
-                function createActivityListItemHTML(activity, index, memberId) {
-                    const hasImage = activity.Act_Image_Url || activity.Member_Activity_Image_Url;
-                    const status = activity.Act_Status || 'ไม่ระบุสถานะ';
-                
-                    return `
-                        <div onclick="openActivityDetail('${memberId}', ${index})" style="
-                            background:#FFFFFF;
-                            border:1px solid var(--gray-border);
-                            border-radius:16px;
-                            padding:12px;
-                            cursor:pointer;
-                            display:flex;
-                            gap:10px;
-                            align-items:flex-start;
-                            box-shadow:0 3px 10px rgba(15,23,42,0.03);
-                        ">
-                            <div style="
-                                width:42px;
-                                height:42px;
-                                border-radius:14px;
-                                background:var(--orange-soft);
-                                color:var(--orange);
-                                display:flex;
-                                align-items:center;
-                                justify-content:center;
-                                flex-shrink:0;
-                                font-size:16px;
-                                overflow:hidden;
-                            ">
-                                ${hasImage ? `
-                                    <i class="fa-solid fa-image"></i>
-                                ` : `
-                                    <i class="fa-solid fa-calendar-day"></i>
-                                `}
-                            </div>
-                
-                            <div style="flex:1; min-width:0;">
-                                <div style="font-size:11px; color:var(--gray-text); margin-bottom:4px;">
-                                    ${activity.Act_Date_Display || '-'}
-                                </div>
-                
-                                <div style="
-                                    font-size:14px;
-                                    font-weight:800;
-                                    color:var(--charcoal);
-                                    line-height:1.45;
-                                    margin-bottom:6px;
-                                    display:-webkit-box;
-                                    -webkit-line-clamp:2;
-                                    -webkit-box-orient:vertical;
-                                    overflow:hidden;
-                                ">
-                                    ${activity.Act_Name || '-'}
-                                </div>
-                
-                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                                    <span style="
-                                        font-size:10px;
-                                        font-weight:800;
-                                        color:var(--orange);
-                                        background:var(--orange-soft);
-                                        border-radius:999px;
-                                        padding:3px 8px;
-                                    ">
-                                        ${status}
-                                    </span>
-                                </div>
-                            </div>
-                
-                            <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:11px; margin-top:14px;"></i>
-                        </div>
-                    `;
-                }
+function createActivityListItemHTML(activity, index, memberId) {
+    const thumbnailUrl = activity.Member_Activity_Image_Url || activity.Act_Image_Url || '';
+    const status = activity.Act_Status || 'ไม่ระบุสถานะ';
+
+    const thumbnailHTML = thumbnailUrl ? `
+        <img src="${thumbnailUrl}" loading="lazy" style="
+            width:42px;
+            height:42px;
+            border-radius:14px;
+            object-fit:cover;
+            background:#F8FAFC;
+            border:1px solid var(--gray-border);
+            flex-shrink:0;
+            display:block;
+        " onerror="
+            this.onerror=null;
+            this.outerHTML='<div style=&quot;width:42px; height:42px; border-radius:14px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:16px;&quot;><i class=&quot;fa-solid fa-calendar-day&quot;></i></div>';
+        ">
+    ` : `
+        <div style="
+            width:42px;
+            height:42px;
+            border-radius:14px;
+            background:var(--orange-soft);
+            color:var(--orange);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            flex-shrink:0;
+            font-size:16px;
+        ">
+            <i class="fa-solid fa-calendar-day"></i>
+        </div>
+    `;
+
+    return `
+        <div onclick="openActivityDetail('${memberId}', ${index})" style="
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:16px;
+            padding:12px;
+            cursor:pointer;
+            display:flex;
+            gap:10px;
+            align-items:flex-start;
+            box-shadow:0 3px 10px rgba(15,23,42,0.03);
+        ">
+            <div style="flex-shrink:0;">
+                ${thumbnailHTML}
+            </div>
+
+            <div style="flex:1; min-width:0;">
+                <div style="font-size:11px; color:var(--gray-text); margin-bottom:4px;">
+                    ${activity.Act_Date_Display || '-'}
+                </div>
+
+                <div style="
+                    font-size:14px;
+                    font-weight:800;
+                    color:var(--charcoal);
+                    line-height:1.45;
+                    margin-bottom:6px;
+                    display:-webkit-box;
+                    -webkit-line-clamp:2;
+                    -webkit-box-orient:vertical;
+                    overflow:hidden;
+                ">
+                    ${activity.Act_Name || '-'}
+                </div>
+
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span style="
+                        font-size:10px;
+                        font-weight:800;
+                        color:var(--orange);
+                        background:var(--orange-soft);
+                        border-radius:999px;
+                        padding:3px 8px;
+                    ">
+                        ${status}
+                    </span>
+                </div>
+            </div>
+
+            <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:11px; margin-top:14px;"></i>
+        </div>
+    `;
+}
                     function openActivityDetail(memberId, index) {
                     const detail = memberDetailCache[String(memberId)];
                 
