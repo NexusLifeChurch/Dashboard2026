@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.10</div>
+            <div class="version-tag">version #3.2.11</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2145,15 +2145,9 @@ function renderProfileDetailFullPage(tab, detail) {
         return renderProfileMemoFullPage(detail);
     }
 
-    const emptyMap = {
-        activity: {
-            title: 'ประวัติกิจกรรม',
-            icon: 'fa-calendar-check',
-            desc: 'เตรียมเชื่อมต่อข้อมูลจาก Mbr_Activitys ในขั้นถัดไป'
-        }
-    };
-
-    const data = emptyMap[tab] || emptyMap.activity;
+    if (tab === 'activity') {
+        return renderProfileActivityFullPage(detail);
+    }
 
     return `
         <div class="clean-card" style="text-align:center; padding:38px 22px;">
@@ -2169,83 +2163,405 @@ function renderProfileDetailFullPage(tab, detail) {
                 margin:0 auto 14px;
                 font-size:24px;
             ">
-                <i class="fa-solid ${data.icon}"></i>
+                <i class="fa-solid fa-circle-question"></i>
             </div>
 
             <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
-                ${data.title}
+                ไม่พบข้อมูล
             </div>
 
             <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
-                ${data.desc}
+                ไม่พบหมวดข้อมูลที่ต้องการแสดง
             </div>
         </div>
     `;
 }
 
-function renderProfileMemoFullPage(detail) {
-    const member = detail && detail.member ? detail.member : {};
-    const notes = detail && Array.isArray(detail.notes) ? detail.notes : [];
-    const memberId = member.M_ID || '';
 
-    if (notes.length === 0) {
-        return `
-            <div style="margin-bottom:14px;">
-                <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
-                    ${member.FullName_Display || 'บันทึก Memo'}
-                </div>
-                <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
-                    ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''}
-                </div>
-            </div>
 
-            <div class="clean-card" style="text-align:center; padding:38px 22px;">
-                <div style="
-                    width:56px;
-                    height:56px;
-                    border-radius:20px;
-                    background:var(--orange-soft);
-                    color:var(--orange);
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    margin:0 auto 14px;
-                    font-size:24px;
-                ">
-                    <i class="fa-solid fa-note-sticky"></i>
-                </div>
-                <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
-                    ยังไม่มีบันทึก
-                </div>
-                <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
-                    ยังไม่พบ Memo ของสมาชิกคนนี้
-                </div>
-            </div>
-        `;
-    }
 
+    
+                function renderProfileMemoFullPage(detail) {
+                    const member = detail && detail.member ? detail.member : {};
+                    const notes = detail && Array.isArray(detail.notes) ? detail.notes : [];
+                    const memberId = member.M_ID || '';
+                
+                    if (notes.length === 0) {
+                        return `
+                            <div style="margin-bottom:14px;">
+                                <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
+                                    ${member.FullName_Display || 'บันทึก Memo'}
+                                </div>
+                                <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
+                                    ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''}
+                                </div>
+                            </div>
+                
+                            <div class="clean-card" style="text-align:center; padding:38px 22px;">
+                                <div style="
+                                    width:56px;
+                                    height:56px;
+                                    border-radius:20px;
+                                    background:var(--orange-soft);
+                                    color:var(--orange);
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    margin:0 auto 14px;
+                                    font-size:24px;
+                                ">
+                                    <i class="fa-solid fa-note-sticky"></i>
+                                </div>
+                                <div style="font-size:18px; font-weight:800; color:var(--charcoal); margin-bottom:8px;">
+                                    ยังไม่มีบันทึก
+                                </div>
+                                <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                                    ยังไม่พบ Memo ของสมาชิกคนนี้
+                                </div>
+                            </div>
+                        `;
+                    }
+                
+                    return `
+                        <div style="margin-bottom:14px;">
+                            <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
+                                ${member.FullName_Display || 'บันทึก Memo'}
+                            </div>
+                            <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
+                                ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''} • ${notes.length} บันทึก
+                            </div>
+                        </div>
+                
+                        <div class="clean-card" style="padding:14px; border-radius:20px;">
+                            <div style="font-size:13px; font-weight:800; color:var(--charcoal); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                                <div style="width:28px; height:28px; border-radius:9px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
+                                    <i class="fa-solid fa-note-sticky"></i>
+                                </div>
+                                รายการบันทึก
+                            </div>
+                
+                ${createGroupedMemoListHTML(notes, memberId)}
+                        </div>
+                    `;
+                }
+                function renderProfileActivityFullPage(detail) {
+                    const member = detail.member || {};
+                    const activities = Array.isArray(detail.activities) ? detail.activities : [];
+                
+                    if (activities.length === 0) {
+                        return `
+                            <div class="clean-card" style="text-align:center; padding:28px 18px;">
+                                <div style="width:58px; height:58px; border-radius:22px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:24px;">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                                <div style="font-size:16px; font-weight:800; color:var(--charcoal); margin-bottom:6px;">
+                                    ยังไม่มีประวัติกิจกรรม
+                                </div>
+                                <div style="font-size:13px; color:var(--gray-text); line-height:1.6;">
+                                    เมื่อมีการบันทึกกิจกรรมของสมาชิก ข้อมูลจะแสดงที่นี่
+                                </div>
+                            </div>
+                        `;
+                    }
+                
+                    return `
+                        <div style="display:flex; flex-direction:column; gap:14px;">
+                            <div class="clean-card">
+                                <div style="font-size:17px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
+                                    ${member.FullName_Display || '-'}
+                                </div>
+                                <div style="font-size:12px; color:var(--gray-text);">
+                                    ${member.M_ID || '-'} • ประวัติกิจกรรม ${activities.length} รายการ
+                                </div>
+                            </div>
+                
+                            ${createGroupedActivityListHTML(activities, member.M_ID)}
+                        </div>
+                    `;
+                }
+                
+                function createGroupedActivityListHTML(activities, memberId) {
+                    const grouped = {};
+                
+                    activities.forEach((activity, index) => {
+                        const type = activity.Act_Type || 'ไม่ระบุประเภท';
+                        const group = activity.Act_Group || 'ไม่ระบุกลุ่ม';
+                
+                        if (!grouped[type]) grouped[type] = {};
+                        if (!grouped[type][group]) grouped[type][group] = [];
+                
+                        grouped[type][group].push({ activity: activity, index: index });
+                    });
+                
+                    return Object.keys(grouped).map(type => {
+                        const groups = grouped[type];
+                
+                        return `
+                            <div style="margin-bottom:18px;">
+                                <div style="font-size:15px; font-weight:900; color:var(--orange); margin:4px 0 10px; display:flex; align-items:center; gap:8px;">
+                                    <i class="fa-solid fa-layer-group"></i>
+                                    ${type}
+                                </div>
+                
+                                ${Object.keys(groups).map(group => {
+                                    return `
+                                        <div style="margin-bottom:14px;">
+                                            <div style="font-size:13px; font-weight:800; color:var(--charcoal); margin:0 0 8px 8px; display:flex; align-items:center; gap:7px;">
+                                                <i class="fa-solid fa-folder-open" style="color:#94A3B8;"></i>
+                                                ${group}
+                                                <span style="font-size:11px; font-weight:600; color:var(--gray-text);">
+                                                    (${groups[group].length})
+                                                </span>
+                                            </div>
+                
+                                            <div style="display:flex; flex-direction:column; gap:10px;">
+                                                ${groups[group].map(item => createActivityListItemHTML(item.activity, item.index, memberId)).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        `;
+                    }).join('');
+                }
+                function createActivityListItemHTML(activity, index, memberId) {
+                    const hasImage = activity.Act_Image_Url || activity.Member_Activity_Image_Url;
+                    const status = activity.Act_Status || 'ไม่ระบุสถานะ';
+                
+                    return `
+                        <div onclick="openActivityDetail('${memberId}', ${index})" style="
+                            background:#FFFFFF;
+                            border:1px solid var(--gray-border);
+                            border-radius:16px;
+                            padding:12px;
+                            cursor:pointer;
+                            display:flex;
+                            gap:10px;
+                            align-items:flex-start;
+                            box-shadow:0 3px 10px rgba(15,23,42,0.03);
+                        ">
+                            <div style="
+                                width:42px;
+                                height:42px;
+                                border-radius:14px;
+                                background:var(--orange-soft);
+                                color:var(--orange);
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                flex-shrink:0;
+                                font-size:16px;
+                                overflow:hidden;
+                            ">
+                                ${hasImage ? `
+                                    <i class="fa-solid fa-image"></i>
+                                ` : `
+                                    <i class="fa-solid fa-calendar-day"></i>
+                                `}
+                            </div>
+                
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-size:11px; color:var(--gray-text); margin-bottom:4px;">
+                                    ${activity.Act_Date_Display || '-'}
+                                </div>
+                
+                                <div style="
+                                    font-size:14px;
+                                    font-weight:800;
+                                    color:var(--charcoal);
+                                    line-height:1.45;
+                                    margin-bottom:6px;
+                                    display:-webkit-box;
+                                    -webkit-line-clamp:2;
+                                    -webkit-box-orient:vertical;
+                                    overflow:hidden;
+                                ">
+                                    ${activity.Act_Name || '-'}
+                                </div>
+                
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    <span style="
+                                        font-size:10px;
+                                        font-weight:800;
+                                        color:var(--orange);
+                                        background:var(--orange-soft);
+                                        border-radius:999px;
+                                        padding:3px 8px;
+                                    ">
+                                        ${status}
+                                    </span>
+                                </div>
+                            </div>
+                
+                            <i class="fa-solid fa-chevron-right" style="color:#CBD5E1; font-size:11px; margin-top:14px;"></i>
+                        </div>
+                    `;
+                }
+                    function openActivityDetail(memberId, index) {
+                    const detail = memberDetailCache[String(memberId)];
+                
+                    if (!detail || !Array.isArray(detail.activities) || !detail.activities[index]) {
+                        showAlert('ไม่พบข้อมูลกิจกรรมนี้');
+                        return;
+                    }
+                
+                    const activity = detail.activities[index];
+                
+                    setupActivityDetailPopup();
+                
+                    const overlay = document.getElementById('activity-detail-popup');
+                    const content = document.getElementById('activity-detail-content');
+                
+                    content.innerHTML = `
+                        <div style="padding:22px;">
+                            <div style="text-align:center; margin-bottom:20px;">
+                                <div style="width:58px; height:58px; border-radius:22px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:24px;">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                
+                                <div style="font-size:18px; font-weight:900; color:var(--charcoal); line-height:1.4;">
+                                    ${activity.Act_Name || '-'}
+                                </div>
+                
+                                <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
+                                    ${activity.Act_Type || '-'} • ${activity.Act_Group || '-'}
+                                </div>
+                            </div>
+                
+                            <div class="clean-card" style="margin-bottom:14px;">
+                                ${createActivityDetailRow('รหัสกิจกรรม', activity.Act_ID)}
+                                ${createActivityDetailRow('วันที่กิจกรรม', activity.Act_Date_Display)}
+                                ${createActivityDetailRow('สถานะสมาชิก', activity.Act_Status || 'ไม่ระบุสถานะ')}
+                                ${createActivityDetailRow('รายละเอียดกิจกรรม', activity.Act_Description)}
+                                ${createActivityDetailRow('บันทึกสมาชิก', activity.Note)}
+                            </div>
+                
+                            ${activity.Act_Image_Url ? `
+                                <div class="clean-card" style="margin-bottom:14px;">
+                                    <div style="font-size:14px; font-weight:900; color:var(--charcoal); margin-bottom:10px;">
+                                        <i class="fa-solid fa-image" style="color:var(--orange); margin-right:6px;"></i>
+                                        รูปกิจกรรม
+                                    </div>
+                                    <img src="${activity.Act_Image_Url}" onclick="openFullScreen('${activity.Act_Image_Url}', 'Activity-Image')" style="width:100%; border-radius:16px; cursor:pointer; display:block;">
+                                </div>
+                            ` : ''}
+                
+                            ${activity.Member_Activity_Image_Url ? `
+                                <div class="clean-card">
+                                    <div style="font-size:14px; font-weight:900; color:var(--charcoal); margin-bottom:10px;">
+                                        <i class="fa-solid fa-user" style="color:var(--orange); margin-right:6px;"></i>
+                                        รูปของสมาชิกในกิจกรรม
+                                    </div>
+                                    <img src="${activity.Member_Activity_Image_Url}" onclick="openFullScreen('${activity.Member_Activity_Image_Url}', 'Member-Activity-Image')" style="width:100%; border-radius:16px; cursor:pointer; display:block;">
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                
+                    overlay.classList.add('active');
+                }
+                function setupActivityDetailPopup() {
+                    if (document.getElementById('activity-detail-popup')) return;
+                
+                    const popup = document.createElement('div');
+                    popup.id = 'activity-detail-popup';
+                    popup.style.cssText = `
+                        position:fixed;
+                        inset:0;
+                        background:rgba(15,23,42,0.55);
+                        z-index:30000;
+                        opacity:0;
+                        pointer-events:none;
+                        transition:opacity 0.25s ease;
+                        display:flex;
+                        align-items:flex-end;
+                        justify-content:center;
+                    `;
+                
+                    popup.innerHTML = `
+                        <div style="
+                            width:100%;
+                            max-width:430px;
+                            max-height:92dvh;
+                            background:#F8FAFC;
+                            border-radius:26px 26px 0 0;
+                            overflow:hidden;
+                            transform:translateY(100%);
+                            transition:transform 0.25s ease;
+                            box-shadow:0 -12px 40px rgba(15,23,42,0.18);
+                        " id="activity-detail-sheet">
+                            <div style="
+                                height:56px;
+                                display:flex;
+                                align-items:center;
+                                justify-content:space-between;
+                                padding:0 18px;
+                                background:#FFFFFF;
+                                border-bottom:1px solid var(--gray-border);
+                            ">
+                                <div style="font-size:15px; font-weight:900; color:var(--charcoal);">
+                                    รายละเอียดกิจกรรม
+                                </div>
+                                <button onclick="closeActivityDetail()" style="
+                                    width:34px;
+                                    height:34px;
+                                    border:none;
+                                    border-radius:50%;
+                                    background:#F1F5F9;
+                                    color:var(--charcoal);
+                                    cursor:pointer;
+                                ">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                
+                            <div id="activity-detail-content" style="
+                                max-height:calc(92dvh - 56px);
+                                overflow-y:auto;
+                                -webkit-overflow-scrolling:touch;
+                            "></div>
+                        </div>
+                    `;
+                
+                    document.body.appendChild(popup);
+                
+                    const style = document.createElement('style');
+                    style.innerHTML = `
+                        #activity-detail-popup.active {
+                            opacity:1 !important;
+                            pointer-events:auto !important;
+                        }
+                
+                        #activity-detail-popup.active #activity-detail-sheet {
+                            transform:translateY(0) !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                function closeActivityDetail() {
+                    const overlay = document.getElementById('activity-detail-popup');
+                    if (!overlay) return;
+                
+                    overlay.classList.remove('active');
+                }
+
+
+
+
+    
+function createActivityDetailRow(label, value) {
     return `
-        <div style="margin-bottom:14px;">
-            <div style="font-size:22px; font-weight:800; color:var(--charcoal); line-height:1.25;">
-                ${member.FullName_Display || 'บันทึก Memo'}
+        <div style="display:flex; justify-content:space-between; gap:14px; padding:12px 0; border-bottom:1px solid var(--gray-border);">
+            <div style="font-size:12px; color:var(--gray-text); min-width:92px;">
+                ${label}
             </div>
-            <div style="font-size:12px; color:var(--gray-text); margin-top:5px;">
-                ${member.M_ID || ''} ${member.CareName ? `• ${member.CareName}` : ''} • ${notes.length} บันทึก
+            <div style="font-size:13px; font-weight:700; color:var(--charcoal); text-align:right; line-height:1.55; white-space:pre-line;">
+                ${value || '-'}
             </div>
-        </div>
-
-        <div class="clean-card" style="padding:14px; border-radius:20px;">
-            <div style="font-size:13px; font-weight:800; color:var(--charcoal); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
-                <div style="width:28px; height:28px; border-radius:9px; background:var(--orange-soft); color:var(--orange); display:flex; align-items:center; justify-content:center;">
-                    <i class="fa-solid fa-note-sticky"></i>
-                </div>
-                รายการบันทึก
-            </div>
-
-${createGroupedMemoListHTML(notes, memberId)}
         </div>
     `;
 }
+    
 function createGroupedMemoListHTML(notes, memberId) {
     const grouped = {};
 
