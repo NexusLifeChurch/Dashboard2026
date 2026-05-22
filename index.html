@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.21</div>
+            <div class="version-tag">version #3.2.22</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -4432,10 +4432,10 @@ function renderActivityOverviewView(contentArea) {
                 grid-template-columns:repeat(2, 1fr);
                 gap:10px;
             ">
-                ${createActivitySummaryMiniCardHTML('กิจกรรมทั้งหมด', overview.activityCount, 'รายการ', 'fa-calendar-check')}
-                ${createActivitySummaryMiniCardHTML('คนไม่ซ้ำ', overview.uniquePeopleCount, 'คน', 'fa-users')}
-                ${createActivitySummaryMiniCardHTML('Act Group', overview.groupCount, 'กลุ่ม', 'fa-layer-group')}
-                ${createActivitySummaryMiniCardHTML('รายการเข้าร่วม', overview.recordCount, 'รายการ', 'fa-list-check')}
+${createActivitySummaryMiniCardHTML('หลักสูตร/หมวดกิจกรรม', overview.groupCount, 'กลุ่ม', 'fa-layer-group')}
+${createActivitySummaryMiniCardHTML('Season/รอบ', overview.activityCount, 'รายการ', 'fa-calendar-check')}
+${createActivitySummaryMiniCardHTML('รายการเข้าร่วม', overview.recordCount, 'รายการ', 'fa-list-check')}
+${createActivitySummaryMiniCardHTML('คนที่ไม่ซ้ำราย', overview.uniquePeopleCount, 'คน', 'fa-users')}
             </div>
 
             <div style="
@@ -4448,7 +4448,7 @@ function renderActivityOverviewView(contentArea) {
                 line-height:1.6;
             ">
                 <i class="fa-solid fa-circle-info" style="color:var(--orange); margin-right:5px;"></i>
-                จำนวนคนไม่ซ้ำ: ถ้าคนเดียวอยู่หลายกิจกรรม จะนับเป็น 1 คน และคำนวณตาม Master Filter ปัจจุบัน
+                จำนวนคนไม่ซ้ำ: กรณีบุคคลเดียวเข้าร่วมหลายกิจกรรม จะนับเป็น 1 คน โดยคำนวณตามเงื่อนไขการกรองข้อมูลปัจจุบัน
             </div>
         </div>
     `;
