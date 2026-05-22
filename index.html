@@ -1976,7 +1976,7 @@ function getProfileTabBadge(detail, tabId) {
             c.Shipping_Phone
         ].some(value => String(value || '').trim() !== '');
 
-        return hasContact ? '•' : '';
+        return hasContact ? '✓' : '';
     }
 
     if (tabId === 'spiritual') {
@@ -1989,7 +1989,7 @@ function getProfileTabBadge(detail, tabId) {
             s.Interest
         ].some(value => String(value || '').trim() !== '');
 
-        return hasSpiritual ? '•' : '';
+        return hasSpiritual ? '✓' : '';
     }
 
     if (tabId === 'memo') {
