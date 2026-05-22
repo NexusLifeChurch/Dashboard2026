@@ -490,6 +490,11 @@
         let dbCares = [];  
         let dbNews = []; // ตัวแปรเก็บข้อมูลคำนิยาม
         
+        let dbActivities = [];
+        let selectedActivityType = 'Nexus Journey';
+        let selectedActivityGroup = '';
+        let selectedActivityId = '';
+        
         let memberDetailCache = {};
         let currentProfileTab = 'contact';
         
@@ -634,6 +639,26 @@ function fetchBirthdayData() {
             showAlert('โหลดวันเกิดไม่ได้', 'กรุณาตรวจสอบ API birthdays');
         });
 }
+
+function fetchActivityData() {
+    fetch(API_URL + '?action=activities')
+        .then(res => res.json())
+        .then(responseObj => {
+            if (!responseObj.success) {
+                showAlert('โหลดกิจกรรมไม่สำเร็จ', responseObj.error || 'ไม่ทราบสาเหตุ');
+                return;
+            }
+
+            dbActivities = responseObj.activities || [];
+            updateDashboardView();
+        })
+        .catch(err => {
+            console.error('Activity Data Error:', err);
+            showAlert('โหลดกิจกรรมไม่ได้', 'กรุณาตรวจสอบ API activities');
+        });
+}
+
+    
         function getFilteredData() {
             return dbMembers.filter(m => {
                 let nxl = m.Nxl_Status;
@@ -707,6 +732,10 @@ function selectCircleMenu(type, element) {
     if (type === 'birthday' && dbBirthdays.length === 0) {
         fetchBirthdayData();
     }
+
+    if (type === 'event' && dbActivities.length === 0) {
+    fetchActivityData();
+}
 
     handleBottomNav('overview', document.getElementById('nav-overview'), true);
 }
