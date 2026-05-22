@@ -657,7 +657,19 @@ function fetchActivityData() {
             showAlert('โหลดกิจกรรมไม่ได้', 'กรุณาตรวจสอบ API activities');
         });
 }
+function getActivityStatusFinalGroup(statusValue) {
+    const status = String(statusValue || '').trim();
 
+    if (status === 'Completed') {
+        return 'passed';
+    }
+
+    if (status === 'Drop' || status === 'Failed') {
+        return 'failed';
+    }
+
+    return 'other';
+}
     
         function getFilteredData() {
             return dbMembers.filter(m => {
