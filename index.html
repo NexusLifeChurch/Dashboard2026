@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.16</div>
+            <div class="version-tag">version #3.2.17</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -787,6 +787,45 @@ function countUniqueMemberIdsFromParticipants(participants) {
                 return statusMatch && kidsMatch && careMatch;
             });
         }
+
+function isMemberPassedMasterFilter(member) {
+    const nxl = String(member.Nxl_Status || '').trim();
+
+    let statusMatch = true;
+
+    if (masterFilterSettings.statusMode === 'COMMUNITY') {
+        const commStatuses = [
+            'Fm-Reg',
+            'Fm-UnReg',
+            'Fm-Kids',
+            'Fr-',
+            'Fr-NxC',
+            'Fr-OTH',
+            'Fr-Rtn-OTH',
+            'Fr-Rtn-NxC'
+        ];
+
+        statusMatch = commStatuses.includes(nxl);
+    } else if (masterFilterSettings.statusMode === 'SEND') {
+        const sendStatuses = [
+            'Fr-Rtn-OTH',
+            'Fr-Rtn-NxC',
+            'Send-OTH',
+            'Send-NxC'
+        ];
+
+        statusMatch = sendStatuses.includes(nxl);
+    }
+
+    const kidsMatch = masterFilterSettings.includeKids
+        ? true
+        : String(member.CareName || '').trim() !== 'Life Kids';
+
+    const careMatch = masterFilterSettings.selectedCares.includes(member.Care_ID);
+
+    return statusMatch && kidsMatch && careMatch;
+}
+    
 
         function generateDonutGradient(segments) {
             let currentTotal = 0; let gradParts = [];
