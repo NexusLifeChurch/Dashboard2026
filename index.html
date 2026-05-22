@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.18</div>
+            <div class="version-tag">version #3.2.19</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -685,91 +685,7 @@ function countUniqueMemberIdsFromParticipants(participants) {
     return Object.keys(uniqueMap).length;
 }
 
-    function getActivityOverviewData(actType) {
-    const filteredActivities = dbActivities.filter(activity => {
-        return String(activity.Act_Type || '').trim() === actType;
-    });
-
-    const allParticipants = [];
-
-    filteredActivities.forEach(activity => {
-        const participants = Array.isArray(activity.Participants) ? activity.Participants : [];
-
-        participants.forEach(person => {
-            allParticipants.push(person);
-        });
-    });
-
-    const groupMap = {};
-
-    filteredActivities.forEach(activity => {
-        const groupName = String(activity.Act_Group || 'ไม่ระบุกลุ่ม').trim();
-        const participants = Array.isArray(activity.Participants) ? activity.Participants : [];
-
-        if (!groupMap[groupName]) {
-            groupMap[groupName] = {
-                Act_Group: groupName,
-                activities: [],
-                participantMap: {}
-            };
-        }
-
-        groupMap[groupName].activities.push(activity);
-
-        participants.forEach(person => {
-            const memberId = String(person.M_ID || '').trim();
-            if (!memberId) return;
-
-            if (!groupMap[groupName].participantMap[memberId]) {
-                groupMap[groupName].participantMap[memberId] = {
-                    M_ID: memberId,
-                    finalStatus: 'other'
-                };
-            }
-
-            const statusGroup = getActivityStatusFinalGroup(person.Act_Status);
-
-            if (statusGroup === 'passed') {
-                groupMap[groupName].participantMap[memberId].finalStatus = 'passed';
-            } else if (
-                statusGroup === 'failed' &&
-                groupMap[groupName].participantMap[memberId].finalStatus !== 'passed'
-            ) {
-                groupMap[groupName].participantMap[memberId].finalStatus = 'failed';
-            }
-        });
-    });
-
-    const groups = Object.values(groupMap).map(group => {
-        const people = Object.values(group.participantMap);
-
-        const statusCounts = {
-            passed: people.filter(person => person.finalStatus === 'passed').length,
-            failed: people.filter(person => person.finalStatus === 'failed').length,
-            other: people.filter(person => person.finalStatus === 'other').length
-        };
-
-        return {
-            Act_Group: group.Act_Group,
-            activities: group.activities,
-            activityCount: group.activities.length,
-            uniquePeopleCount: people.length,
-            statusCounts: statusCounts
-        };
-    });
-
-    return {
-        Act_Type: actType,
-        activities: filteredActivities,
-        activityCount: filteredActivities.length,
-        recordCount: allParticipants.length,
-        uniquePeopleCount: countUniqueMemberIdsFromParticipants(allParticipants),
-        groupCount: groups.length,
-        groups: groups
-    };
-}
-
-    
+       
     
         function getFilteredData() {
             return dbMembers.filter(m => {
@@ -829,7 +745,7 @@ function isMemberPassedMasterFilter(member) {
 
 function getActivityOverviewData(actType) {
     const filteredActivities = dbActivities.filter(activity => {
-        return String(activity.Act_Type || '').trim() === actType;
+        return String(activity.Act_Type || '').trim().toLowerCase() === String(actType || '').trim().toLowerCase();
     });
 
     const allParticipants = [];
@@ -912,6 +828,38 @@ function getActivityOverviewData(actType) {
     };
 }
 
+ function createActivityTypeFilterHTML() {
+    const types = [
+        { value: 'Nexus Journey', label: 'Nexus Journey' },
+        { value: 'Course', label: 'Course' },
+        { value: 'Event', label: 'Event' }
+    ];
+
+    return `
+        <div class="clean-card" style="padding:14px; margin-bottom:14px;">
+            <div style="font-size:13px; font-weight:800; color:var(--charcoal); margin-bottom:10px;">
+                <i class="fa-solid fa-filter" style="color:var(--orange); margin-right:6px;"></i>
+                เลือกประเภทกิจกรรม
+            </div>
+
+            <div class="seg-control">
+                ${types.map(type => `
+                    <div class="seg-btn ${selectedActivityType === type.value ? 'active' : ''}" onclick="setActivityType('${type.value}')">
+                        ${type.label}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}   
+
+
+    function setActivityType(type) {
+    selectedActivityType = type;
+    selectedActivityGroup = '';
+    selectedActivityId = '';
+    updateDashboardView();
+}
     
         function generateDonutGradient(segments) {
             let currentTotal = 0; let gradParts = [];
