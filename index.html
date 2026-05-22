@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.12</div>
+            <div class="version-tag">version #3.2.13</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -3388,7 +3388,7 @@ function setupPinSettingsPopup() {
                 <i class="fa-solid fa-floppy-disk"></i>
                 บันทึก PIN ใหม่
             </button>
-
+${createRefreshDataCardHTML()}
             <button onclick="startResetPinFlow(); closePinSettings();" style="
                 width:100%;
                 margin-top:10px;
@@ -3655,6 +3655,141 @@ function clearPinFailState() {
     
     function showAlert(t, m) { document.getElementById('alert-title-text').innerText = t; document.getElementById('alert-msg-text').innerText = m; document.getElementById('custom-alert').classList.add('show'); }
         function closeAlert() { document.getElementById('custom-alert').classList.remove('show'); }
+
+async function refreshAppDataFromSettings() {
+    const btn = document.getElementById('refresh-data-btn');
+    const status = document.getElementById('refresh-data-status');
+
+    if (!btn) return;
+
+    const oldHTML = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.style.opacity = '0.75';
+    btn.innerHTML = `
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        กำลังอัปเดต...
+    `;
+
+    if (status) {
+        status.innerHTML = 'กำลังดึงข้อมูลล่าสุดจากฐานข้อมูล';
+        status.style.color = 'var(--gray-text)';
+    }
+
+    try {
+        memberDetailCache = {};
+        currentActiveCircle = '';
+
+        await fetchAllSheetsData();
+
+        if (typeof renderDashboard === 'function') {
+            renderDashboard();
+        }
+
+        if (typeof updateDashboardView === 'function') {
+            updateDashboardView();
+        }
+
+        if (status) {
+            status.innerHTML = `
+                <i class="fa-solid fa-circle-check"></i>
+                อัปเดตข้อมูลล่าสุดแล้ว
+            `;
+            status.style.color = 'var(--orange)';
+        }
+
+        showAlert('อัปเดตข้อมูลล่าสุดแล้ว');
+    } catch (err) {
+        console.error('Refresh data error:', err);
+
+        if (status) {
+            status.innerHTML = `
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                อัปเดตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง
+            `;
+            status.style.color = '#DC2626';
+        }
+
+        showAlert('อัปเดตไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.innerHTML = oldHTML;
+        }, 900);
+    }
+}
+
+   function createRefreshDataCardHTML() {
+    return `
+        <div style="
+            margin:18px 0 0;
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:22px;
+            padding:16px;
+            box-shadow:0 8px 24px rgba(15,23,42,0.06);
+        ">
+            <div style="display:flex; align-items:flex-start; gap:12px; margin-bottom:14px;">
+                <div style="
+                    width:44px;
+                    height:44px;
+                    border-radius:16px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:18px;
+                    flex-shrink:0;
+                ">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </div>
+
+                <div style="flex:1;">
+                    <div style="font-size:15px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
+                        อัปเดตข้อมูลล่าสุด
+                    </div>
+                    <div style="font-size:12px; color:var(--gray-text); line-height:1.55;">
+                        ดึงข้อมูลสมาชิก กิจกรรม ข่าว และสถานะล่าสุดจากฐานข้อมูล
+                    </div>
+                </div>
+            </div>
+
+            <button id="refresh-data-btn" onclick="refreshAppDataFromSettings()" style="
+                width:100%;
+                border:none;
+                border-radius:16px;
+                padding:13px 14px;
+                background:var(--orange);
+                color:#FFFFFF;
+                font-family:'Prompt', sans-serif;
+                font-size:14px;
+                font-weight:900;
+                cursor:pointer;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                gap:8px;
+                box-shadow:0 8px 18px rgba(192,100,40,0.24);
+            ">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                อัปเดตข้อมูลล่าสุด
+            </button>
+
+            <div id="refresh-data-status" style="
+                margin-top:10px;
+                font-size:11px;
+                color:var(--gray-text);
+                text-align:center;
+                min-height:18px;
+            ">
+                ใช้เมื่อต้องการดึงข้อมูลใหม่จาก Google Sheet
+            </div>
+        </div>
+    `;
+} 
+    
 </script>
 </body>
 </html>
