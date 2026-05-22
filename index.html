@@ -349,7 +349,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.19</div>
+            <div class="version-tag">version #3.2.20</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1724,6 +1724,10 @@ function renderBirthdayView(contentArea) {
                 else if (currentActiveBottom === 'overview' && currentActiveCircle === 'birthday') {
                     renderBirthdayView(contentArea);
                 }
+else if (currentActiveBottom === 'overview' && currentActiveCircle === 'event') {
+    renderActivityOverviewView(contentArea);
+}
+                    
                 else if (currentActiveBottom === 'overview') {
                     const filteredData = getFilteredData(); const total = filteredData.length;
                     let donutGradientStr = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
@@ -4360,7 +4364,34 @@ function confirmPinResetFromMenu() {
     closeSettingsMenu();
     startResetPinFlow();
 }
-    
+    function renderActivityOverviewView(contentArea) {
+    contentArea.innerHTML = `
+        <div class="clean-card" style="text-align:center; padding:30px 20px;">
+            <div style="
+                width:58px;
+                height:58px;
+                border-radius:22px;
+                background:var(--orange-soft);
+                color:var(--orange);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin:0 auto 14px;
+                font-size:24px;
+            ">
+                <i class="fa-regular fa-calendar-check"></i>
+            </div>
+
+            <div style="font-size:18px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                ภาพรวมกิจกรรม
+            </div>
+
+            <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                กำลังเตรียมแสดงภาพรวมกิจกรรมตามประเภทที่เลือก
+            </div>
+        </div>
+    `;
+}
     
 </script>
 </body>
