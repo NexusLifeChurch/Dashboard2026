@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.33</div>
+            <div class="version-tag">version #3.2.34</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -529,6 +529,11 @@
         let dbNews = []; // ตัวแปรเก็บข้อมูลคำนิยาม
         
         let dbActivities = [];
+    let dbMentors = [];
+let dbMentorMembers = [];
+let selectedMentorLevel = 'ALL';
+let mentorSearchQuery = '';
+let selectedMentorId = '';
         let selectedActivityType = 'Nexus Journey';
         let selectedActivityGroup = '';
         let selectedActivityId = '';
@@ -695,6 +700,30 @@ function fetchActivityData() {
             showAlert('โหลดกิจกรรมไม่ได้', 'กรุณาตรวจสอบ API activities');
         });
 }
+
+function fetchMentorData() {
+    console.log('Fetching mentor data...');
+
+    fetch(API_URL + '?action=mentors')
+        .then(response => response.json())
+        .then(responseObj => {
+            dbMentors = responseObj.mentors || [];
+            dbMentorMembers = responseObj.mentorMembers || [];
+
+            console.log('Mentor data loaded:', {
+                mentors: dbMentors.length,
+                mentorMembers: dbMentorMembers.length
+            });
+
+            updateDashboardView();
+        })
+        .catch(error => {
+            console.error('Error fetching mentor data:', error);
+            showAlert('โหลดข้อมูลผู้เลี้ยงไม่สำเร็จ', 'กรุณาลอง Refresh Data อีกครั้ง');
+        });
+}
+
+    
 function getActivityStatusFinalGroup(statusValue) {
     const status = String(statusValue || '').trim();
 
@@ -987,7 +1016,16 @@ if (type === 'event') {
         fetchActivityData();
     }
 }
+if (type === 'mentor') {
+    selectedMentorLevel = 'ALL';
+    mentorSearchQuery = '';
+    selectedMentorId = '';
 
+    if (dbMentors.length === 0) {
+        fetchMentorData();
+    }
+}
+    
     handleBottomNav('overview', document.getElementById('nav-overview'), true);
 }
 function handleBottomNav(target, element, keepCircleContext = false) {
