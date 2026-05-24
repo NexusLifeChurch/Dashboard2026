@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.32</div>
+            <div class="version-tag">version #3.2.33</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -797,7 +797,8 @@ function getActivityOverviewData(actType) {
             ? activity.Participants.filter(person => isMemberPassedMasterFilter(person))
             : [];
 
-        // ถ้าหลังผ่าน Master Filter แล้วไม่มีคนเลย
+        // สำคัญ:
+        // ถ้ากิจกรรมนี้ไม่มีผู้เข้าร่วมที่ผ่าน Master Filter
         // ไม่ต้องนับกิจกรรมนี้ใน Overview
         if (participants.length === 0) return;
 
@@ -867,11 +868,22 @@ function getActivityOverviewData(actType) {
 
     return {
         Act_Type: actType,
+
+        // ใช้เฉพาะกิจกรรมที่มีคนหลังผ่าน Master Filter แล้ว
         activities: visibleActivities,
+
+        // รอบจัด = เฉพาะกิจกรรมที่ยังมีคนตาม filter
         activityCount: visibleActivities.length,
+
+        // การเข้าร่วม = จำนวน record ผู้เข้าร่วมหลัง filter
         recordCount: allParticipants.length,
+
+        // ผู้เข้าร่วมไม่ซ้ำ = นับ M_ID ไม่ซ้ำหลัง filter
         uniquePeopleCount: countUniqueMemberIdsFromParticipants(allParticipants),
+
+        // หมวด = เฉพาะหมวดที่ยังมีกิจกรรมและมีคนหลัง filter
         groupCount: groups.length,
+
         groups: groups
     };
 }
