@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.38</div>
+            <div class="version-tag">version #3.2.39</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -946,7 +946,7 @@ function createMentorWorkloadBarHTML(mentor, maxSheepCount) {
     const sheepCount = mentor.sheepCount || 0;
 
     return `
-        <div style="
+        <div onclick="selectMentor('${mentor.Mentor_ID}')" style="
             background:#FFFFFF;
             border:1px solid var(--gray-border);
             border-radius:16px;
@@ -955,6 +955,7 @@ function createMentorWorkloadBarHTML(mentor, maxSheepCount) {
             display:flex;
             align-items:flex-start;
             gap:12px;
+            cursor:pointer;
             box-shadow:0 3px 10px rgba(15,23,42,0.03);
         ">
             <img src="${imageUrl}" style="
@@ -1211,7 +1212,236 @@ function createMentorWorkloadBarHTML(mentor, maxSheepCount) {
         </div>
     `;
 }
+function selectMentor(mentorId) {
+    selectedMentorId = mentorId || '';
+    updateDashboardView();
+}
 
+function clearSelectedMentor() {
+    selectedMentorId = '';
+    updateDashboardView();
+}
+
+function createMentorSheepRowHTML(member) {
+    const imageUrl = member.Url_Image || FALLBACK_IMAGE_URL;
+
+    return `
+        <div onclick="openProfile('${member.M_ID}')" style="
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:16px;
+            padding:12px;
+            margin-bottom:10px;
+            display:flex;
+            align-items:flex-start;
+            gap:12px;
+            cursor:pointer;
+            box-shadow:0 3px 10px rgba(15,23,42,0.03);
+        ">
+            <img src="${imageUrl}" style="
+                width:48px;
+                height:48px;
+                border-radius:16px;
+                object-fit:cover;
+                background:#F1F5F9;
+                flex-shrink:0;
+            " onerror="this.onerror=null; this.src='${FALLBACK_IMAGE_URL}'">
+
+            <div style="flex:1; min-width:0;">
+                <div style="
+                    font-size:14px;
+                    font-weight:900;
+                    color:var(--charcoal);
+                    line-height:1.35;
+                    margin-bottom:4px;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    ${member.FullName_Display || '-'}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:var(--gray-text);
+                    line-height:1.45;
+                    margin-bottom:6px;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    ${member.CareName || '-'} • ${member.Nxl_Status || '-'}
+                </div>
+
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <span style="
+                        display:inline-flex;
+                        align-items:center;
+                        gap:5px;
+                        background:var(--orange-soft);
+                        color:var(--orange);
+                        border-radius:999px;
+                        padding:4px 9px;
+                        font-size:10px;
+                        font-weight:900;
+                    ">
+                        <i class="fa-solid fa-heart" style="font-size:9px;"></i>
+                        Family
+                    </span>
+
+                    ${member.Role ? `
+                        <span style="
+                            display:inline-flex;
+                            align-items:center;
+                            gap:5px;
+                            background:#F8FAFC;
+                            color:var(--gray-text);
+                            border:1px solid var(--gray-border);
+                            border-radius:999px;
+                            padding:4px 9px;
+                            font-size:10px;
+                            font-weight:800;
+                        ">
+                            ${member.Role}
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+
+            <i class="fa-solid fa-chevron-right" style="
+                color:#CBD5E1;
+                font-size:12px;
+                margin-top:18px;
+                flex-shrink:0;
+            "></i>
+        </div>
+    `;
+}
+
+function renderSelectedMentorSheepView(contentArea, mentor) {
+    const sheep = Array.isArray(mentor.sheep) ? mentor.sheep : [];
+    const imageUrl = mentor.Url_Image || FALLBACK_IMAGE_URL;
+
+    contentArea.innerHTML = `
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <button onclick="clearSelectedMentor()" style="
+                border:none;
+                background:#F8FAFC;
+                color:var(--gray-text);
+                border-radius:999px;
+                padding:8px 12px;
+                font-family:'Prompt', sans-serif;
+                font-size:12px;
+                font-weight:800;
+                margin-bottom:14px;
+                cursor:pointer;
+            ">
+                <i class="fa-solid fa-arrow-left" style="margin-right:5px;"></i>
+                กลับไปรายชื่อผู้เลี้ยง
+            </button>
+
+            <div style="display:flex; align-items:center; gap:13px;">
+                <img src="${imageUrl}" style="
+                    width:62px;
+                    height:62px;
+                    border-radius:22px;
+                    object-fit:cover;
+                    background:#F1F5F9;
+                    flex-shrink:0;
+                " onerror="this.onerror=null; this.src='${FALLBACK_IMAGE_URL}'">
+
+                <div style="flex:1; min-width:0;">
+                    <div style="
+                        font-size:18px;
+                        font-weight:900;
+                        color:var(--charcoal);
+                        line-height:1.35;
+                        margin-bottom:4px;
+                    ">
+                        ${mentor.Mentor_Name || mentor.FullName_Display || '-'}
+                    </div>
+
+                    <div style="
+                        font-size:12px;
+                        color:var(--gray-text);
+                        line-height:1.6;
+                    ">
+                        ${mentor.Mentor_Level || 'ไม่ระบุระดับ'} ${mentor.CareName ? '• ' + mentor.CareName : ''}
+                    </div>
+                </div>
+            </div>
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:10px;
+                margin-top:15px;
+            ">
+                ${createMentorSummaryMiniCardHTML(sheep.length, 'ลูกแกะในความดูแล', 'fa-people-roof')}
+                ${createMentorSummaryMiniCardHTML(mentor.familyCount || sheep.length, 'Family', 'fa-heart')}
+            </div>
+
+            <div style="
+                font-size:11px;
+                color:var(--gray-text);
+                line-height:1.6;
+                margin-top:12px;
+                background:#F8FAFC;
+                border-radius:12px;
+                padding:9px 10px;
+            ">
+                <i class="fa-solid fa-circle-info" style="color:var(--orange); margin-right:5px;"></i>
+                รายชื่อนี้อ้างอิงสมาชิกสถานภาพ Family และปรับตามตัวกรองปัจจุบัน
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <div style="font-size:16px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
+                <i class="fa-solid fa-list-ul" style="color:var(--orange); margin-right:6px;"></i>
+                ลูกแกะในความดูแล
+            </div>
+
+            <div style="font-size:12px; color:var(--gray-text); line-height:1.6; margin-bottom:13px;">
+                พบ ${sheep.length} คนตามตัวกรองปัจจุบัน
+            </div>
+
+            ${sheep.length > 0
+                ? sheep.map(member => createMentorSheepRowHTML(member)).join('')
+                : `
+                    <div style="text-align:center; padding:24px 16px;">
+                        <div style="
+                            width:58px;
+                            height:58px;
+                            border-radius:22px;
+                            background:var(--orange-soft);
+                            color:var(--orange);
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            margin:0 auto 14px;
+                            font-size:24px;
+                        ">
+                            <i class="fa-solid fa-user-slash"></i>
+                        </div>
+
+                        <div style="font-size:16px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                            ไม่พบลูกแกะตามตัวกรองนี้
+                        </div>
+
+                        <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                            ลองปรับตัวกรองข้อมูลปัจจุบัน หรือเลือกผู้เลี้ยงคนอื่น
+                        </div>
+                    </div>
+                `
+            }
+        </div>
+    `;
+}
+    
+    
+
+
+    
 function renderMentorDirectoryView(contentArea) {
     if (dbMentors.length === 0) {
         contentArea.innerHTML = `
@@ -1245,6 +1475,16 @@ function renderMentorDirectoryView(contentArea) {
 
     const overview = getMentorOverviewData();
     const mentors = overview.mentors;
+    if (selectedMentorId) {
+    const selectedMentor = mentors.find(mentor => {
+        return String(mentor.Mentor_ID || '').trim() === String(selectedMentorId || '').trim();
+    });
+
+    if (selectedMentor) {
+        renderSelectedMentorSheepView(contentArea, selectedMentor);
+        return;
+    }
+}
 
     contentArea.innerHTML = `
         <div class="clean-card" style="padding:18px; margin-bottom:14px;">
