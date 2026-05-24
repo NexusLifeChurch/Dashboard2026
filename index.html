@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.28</div>
+            <div class="version-tag">version #3.2.29</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -4781,7 +4781,49 @@ function getActivityDirectoryRows() {
         return (b.Act_Date_Sort || 0) - (a.Act_Date_Sort || 0);
     });
 }
-       
+
+function getActivityDirectoryGroups() {
+    const groupSet = new Set();
+
+    dbActivities.forEach(activity => {
+        const actType = String(activity.Act_Type || '').trim();
+        const actGroup = String(activity.Act_Group || '').trim();
+
+        const typeMatch = actType.toLowerCase() === String(selectedActivityType || '').trim().toLowerCase();
+
+        if (typeMatch && actGroup) {
+            groupSet.add(actGroup);
+        }
+    });
+
+    return Array.from(groupSet).sort((a, b) => {
+        return a.localeCompare(b, 'th', { numeric: true });
+    });
+}
+function getActivityDirectoryActivities() {
+    const activityMap = {};
+
+    dbActivities.forEach(activity => {
+        const actType = String(activity.Act_Type || '').trim();
+        const actGroup = String(activity.Act_Group || '').trim();
+        const actId = String(activity.Act_ID || '').trim();
+
+        const typeMatch = actType.toLowerCase() === String(selectedActivityType || '').trim().toLowerCase();
+        const groupMatch = !selectedActivityGroup || selectedActivityGroup === 'ALL' || actGroup === selectedActivityGroup;
+
+        if (typeMatch && groupMatch && actId) {
+            activityMap[actId] = activity;
+        }
+    });
+
+    return Object.values(activityMap).sort((a, b) => {
+        return (b.Act_Date_Sort || 0) - (a.Act_Date_Sort || 0);
+    });
+}
+
+    
+    
+    
     
 function showComingSoon(featureName) {
     showAlert(
