@@ -4729,7 +4729,58 @@ function renderActivityDirectoryView(contentArea) {
         </div>
     `;
 }
+function getActivityDirectoryRows() {
+    const rows = [];
 
+    dbActivities.forEach(activity => {
+        const actType = String(activity.Act_Type || '').trim();
+        const actGroup = String(activity.Act_Group || '').trim();
+        const actId = String(activity.Act_ID || '').trim();
+
+        const typeMatch = actType.toLowerCase() === String(selectedActivityType || '').trim().toLowerCase();
+
+        const groupMatch = !selectedActivityGroup || selectedActivityGroup === 'ALL' || actGroup === selectedActivityGroup;
+
+        const actMatch = !selectedActivityId || selectedActivityId === 'ALL' || actId === selectedActivityId;
+
+        if (!typeMatch || !groupMatch || !actMatch) return;
+
+        const participants = Array.isArray(activity.Participants) ? activity.Participants : [];
+
+        participants.forEach(person => {
+            if (!isMemberPassedMasterFilter(person)) return;
+
+            rows.push({
+                M_ID: person.M_ID,
+                FullName_Display: person.FullName_Display,
+                Url_Image: person.Url_Image,
+                Care_ID: person.Care_ID,
+                CareName: person.CareName,
+                Nxl_Status: person.Nxl_Status,
+                Classify: person.Classify,
+
+                Act_ID: activity.Act_ID,
+                Act_Type: activity.Act_Type,
+                Act_Group: activity.Act_Group,
+                Act_Name: activity.Act_Name,
+                Act_Date_Display: activity.Act_Date_Display,
+                Act_Date_Sort: activity.Act_Date_Sort,
+
+                Act_Status: person.Act_Status,
+                Act_Status_Display: person.Act_Status_Display || 'ลงทะเบียน',
+                Act_Status_Group: person.Act_Status_Group || 'other',
+                Act_Status_Group_Label: person.Act_Status_Group_Label || 'อื่น ๆ',
+
+                Member_Activity_Image_Url: person.Member_Activity_Image_Url,
+                Note: person.Note
+            });
+        });
+    });
+
+    return rows.sort((a, b) => {
+        return (b.Act_Date_Sort || 0) - (a.Act_Date_Sort || 0);
+    });
+}
        
     
 function showComingSoon(featureName) {
