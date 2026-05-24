@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.30</div>
+            <div class="version-tag">version #3.2.31</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -4706,6 +4706,126 @@ function createActivityGroupCardHTML(group) {
     `;
 }
 
+function createActivityStatusBadgeHTML(row) {
+    const group = row.Act_Status_Group || 'other';
+    const label = row.Act_Status_Display || 'ลงทะเบียน';
+
+    let bg = '#FEF3C7';
+    let color = '#B45309';
+    let icon = 'fa-clock';
+
+    if (group === 'passed') {
+        bg = '#DCFCE7';
+        color = '#15803D';
+        icon = 'fa-circle-check';
+    } else if (group === 'failed') {
+        bg = '#FEE2E2';
+        color = '#B91C1C';
+        icon = 'fa-circle-xmark';
+    }
+
+    return `
+        <span style="
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            background:${bg};
+            color:${color};
+            border-radius:999px;
+            padding:4px 9px;
+            font-size:10px;
+            font-weight:900;
+            white-space:nowrap;
+        ">
+            <i class="fa-solid ${icon}" style="font-size:9px;"></i>
+            ${label}
+        </span>
+    `;
+}
+
+function createActivityDirectoryRowHTML(row) {
+    const imageUrl = row.Url_Image || FALLBACK_IMAGE_URL;
+
+    return `
+        <div onclick="openProfile('${row.M_ID}')" style="
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:16px;
+            padding:12px;
+            margin-bottom:10px;
+            display:flex;
+            align-items:flex-start;
+            gap:12px;
+            cursor:pointer;
+            box-shadow:0 3px 10px rgba(15,23,42,0.03);
+        ">
+            <img src="${imageUrl}" style="
+                width:48px;
+                height:48px;
+                border-radius:16px;
+                object-fit:cover;
+                background:#F1F5F9;
+                flex-shrink:0;
+            " onerror="this.onerror=null; this.src='${FALLBACK_IMAGE_URL}'">
+
+            <div style="flex:1; min-width:0;">
+                <div style="
+                    font-size:14px;
+                    font-weight:900;
+                    color:var(--charcoal);
+                    line-height:1.35;
+                    margin-bottom:4px;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    ${row.FullName_Display || '-'}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:var(--gray-text);
+                    line-height:1.45;
+                    margin-bottom:6px;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    ${row.CareName || '-'} • ${row.Classify || '-'}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:var(--gray-text);
+                    line-height:1.45;
+                    margin-bottom:7px;
+                    white-space:nowrap;
+                    overflow:hidden;
+                    text-overflow:ellipsis;
+                ">
+                    <i class="fa-regular fa-calendar-check" style="color:var(--orange); margin-right:5px;"></i>
+                    ${row.Act_Name || '-'} • ${row.Act_Date_Display || '-'}
+                </div>
+
+                ${createActivityStatusBadgeHTML(row)}
+            </div>
+
+            <i class="fa-solid fa-chevron-right" style="
+                color:#CBD5E1;
+                font-size:12px;
+                margin-top:18px;
+                flex-shrink:0;
+            "></i>
+        </div>
+    `;
+}
+
+
+    
+    
+
+
+    
 function renderActivityDirectoryView(contentArea) {
     if (dbActivities.length === 0) {
         contentArea.innerHTML = `
@@ -4742,14 +4862,48 @@ function renderActivityDirectoryView(contentArea) {
     contentArea.innerHTML = `
         ${createActivityDirectoryFiltersHTML()}
 
-        <div class="clean-card" style="padding:16px;">
+        <div class="clean-card" style="padding:16px; margin-bottom:12px;">
             <div style="font-size:17px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
                 รายชื่อผู้ร่วมกิจกรรม
             </div>
             <div style="font-size:12px; color:var(--gray-text); line-height:1.6;">
                 พบ ${rows.length} รายการเข้าร่วม ตามตัวกรองปัจจุบัน
             </div>
+            <div style="font-size:11px; color:var(--gray-text); line-height:1.6; margin-top:8px; background:#F8FAFC; border-radius:12px; padding:9px 10px;">
+                <i class="fa-solid fa-circle-info" style="color:var(--orange); margin-right:5px;"></i>
+                หากบุคคลเดียวเข้าร่วมหลายกิจกรรม จะแสดงหลายรายการตามข้อมูลจริง
+            </div>
         </div>
+
+        ${rows.length > 0
+            ? rows.map(row => createActivityDirectoryRowHTML(row)).join('')
+            : `
+                <div class="clean-card" style="text-align:center; padding:30px 20px;">
+                    <div style="
+                        width:58px;
+                        height:58px;
+                        border-radius:22px;
+                        background:var(--orange-soft);
+                        color:var(--orange);
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        margin:0 auto 14px;
+                        font-size:24px;
+                    ">
+                        <i class="fa-solid fa-user-slash"></i>
+                    </div>
+
+                    <div style="font-size:17px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                        ไม่พบรายชื่อผู้ร่วมกิจกรรม
+                    </div>
+
+                    <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                        ลองเปลี่ยนประเภทกิจกรรม หมวดกิจกรรม หรือเงื่อนไขการกรองข้อมูล
+                    </div>
+                </div>
+            `
+        }
     `;
 }
 function getActivityDirectoryRows() {
