@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.39</div>
+            <div class="version-tag">version #3.2.40</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1440,7 +1440,131 @@ function renderSelectedMentorSheepView(contentArea, mentor) {
     
     
 
+function getMentorLevels() {
+    const levelSet = new Set();
 
+    dbMentors.forEach(mentor => {
+        const level = String(mentor.Mentor_Level || '').trim();
+        if (level) {
+            levelSet.add(level);
+        }
+    });
+
+    return Array.from(levelSet).sort((a, b) => {
+        return a.localeCompare(b, 'th', { numeric: true });
+    });
+}
+
+    function getFilteredMentorsForDirectory(mentors) {
+    let filteredMentors = Array.isArray(mentors) ? mentors : [];
+
+    if (selectedMentorLevel && selectedMentorLevel !== 'ALL') {
+        filteredMentors = filteredMentors.filter(mentor => {
+            return String(mentor.Mentor_Level || '').trim() === selectedMentorLevel;
+        });
+    }
+
+    const keyword = String(mentorSearchQuery || '').trim().toLowerCase();
+
+    if (keyword) {
+        filteredMentors = filteredMentors.filter(mentor => {
+            const searchText = [
+                mentor.Mentor_ID,
+                mentor.Mentor_Name,
+                mentor.FullName_Display,
+                mentor.Mentor_Level,
+                mentor.CareName,
+                mentor.Role
+            ].join(' ').toLowerCase();
+
+            return searchText.includes(keyword);
+        });
+    }
+
+    return filteredMentors;
+}
+
+    function createMentorDirectoryFiltersHTML() {
+    const levels = getMentorLevels();
+
+    return `
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <div style="font-size:14px; font-weight:900; color:var(--charcoal); margin-bottom:12px;">
+                <i class="fa-solid fa-filter" style="color:var(--orange); margin-right:6px;"></i>
+                กรองรายชื่อผู้เลี้ยง
+            </div>
+
+            <div style="margin-bottom:12px;">
+                <div style="font-size:11px; font-weight:800; color:var(--gray-text); margin-bottom:7px;">
+                    ค้นหาผู้เลี้ยง
+                </div>
+
+                <input
+                    type="text"
+                    value="${mentorSearchQuery || ''}"
+                    placeholder="ค้นหาชื่อผู้เลี้ยง..."
+                    oninput="setMentorSearchQuery(this.value)"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        border:1px solid var(--gray-border);
+                        background:#FFFFFF;
+                        border-radius:14px;
+                        padding:12px 13px;
+                        font-family:'Prompt', sans-serif;
+                        font-size:13px;
+                        font-weight:700;
+                        color:var(--charcoal);
+                        outline:none;
+                    "
+                >
+            </div>
+
+            <div>
+                <div style="font-size:11px; font-weight:800; color:var(--gray-text); margin-bottom:7px;">
+                    ระดับผู้เลี้ยง
+                </div>
+
+                <select onchange="setMentorLevelFilter(this.value)" style="
+                    width:100%;
+                    border:1px solid var(--gray-border);
+                    background:#FFFFFF;
+                    border-radius:14px;
+                    padding:12px 13px;
+                    font-family:'Prompt', sans-serif;
+                    font-size:13px;
+                    font-weight:700;
+                    color:var(--charcoal);
+                    outline:none;
+                ">
+                    <option value="ALL" ${selectedMentorLevel === 'ALL' ? 'selected' : ''}>ทั้งหมด</option>
+                    ${levels.map(level => `
+                        <option value="${level}" ${selectedMentorLevel === level ? 'selected' : ''}>
+                            ${level}
+                        </option>
+                    `).join('')}
+                </select>
+            </div>
+        </div>
+    `;
+}
+function setMentorSearchQuery(value) {
+    mentorSearchQuery = value || '';
+    selectedMentorId = '';
+    updateDashboardView();
+}
+
+function setMentorLevelFilter(level) {
+    selectedMentorLevel = level || 'ALL';
+    selectedMentorId = '';
+    updateDashboardView();
+}
+
+
+    
+
+
+    
     
 function renderMentorDirectoryView(contentArea) {
     if (dbMentors.length === 0) {
@@ -1473,8 +1597,12 @@ function renderMentorDirectoryView(contentArea) {
         return;
     }
 
-    const overview = getMentorOverviewData();
-    const mentors = overview.mentors;
+const overview = getMentorOverviewData();
+const mentors = overview.mentors;
+const filteredMentors = getFilteredMentorsForDirectory(mentors);
+
+
+    
     if (selectedMentorId) {
     const selectedMentor = mentors.find(mentor => {
         return String(mentor.Mentor_ID || '').trim() === String(selectedMentorId || '').trim();
@@ -1527,15 +1655,15 @@ function renderMentorDirectoryView(contentArea) {
                 ข้อมูลลูกแกะอ้างอิงสมาชิกสถานภาพ Family เป็นฐานหลักของระบบผู้เลี้ยง
             </div>
         </div>
-
+            ${createMentorDirectoryFiltersHTML()}
         <div class="clean-card" style="padding:16px; margin-bottom:14px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <div>
                     <div style="font-size:15px; font-weight:900; color:var(--charcoal);">
-                        ผู้เลี้ยงทั้งหมด
+                        ผู้เลี้ยงตามตัวกรอง
                     </div>
                     <div style="font-size:12px; color:var(--gray-text); line-height:1.6;">
-                        พบ ${mentors.length} คน
+                    พบ ${filteredMentors.length} จาก ${mentors.length} คน
                     </div>
                 </div>
 
@@ -1574,8 +1702,35 @@ function renderMentorDirectoryView(contentArea) {
             </div>
         ` : ''}
 
-        ${mentors.map(mentor => createMentorDirectoryCardHTML(mentor)).join('')}
-    `;
+${filteredMentors.length > 0
+    ? filteredMentors.map(mentor => createMentorDirectoryCardHTML(mentor)).join('')
+    : `
+        <div class="clean-card" style="text-align:center; padding:30px 20px;">
+            <div style="
+                width:58px;
+                height:58px;
+                border-radius:22px;
+                background:var(--orange-soft);
+                color:var(--orange);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin:0 auto 14px;
+                font-size:24px;
+            ">
+                <i class="fa-solid fa-user-slash"></i>
+            </div>
+
+            <div style="font-size:17px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                ไม่พบผู้เลี้ยงตามตัวกรอง
+            </div>
+
+            <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                ลองเปลี่ยนคำค้นหา หรือเลือกระดับผู้เลี้ยงเป็นทั้งหมด
+            </div>
+        </div>
+    `
+}    `;
 }
     
 
