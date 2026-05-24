@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.26</div>
+            <div class="version-tag">version #3.2.27</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1933,7 +1933,11 @@ else if (currentActiveBottom === 'overview' && currentActiveCircle === 'event') 
                     setTimeout(() => { barStats.forEach((s, index) => { const bar = document.getElementById(`bar-idx-${index}`); if(bar) bar.style.width = (s.count / maxBarCount * 90) + '%'; }); }, 100);
 
                     } else {
-            renderDirectoryView(contentArea);
+                        if (currentActiveCircle === 'event') {
+                            renderActivityDirectoryView(contentArea);
+                        } else {
+                            renderDirectoryView(contentArea);
+                        }
         }    
             }
         }
@@ -4696,12 +4700,37 @@ function createActivityGroupCardHTML(group) {
     `;
 }
 
+function renderActivityDirectoryView(contentArea) {
+    contentArea.innerHTML = `
+        <div class="clean-card" style="text-align:center; padding:30px 20px;">
+            <div style="
+                width:58px;
+                height:58px;
+                border-radius:22px;
+                background:var(--orange-soft);
+                color:var(--orange);
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin:0 auto 14px;
+                font-size:24px;
+            ">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
 
+            <div style="font-size:18px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                รายชื่อผู้ร่วมกิจกรรม
+            </div>
 
-    
+            <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                ขั้นต่อไปจะเพิ่มตัวกรอง Act_Type / Act_Group / Act_Name
+                และแสดงรายชื่อผู้ร่วมกิจกรรม
+            </div>
+        </div>
+    `;
+}
 
-
-    
+       
     
 function showComingSoon(featureName) {
     showAlert(
