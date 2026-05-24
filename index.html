@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.31</div>
+            <div class="version-tag">version #3.2.32</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -782,20 +782,29 @@ function isMemberPassedMasterFilter(member) {
     
 
 function getActivityOverviewData(actType) {
-    const filteredActivities = dbActivities.filter(activity => {
+    const matchedActivities = dbActivities.filter(activity => {
         return String(activity.Act_Type || '').trim().toLowerCase() === String(actType || '').trim().toLowerCase();
     });
 
+    const visibleActivities = [];
     const allParticipants = [];
     const groupMap = {};
 
-    filteredActivities.forEach(activity => {
+    matchedActivities.forEach(activity => {
         const groupName = String(activity.Act_Group || 'ไม่ระบุกลุ่ม').trim();
 
         const participants = Array.isArray(activity.Participants)
             ? activity.Participants.filter(person => isMemberPassedMasterFilter(person))
             : [];
+
+        // ถ้าหลังผ่าน Master Filter แล้วไม่มีคนเลย
+        // ไม่ต้องนับกิจกรรมนี้ใน Overview
         if (participants.length === 0) return;
+
+        visibleActivities.push({
+            ...activity,
+            FilteredParticipants: participants
+        });
 
         participants.forEach(person => {
             allParticipants.push(person);
@@ -825,7 +834,7 @@ function getActivityOverviewData(actType) {
                 };
             }
 
-            const statusGroup = getActivityStatusFinalGroup(person.Act_Status);
+            const statusGroup = person.Act_Status_Group || getActivityStatusFinalGroup(person.Act_Status);
 
             if (statusGroup === 'passed') {
                 groupMap[groupName].participantMap[memberId].finalStatus = 'passed';
@@ -858,8 +867,8 @@ function getActivityOverviewData(actType) {
 
     return {
         Act_Type: actType,
-        activities: filteredActivities,
-        activityCount: filteredActivities.length,
+        activities: visibleActivities,
+        activityCount: visibleActivities.length,
         recordCount: allParticipants.length,
         uniquePeopleCount: countUniqueMemberIdsFromParticipants(allParticipants),
         groupCount: groups.length,
