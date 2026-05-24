@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.29</div>
+            <div class="version-tag">version #3.2.30</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -4701,30 +4701,47 @@ function createActivityGroupCardHTML(group) {
 }
 
 function renderActivityDirectoryView(contentArea) {
-    contentArea.innerHTML = `
-        <div class="clean-card" style="text-align:center; padding:30px 20px;">
-            <div style="
-                width:58px;
-                height:58px;
-                border-radius:22px;
-                background:var(--orange-soft);
-                color:var(--orange);
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                margin:0 auto 14px;
-                font-size:24px;
-            ">
-                <i class="fa-solid fa-list-check"></i>
-            </div>
+    if (dbActivities.length === 0) {
+        contentArea.innerHTML = `
+            <div class="clean-card" style="text-align:center; padding:30px 20px;">
+                <div style="
+                    width:58px;
+                    height:58px;
+                    border-radius:22px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    margin:0 auto 14px;
+                    font-size:24px;
+                ">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                </div>
 
-            <div style="font-size:18px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                <div style="font-size:18px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                    กำลังโหลดกิจกรรม
+                </div>
+
+                <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                    กำลังดึงข้อมูลรายชื่อกิจกรรมจากฐานข้อมูล
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const rows = getActivityDirectoryRows();
+
+    contentArea.innerHTML = `
+        ${createActivityDirectoryFiltersHTML()}
+
+        <div class="clean-card" style="padding:16px;">
+            <div style="font-size:17px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
                 รายชื่อผู้ร่วมกิจกรรม
             </div>
-
-            <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
-                ขั้นต่อไปจะเพิ่มตัวกรอง Act_Type / Act_Group / Act_Name
-                และแสดงรายชื่อผู้ร่วมกิจกรรม
+            <div style="font-size:12px; color:var(--gray-text); line-height:1.6;">
+                พบ ${rows.length} รายการเข้าร่วม ตามตัวกรองปัจจุบัน
             </div>
         </div>
     `;
@@ -4819,6 +4836,109 @@ function getActivityDirectoryActivities() {
     return Object.values(activityMap).sort((a, b) => {
         return (b.Act_Date_Sort || 0) - (a.Act_Date_Sort || 0);
     });
+}
+
+    function createActivityDirectoryFiltersHTML() {
+    const actTypes = [
+        { value: 'Nexus Journey', label: 'Nexus Journey' },
+        { value: 'Course', label: 'Course' },
+        { value: 'Event', label: 'Event' }
+    ];
+
+    const groups = getActivityDirectoryGroups();
+    const activities = getActivityDirectoryActivities();
+
+    return `
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <div style="font-size:14px; font-weight:900; color:var(--charcoal); margin-bottom:12px;">
+                <i class="fa-solid fa-filter" style="color:var(--orange); margin-right:6px;"></i>
+                กรองรายชื่อกิจกรรม
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px; font-weight:800; color:var(--gray-text); margin-bottom:7px;">
+                    ประเภทกิจกรรม
+                </div>
+
+                <div class="seg-control">
+                    ${actTypes.map(type => `
+                        <div class="seg-btn ${selectedActivityType === type.value ? 'active' : ''}" onclick="setActivityDirectoryType('${type.value}')">
+                            ${type.label}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px; font-weight:800; color:var(--gray-text); margin-bottom:7px;">
+                    หมวดกิจกรรม
+                </div>
+
+                <select onchange="setActivityDirectoryGroup(this.value)" style="
+                    width:100%;
+                    border:1px solid var(--gray-border);
+                    background:#FFFFFF;
+                    border-radius:14px;
+                    padding:12px 13px;
+                    font-family:'Prompt', sans-serif;
+                    font-size:13px;
+                    font-weight:700;
+                    color:var(--charcoal);
+                    outline:none;
+                ">
+                    <option value="ALL" ${selectedActivityGroup === 'ALL' || !selectedActivityGroup ? 'selected' : ''}>ทั้งหมด</option>
+                    ${groups.map(group => `
+                        <option value="${group}" ${selectedActivityGroup === group ? 'selected' : ''}>
+                            ${group}
+                        </option>
+                    `).join('')}
+                </select>
+            </div>
+
+            <div>
+                <div style="font-size:11px; font-weight:800; color:var(--gray-text); margin-bottom:7px;">
+                    รอบ/ชื่อกิจกรรม
+                </div>
+
+                <select onchange="setActivityDirectoryActivity(this.value)" style="
+                    width:100%;
+                    border:1px solid var(--gray-border);
+                    background:#FFFFFF;
+                    border-radius:14px;
+                    padding:12px 13px;
+                    font-family:'Prompt', sans-serif;
+                    font-size:13px;
+                    font-weight:700;
+                    color:var(--charcoal);
+                    outline:none;
+                ">
+                    <option value="ALL" ${selectedActivityId === 'ALL' || !selectedActivityId ? 'selected' : ''}>ทั้งหมด</option>
+                    ${activities.map(activity => `
+                        <option value="${activity.Act_ID}" ${selectedActivityId === activity.Act_ID ? 'selected' : ''}>
+                            ${activity.Act_Name || activity.Act_ID}
+                        </option>
+                    `).join('')}
+                </select>
+            </div>
+        </div>
+    `;
+}
+function setActivityDirectoryType(type) {
+    selectedActivityType = type;
+    selectedActivityGroup = 'ALL';
+    selectedActivityId = 'ALL';
+    updateDashboardView();
+}
+
+function setActivityDirectoryGroup(group) {
+    selectedActivityGroup = group || 'ALL';
+    selectedActivityId = 'ALL';
+    updateDashboardView();
+}
+
+function setActivityDirectoryActivity(actId) {
+    selectedActivityId = actId || 'ALL';
+    updateDashboardView();
 }
 
     
