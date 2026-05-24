@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.25</div>
+            <div class="version-tag">version #3.2.26</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -4471,10 +4471,10 @@ function renderActivityOverviewView(contentArea) {
                 grid-template-columns:repeat(2, 1fr);
                 gap:10px;
             ">
-${createActivitySummaryMiniCardHTML('หลักสูตร/หมวดกิจกรรม', overview.groupCount, 'กลุ่ม', 'fa-layer-group')}
-${createActivitySummaryMiniCardHTML('Season/รอบ', overview.activityCount, 'รายการ', 'fa-calendar-check')}
-${createActivitySummaryMiniCardHTML('รายการเข้าร่วม', overview.recordCount, 'รายการ', 'fa-list-check')}
-${createActivitySummaryMiniCardHTML('คนที่ไม่ซ้ำราย', overview.uniquePeopleCount, 'คน', 'fa-users')}
+${createActivitySummaryMiniCardHTML('', overview.groupCount, 'หมวด', 'fa-layer-group')}
+${createActivitySummaryMiniCardHTML('', overview.activityCount, 'รอบจัด', 'fa-calendar-check')}
+${createActivitySummaryMiniCardHTML('', overview.recordCount, 'การเข้าร่วม', 'fa-list-check')}
+${createActivitySummaryMiniCardHTML('', overview.uniquePeopleCount, 'ผู้เข้าร่วมไม่ซ้ำ', 'fa-users')}
             </div>
 
             <div style="
@@ -4516,35 +4516,41 @@ function createActivitySummaryMiniCardHTML(label, value, unit, icon) {
             background:#F8FAFC;
             border:1px solid var(--gray-border);
             border-radius:16px;
-            padding:13px 12px;
+            padding:16px 10px;
+            text-align:center;
+            min-height:104px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
         ">
             <div style="
                 color:var(--orange);
-                font-size:16px;
+                font-size:17px;
                 margin-bottom:8px;
             ">
                 <i class="fa-solid ${icon}"></i>
             </div>
 
             <div style="
-                font-size:22px;
+                font-size:30px;
                 font-weight:900;
                 color:var(--charcoal);
                 line-height:1;
-                margin-bottom:5px;
+                margin-bottom:8px;
+                font-family:'Urbanist', 'Prompt', sans-serif;
             ">
                 ${value}
-                <span style="font-size:11px; font-weight:700; color:var(--gray-text);">
-                    ${unit}
-                </span>
             </div>
 
             <div style="
-                font-size:11px;
+                font-size:12px;
+                font-weight:700;
                 color:var(--gray-text);
                 line-height:1.35;
+                text-align:center;
             ">
-                ${label}
+                ${unit}
             </div>
         </div>
     `;
