@@ -957,8 +957,14 @@ function selectCircleMenu(type, element) {
         fetchBirthdayData();
     }
 
-    if (type === 'event' && dbActivities.length === 0) {
-    fetchActivityData();
+if (type === 'event') {
+    selectedActivityType = 'Nexus Journey';
+    selectedActivityGroup = 'ALL';
+    selectedActivityId = 'ALL';
+
+    if (dbActivities.length === 0) {
+        fetchActivityData();
+    }
 }
 
     handleBottomNav('overview', document.getElementById('nav-overview'), true);
