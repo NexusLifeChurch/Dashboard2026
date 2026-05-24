@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.24</div>
+            <div class="version-tag">version #3.2.25</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -795,6 +795,7 @@ function getActivityOverviewData(actType) {
         const participants = Array.isArray(activity.Participants)
             ? activity.Participants.filter(person => isMemberPassedMasterFilter(person))
             : [];
+        if (participants.length === 0) return;
 
         participants.forEach(person => {
             allParticipants.push(person);
