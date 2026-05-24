@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.35</div>
+            <div class="version-tag">version #3.2.36</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -829,7 +829,293 @@ function getMentorOverviewData() {
     };
 }
 
+function createMentorSummaryMiniCardHTML(value, label, icon) {
+    return `
+        <div style="
+            background:#F8FAFC;
+            border:1px solid var(--gray-border);
+            border-radius:16px;
+            padding:16px 10px;
+            text-align:center;
+            min-height:104px;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+        ">
+            <div style="color:var(--orange); font-size:17px; margin-bottom:8px;">
+                <i class="fa-solid ${icon}"></i>
+            </div>
+            <div style="
+                font-size:30px;
+                font-weight:900;
+                color:var(--charcoal);
+                line-height:1;
+                margin-bottom:8px;
+                font-family:'Urbanist', 'Prompt', sans-serif;
+            ">${value}</div>
+            <div style="
+                font-size:12px;
+                font-weight:700;
+                color:var(--gray-text);
+                line-height:1.35;
+                text-align:center;
+            ">${label}</div>
+        </div>
+    `;
+}
 
+function createMentorWorkloadBarHTML(mentor, maxSheepCount) {
+    const sheepCount = mentor.sheepCount || 0;
+    const percent = maxSheepCount > 0 ? Math.round((sheepCount / maxSheepCount) * 100) : 0;
+
+    return `
+        <div style="
+            background:#FFFFFF;
+            border:1px solid var(--gray-border);
+            border-radius:16px;
+            padding:13px;
+            margin-bottom:10px;
+        ">
+            <div style="display:flex; align-items:center; gap:11px;">
+                <img src="${mentor.Url_Image || FALLBACK_IMAGE_URL}" style="
+                    width:44px;
+                    height:44px;
+                    border-radius:15px;
+                    object-fit:cover;
+                    background:#F1F5F9;
+                    flex-shrink:0;
+                " onerror="this.onerror=null; this.src='${FALLBACK_IMAGE_URL}'">
+
+                <div style="flex:1; min-width:0;">
+                    <div style="
+                        font-size:14px;
+                        font-weight:900;
+                        color:var(--charcoal);
+                        white-space:nowrap;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                        margin-bottom:3px;
+                    ">
+                        ${mentor.Mentor_Name || mentor.FullName_Display || '-'}
+                    </div>
+
+                    <div style="
+                        font-size:11px;
+                        color:var(--gray-text);
+                        white-space:nowrap;
+                        overflow:hidden;
+                        text-overflow:ellipsis;
+                    ">
+                        ${mentor.Mentor_Level || 'ไม่ระบุระดับ'} • ลูกแกะ ${sheepCount} คน
+                    </div>
+                </div>
+
+                <div style="
+                    font-size:20px;
+                    font-weight:900;
+                    color:var(--orange);
+                    font-family:'Urbanist', sans-serif;
+                    min-width:32px;
+                    text-align:right;
+                ">
+                    ${sheepCount}
+                </div>
+            </div>
+
+            <div style="
+                height:8px;
+                background:#F1F5F9;
+                border-radius:999px;
+                overflow:hidden;
+                margin-top:12px;
+            ">
+                <div style="
+                    width:${percent}%;
+                    height:100%;
+                    background:var(--orange);
+                    border-radius:999px;
+                "></div>
+            </div>
+        </div>
+    `;
+}
+function renderMentorOverviewView(contentArea) {
+    if (dbMentors.length === 0) {
+        contentArea.innerHTML = `
+            <div class="clean-card" style="text-align:center; padding:30px 20px;">
+                <div style="
+                    width:58px;
+                    height:58px;
+                    border-radius:22px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    margin:0 auto 14px;
+                    font-size:24px;
+                ">
+                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                </div>
+
+                <div style="font-size:18px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                    กำลังโหลดข้อมูลผู้เลี้ยง
+                </div>
+
+                <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                    กำลังดึงข้อมูลภาพรวมการดูแลจากฐานข้อมูล
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    const overview = getMentorOverviewData();
+    const maxSheepCount = overview.mentors.length > 0
+        ? Math.max(...overview.mentors.map(mentor => mentor.sheepCount || 0))
+        : 0;
+
+    const topMentors = overview.mentors.slice(0, 10);
+
+    contentArea.innerHTML = `
+        <div class="clean-card" style="padding:18px; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div style="
+                    width:46px;
+                    height:46px;
+                    border-radius:17px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:20px;
+                    flex-shrink:0;
+                ">
+                    <i class="fa-solid fa-user-shield"></i>
+                </div>
+
+                <div>
+                    <div style="font-size:18px; font-weight:900; color:var(--charcoal);">
+                        ภาพรวมการดูแล
+                    </div>
+                    <div style="font-size:12px; color:var(--gray-text); line-height:1.6;">
+                        ภาพรวมผู้เลี้ยงและลูกแกะตามตัวกรองข้อมูลปัจจุบัน
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                ${createMentorSummaryMiniCardHTML(overview.totalMentors, 'ผู้เลี้ยงทั้งหมด', 'fa-users-gear')}
+                ${createMentorSummaryMiniCardHTML(overview.activeMentorCount, 'กำลังดูแลจริง', 'fa-hands-holding-child')}
+                ${createMentorSummaryMiniCardHTML(overview.sheepInCareCount, 'ลูกแกะในระบบดูแล', 'fa-people-roof')}
+                ${createMentorSummaryMiniCardHTML(overview.unassignedCount, 'ยังไม่มีผู้เลี้ยง', 'fa-user-plus')}
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <div style="font-size:16px; font-weight:900; color:var(--charcoal); margin-bottom:12px;">
+                <i class="fa-solid fa-bell" style="color:var(--orange); margin-right:6px;"></i>
+                จุดที่ควรติดตาม
+            </div>
+
+            <div style="
+                background:#F8FAFC;
+                border:1px solid var(--gray-border);
+                border-radius:14px;
+                padding:12px;
+                margin-bottom:9px;
+                display:flex;
+                justify-content:space-between;
+                gap:10px;
+            ">
+                <div>
+                    <div style="font-size:13px; font-weight:900; color:var(--charcoal);">
+                        ยังไม่มีผู้เลี้ยง
+                    </div>
+                    <div style="font-size:11px; color:var(--gray-text); line-height:1.5;">
+                        สมาชิกที่ยังไม่ได้เชื่อมโยงกับ Mentor
+                    </div>
+                </div>
+                <div style="font-size:22px; font-weight:900; color:var(--orange); font-family:'Urbanist', sans-serif;">
+                    ${overview.unassignedCount}
+                </div>
+            </div>
+
+            <div style="
+                background:#F8FAFC;
+                border:1px solid var(--gray-border);
+                border-radius:14px;
+                padding:12px;
+                margin-bottom:9px;
+                display:flex;
+                justify-content:space-between;
+                gap:10px;
+            ">
+                <div>
+                    <div style="font-size:13px; font-weight:900; color:var(--charcoal);">
+                        ควรช่วยแบ่งเบาภาระ
+                    </div>
+                    <div style="font-size:11px; color:var(--gray-text); line-height:1.5;">
+                        ผู้เลี้ยงที่มีลูกแกะตั้งแต่ 10 คนขึ้นไป
+                    </div>
+                </div>
+                <div style="font-size:22px; font-weight:900; color:var(--orange); font-family:'Urbanist', sans-serif;">
+                    ${overview.highLoadMentors.length}
+                </div>
+            </div>
+
+            <div style="
+                background:#F8FAFC;
+                border:1px solid var(--gray-border);
+                border-radius:14px;
+                padding:12px;
+                display:flex;
+                justify-content:space-between;
+                gap:10px;
+            ">
+                <div>
+                    <div style="font-size:13px; font-weight:900; color:var(--charcoal);">
+                        ผู้เลี้ยงที่ยังไม่มีลูกแกะ
+                    </div>
+                    <div style="font-size:11px; color:var(--gray-text); line-height:1.5;">
+                        มีชื่อในระบบ แต่ยังไม่มีสมาชิกในความดูแลตามตัวกรองนี้
+                    </div>
+                </div>
+                <div style="font-size:22px; font-weight:900; color:var(--orange); font-family:'Urbanist', sans-serif;">
+                    ${overview.inactiveMentorCount}
+                </div>
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <div style="font-size:16px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
+                <i class="fa-solid fa-chart-simple" style="color:var(--orange); margin-right:6px;"></i>
+                ภาระการดูแลของผู้เลี้ยง
+            </div>
+
+            <div style="font-size:12px; color:var(--gray-text); line-height:1.6; margin-bottom:13px;">
+                เรียงจากผู้เลี้ยงที่มีลูกแกะในความดูแลมากที่สุด
+            </div>
+
+            ${topMentors.length > 0
+                ? topMentors.map(mentor => createMentorWorkloadBarHTML(mentor, maxSheepCount)).join('')
+                : `
+                    <div style="text-align:center; color:var(--gray-text); font-size:13px; padding:18px;">
+                        ไม่พบข้อมูลผู้เลี้ยงตามตัวกรองปัจจุบัน
+                    </div>
+                `
+            }
+        </div>
+    `;
+}
+
+
+    
+
+
+    
     
     
 function getActivityStatusFinalGroup(statusValue) {
@@ -1936,10 +2222,12 @@ function renderBirthdayView(contentArea) {
                 else if (currentActiveBottom === 'overview' && currentActiveCircle === 'birthday') {
                     renderBirthdayView(contentArea);
                 }
-else if (currentActiveBottom === 'overview' && currentActiveCircle === 'event') {
-    renderActivityOverviewView(contentArea);
-}
-                    
+                else if (currentActiveBottom === 'overview' && currentActiveCircle === 'event') {
+                    renderActivityOverviewView(contentArea);
+                }
+                else if (currentActiveBottom === 'overview' && currentActiveCircle === 'mentor') {
+                    renderMentorOverviewView(contentArea);
+                }                   
                 else if (currentActiveBottom === 'overview') {
                     const filteredData = getFilteredData(); const total = filteredData.length;
                     let donutGradientStr = ''; let donutLegendHTML = ''; let barTitle = ''; let barStats = [];
