@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.34</div>
+            <div class="version-tag">version #3.2.35</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -722,7 +722,115 @@ function fetchMentorData() {
             showAlert('โหลดข้อมูลผู้เลี้ยงไม่สำเร็จ', 'กรุณาลอง Refresh Data อีกครั้ง');
         });
 }
+function getMentorOverviewData() {
+    const filteredMembers = dbMentorMembers.filter(member => {
+        return isMemberPassedMasterFilter(member);
+    });
 
+    const mentorMap = {};
+
+    dbMentors.forEach(mentor => {
+        const mentorId = String(mentor.Mentor_ID || '').trim();
+        if (!mentorId) return;
+
+        mentorMap[mentorId] = {
+            ...mentor,
+            sheep: [],
+            familyCount: 0,
+            friendsCount: 0,
+            sendCount: 0,
+            byeCount: 0,
+            otherCount: 0
+        };
+    });
+
+    const unassignedMembers = [];
+
+    filteredMembers.forEach(member => {
+        const mentorId = String(member.Mentor_ID || '').trim();
+        const classify = String(member.Classify || '').trim();
+
+        if (!mentorId || !mentorMap[mentorId]) {
+            unassignedMembers.push(member);
+            return;
+        }
+
+        mentorMap[mentorId].sheep.push(member);
+
+        if (classify === 'Family') {
+            mentorMap[mentorId].familyCount++;
+        } else if (classify === 'Friends') {
+            mentorMap[mentorId].friendsCount++;
+        } else if (classify === 'ส่งออก' || classify === 'Send') {
+            mentorMap[mentorId].sendCount++;
+        } else if (classify === 'Bye') {
+            mentorMap[mentorId].byeCount++;
+        } else {
+            mentorMap[mentorId].otherCount++;
+        }
+    });
+
+    const mentors = Object.values(mentorMap).map(mentor => {
+        return {
+            ...mentor,
+            sheepCount: mentor.sheep.length
+        };
+    });
+
+    const activeMentors = mentors.filter(mentor => mentor.sheepCount > 0);
+    const inactiveMentors = mentors.filter(mentor => mentor.sheepCount === 0);
+
+    const highLoadMentors = mentors.filter(mentor => mentor.sheepCount >= 10);
+
+    const sortedMentors = mentors.sort((a, b) => {
+        return (b.sheepCount || 0) - (a.sheepCount || 0);
+    });
+
+    const levelMap = {};
+
+    mentors.forEach(mentor => {
+        const level = String(mentor.Mentor_Level || 'ไม่ระบุระดับ').trim() || 'ไม่ระบุระดับ';
+
+        if (!levelMap[level]) {
+            levelMap[level] = {
+                Mentor_Level: level,
+                mentorCount: 0,
+                activeMentorCount: 0,
+                sheepCount: 0
+            };
+        }
+
+        levelMap[level].mentorCount++;
+
+        if (mentor.sheepCount > 0) {
+            levelMap[level].activeMentorCount++;
+        }
+
+        levelMap[level].sheepCount += mentor.sheepCount;
+    });
+
+    const levels = Object.values(levelMap).sort((a, b) => {
+        return (b.sheepCount || 0) - (a.sheepCount || 0);
+    });
+
+    return {
+        totalMentors: mentors.length,
+        activeMentorCount: activeMentors.length,
+        inactiveMentorCount: inactiveMentors.length,
+        sheepInCareCount: filteredMembers.length - unassignedMembers.length,
+        unassignedCount: unassignedMembers.length,
+
+        mentors: sortedMentors,
+        activeMentors: activeMentors,
+        inactiveMentors: inactiveMentors,
+        highLoadMentors: highLoadMentors,
+        unassignedMembers: unassignedMembers,
+        levels: levels
+    };
+}
+
+
+    
     
 function getActivityStatusFinalGroup(statusValue) {
     const status = String(statusValue || '').trim();
