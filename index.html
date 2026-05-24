@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.36</div>
+            <div class="version-tag">version #3.2.37</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1001,16 +1001,29 @@ function renderMentorOverviewView(contentArea) {
                         ภาพรวมการดูแล
                     </div>
                     <div style="font-size:12px; color:var(--gray-text); line-height:1.6;">
-                        ภาพรวมผู้เลี้ยงและลูกแกะตามตัวกรองข้อมูลปัจจุบัน
+                    ภาพรวมผู้เลี้ยงและลูกแกะตามภาพรวมนี้อ้างอิงสมาชิกสถานภาพ Family และปรับตามตัวกรองปัจจุบันตัวกรองข้อมูลปัจจุบัน
                     </div>
                 </div>
             </div>
 
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 ${createMentorSummaryMiniCardHTML(overview.totalMentors, 'ผู้เลี้ยงทั้งหมด', 'fa-users-gear')}
-                ${createMentorSummaryMiniCardHTML(overview.activeMentorCount, 'กำลังดูแลจริง', 'fa-hands-holding-child')}
-                ${createMentorSummaryMiniCardHTML(overview.sheepInCareCount, 'ลูกแกะในระบบดูแล', 'fa-people-roof')}
-                ${createMentorSummaryMiniCardHTML(overview.unassignedCount, 'ยังไม่มีผู้เลี้ยง', 'fa-user-plus')}
+                ${createMentorSummaryMiniCardHTML(overview.activeMentorCount, 'ผู้เลี้ยงที่กำลังดูแล', 'fa-hands-holding-child')}
+                ${createMentorSummaryMiniCardHTML(overview.sheepInCareCount, 'ลูกแกะที่มีผู้เลี้ยง', 'fa-people-roof')}
+                ${createMentorSummaryMiniCardHTML(overview.unassignedCount, 'รอเชื่อมผู้เลี้ยง', 'fa-user-plus')}
+            </div>
+            
+            <div style="
+                font-size:11px;
+                color:var(--gray-text);
+                line-height:1.6;
+                margin-top:12px;
+                background:#F8FAFC;
+                border-radius:12px;
+                padding:9px 10px;
+            ">
+                <i class="fa-solid fa-circle-info" style="color:var(--orange); margin-right:5px;"></i>
+                ข้อมูลนี้อ้างอิงสมาชิกสถานภาพ Family เป็นฐานหลักของระบบผู้เลี้ยง และแสดงผลตามตัวกรองปัจจุบัน
             </div>
         </div>
 
@@ -1032,10 +1045,10 @@ function renderMentorOverviewView(contentArea) {
             ">
                 <div>
                     <div style="font-size:13px; font-weight:900; color:var(--charcoal);">
-                        ยังไม่มีผู้เลี้ยง
+                        รอเชื่อมผู้เลี้ยง
                     </div>
                     <div style="font-size:11px; color:var(--gray-text); line-height:1.5;">
-                        สมาชิกที่ยังไม่ได้เชื่อมโยงกับ Mentor
+                        สมาชิก Family ที่ยังไม่ได้เชื่อมโยงกับผู้เลี้ยงในระบบ
                     </div>
                 </div>
                 <div style="font-size:22px; font-weight:900; color:var(--orange); font-family:'Urbanist', sans-serif;">
@@ -1055,10 +1068,10 @@ function renderMentorOverviewView(contentArea) {
             ">
                 <div>
                     <div style="font-size:13px; font-weight:900; color:var(--charcoal);">
-                        ควรช่วยแบ่งเบาภาระ
+                        ควรกระจายการดูแล
                     </div>
                     <div style="font-size:11px; color:var(--gray-text); line-height:1.5;">
-                        ผู้เลี้ยงที่มีลูกแกะตั้งแต่ 10 คนขึ้นไป
+                        ผู้เลี้ยงที่มีลูกแกะในความดูแลจำนวนมาก(10+) อาจพิจารณาช่วยแบ่งเบาและกระจายการดูแล
                     </div>
                 </div>
                 <div style="font-size:22px; font-weight:900; color:var(--orange); font-family:'Urbanist', sans-serif;">
@@ -1077,10 +1090,10 @@ function renderMentorOverviewView(contentArea) {
             ">
                 <div>
                     <div style="font-size:13px; font-weight:900; color:var(--charcoal);">
-                        ผู้เลี้ยงที่ยังไม่มีลูกแกะ
+                        รองรับเพิ่มได้
                     </div>
                     <div style="font-size:11px; color:var(--gray-text); line-height:1.5;">
-                        มีชื่อในระบบ แต่ยังไม่มีสมาชิกในความดูแลตามตัวกรองนี้
+                        ผู้เลี้ยงที่ยังไม่มีลูกแกะตามตัวกรองนี้ และอาจพร้อมรองรับการดูแลเพิ่มเติม
                     </div>
                 </div>
                 <div style="font-size:22px; font-weight:900; color:var(--orange); font-family:'Urbanist', sans-serif;">
