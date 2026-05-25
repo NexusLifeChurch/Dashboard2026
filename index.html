@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.3.1</div>
+            <div class="version-tag">version #3.3.2</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2321,7 +2321,19 @@ function getActivityOverviewData(actType) {
 
         function formatGroups(groups) { return (groups.length <= 2) ? groups.join(', ') + (groups.length > 1 ? ` (ซ้ำ ${groups.length})` : '') : groups.slice(0, 2).join(', ') + ` และอื่นๆ (รวม ${groups.length})`; }
 
-function selectCircleMenu(type, element) {
+
+/* =====================================================
+   10) HOME / NAVIGATION
+   ระบบเมนูหลัก เมนูวงกลม และเมนูด้านล่าง
+
+   หลักการสำคัญ:
+   - currentActiveCircle ใช้บอกเมนูวงกลมที่เลือก เช่น care, people, event
+   - currentActiveBottom ใช้บอกเมนูล่าง เช่น home, overview, directory
+   - เมนูวงกลมบางเมนูมีข้อมูล preload ไว้ เช่น birthday, activity, mentor
+   - updateDashboardView() เป็นตัวกลางในการ render หน้าปัจจุบัน
+===================================================== */
+    
+    function selectCircleMenu(type, element) {
     document.querySelectorAll('#circle-hub-menu .menu-btn').forEach(btn => btn.classList.remove('active'));
     if (element) element.classList.add('active');
 
@@ -3530,6 +3542,19 @@ function fetchMemberDetail(memberId) {
             return data;
         });
 }
+
+/* =====================================================
+   8) PROFILE MODAL / MEMBER DETAIL
+   ระบบแสดงรายละเอียดสมาชิกแบบรายคน
+
+   หลักการสำคัญ:
+   - เปิดจากรายชื่อสมาชิก / กิจกรรม / ผู้เลี้ยง / วันเกิด
+   - โหลดข้อมูลรายคนจาก action=member
+   - ใช้ memberDetailCache เพื่อลดการโหลดซ้ำ
+   - แสดงข้อมูลหลายแท็บ เช่น Contact, Spiritual, Memo, Activity
+   - Profile รายคนจะโหลดตอนกด ไม่ preload ตั้งแต่แรก
+===================================================== */
+    
 function openProfile(memberId) {
     let member = dbMembers.find(m => String(m.M_ID) === String(memberId));
     if (!member) return;
@@ -5676,6 +5701,18 @@ function setupSettingsMenuPopup() {
     document.head.appendChild(style);
 }
 
+/* =====================================================
+   9) SETTINGS / PIN / REFRESH DATA
+   ระบบตั้งค่า รหัส PIN และการ Refresh ข้อมูล
+
+   หลักการสำคัญ:
+   - ตั้งค่า PIN ใหม่
+   - Reset PIN ผ่าน OTP / Admin
+   - Refresh Data เพื่อล้าง cache และโหลดข้อมูลใหม่
+   - Refresh จะโหลดข้อมูลหลักก่อน แล้ว preload วันเกิด กิจกรรม ผู้เลี้ยง
+   - memberDetailCache จะถูกล้าง เพื่อให้ Profile โหลดข้อมูลล่าสุด
+===================================================== */
+    
 function openSettingsMenu() {
     setupSettingsMenuPopup();
 
