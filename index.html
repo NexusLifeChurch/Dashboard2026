@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.42</div>
+            <div class="version-tag">version #3.2.43</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -659,14 +659,23 @@ function fetchAllSheetsData() {
 
             masterFilterSettings.selectedCares = dbCares.map(c => c.Care_ID);
             updateDashboardView();
+            
+            setTimeout(() => {
+                preloadSecondaryData(false);
+            }, 300);
+            
+            setTimeout(() => {
+                preloadSecondaryData(false);
+            }, 300);
+            
         })
         .catch(err => {
             console.error('Error loading dashboard data:', err);
             showAlert('เชื่อมต่อไม่ได้', 'กรุณาตรวจสอบ API_URL หรือการ Deploy ของ Apps Script');
         });
 }
-function fetchBirthdayData() {
-    fetch(API_URL + '?action=birthdays')
+function fetchBirthdayData(silentMode = false) {
+    fetch(API_URL + '?action=birthdays&ts=' + Date.now())
         .then(res => res.json())
         .then(responseObj => {
             if (!responseObj.success) {
@@ -674,7 +683,9 @@ function fetchBirthdayData() {
                 return;
             }
 
-            dbBirthdays = responseObj.birthdays || [];
+            if (!silentMode || currentActiveCircle === 'birthday') {
+                updateDashboardView();
+            }
             updateDashboardView();
         })
         .catch(err => {
@@ -683,8 +694,8 @@ function fetchBirthdayData() {
         });
 }
 
-function fetchActivityData() {
-    fetch(API_URL + '?action=activities')
+function fetchActivityData(silentMode = false) {
+fetch(API_URL + '?action=activities&ts=' + Date.now())
         .then(res => res.json())
         .then(responseObj => {
             if (!responseObj.success) {
@@ -693,7 +704,9 @@ function fetchActivityData() {
             }
 
             dbActivities = responseObj.activities || [];
-            updateDashboardView();
+            if (!silentMode || currentActiveCircle === 'event') {
+                updateDashboardView();
+            }
         })
         .catch(err => {
             console.error('Activity Data Error:', err);
@@ -701,10 +714,10 @@ function fetchActivityData() {
         });
 }
 
-function fetchMentorData() {
+function fetchMentorData(silentMode = false) {
     console.log('Fetching mentor data...');
 
-    fetch(API_URL + '?action=mentors')
+fetch(API_URL + '?action=mentors&ts=' + Date.now())
         .then(response => response.json())
         .then(responseObj => {
             dbMentors = responseObj.mentors || [];
@@ -715,13 +728,36 @@ function fetchMentorData() {
                 mentorMembers: dbMentorMembers.length
             });
 
-            updateDashboardView();
+            if (!silentMode || currentActiveCircle === 'mentor') {
+                updateDashboardView();
+            }
         })
         .catch(error => {
             console.error('Error fetching mentor data:', error);
             showAlert('โหลดข้อมูลผู้เลี้ยงไม่สำเร็จ', 'กรุณาลอง Refresh Data อีกครั้ง');
         });
 }
+
+function preloadSecondaryData(forceReload = false) {
+    console.log('Preloading secondary data...', { forceReload });
+
+    const tasks = [];
+
+    if (forceReload || dbBirthdays.length === 0) {
+        tasks.push(fetchBirthdayData(true));
+    }
+
+    if (forceReload || dbActivities.length === 0) {
+        tasks.push(fetchActivityData(true));
+    }
+
+    if (forceReload || dbMentors.length === 0 || dbMentorMembers.length === 0) {
+        tasks.push(fetchMentorData(true));
+    }
+
+    return Promise.all(tasks);
+}
+    
 function getMentorOverviewData() {
     const filteredMembers = dbMentorMembers.filter(member => {
         return isMemberPassedMasterFilter(member);
@@ -5191,11 +5227,29 @@ async function refreshAppDataFromSettings() {
     }
 
     try {
+        // 1) ล้าง cache / ข้อมูลเก่าที่เคยโหลดไว้
         memberDetailCache = {};
+
+        dbBirthdays = [];
+        dbActivities = [];
+        dbMentors = [];
+        dbMentorMembers = [];
+
+        // 2) กลับไปหน้า Home เพื่อกันข้อมูลค้างจากเมนูย่อย
         currentActiveCircle = '';
 
+        // 3) โหลดข้อมูลหลักใหม่
         await fetchAllSheetsData();
 
+        // 4) โหลดข้อมูลเสริมใหม่ทั้งหมดแบบเงียบ
+        if (status) {
+            status.innerHTML = 'กำลังโหลดข้อมูลวันเกิด กิจกรรม และผู้เลี้ยง';
+            status.style.color = 'var(--gray-text)';
+        }
+
+        await preloadSecondaryData(true);
+
+        // 5) Render หน้าใหม่หลังข้อมูลทั้งหมดพร้อม
         if (typeof renderDashboard === 'function') {
             renderDashboard();
         }
