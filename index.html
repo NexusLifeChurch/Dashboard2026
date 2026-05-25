@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.44</div>
+            <div class="version-tag">version #3.2.45</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -746,6 +746,13 @@ fetch(API_URL + '?action=mentors&ts=' + Date.now())
 }
 
 function preloadSecondaryData(forceReload = false) {
+    if (isPreloadingSecondaryData) {
+        console.log('Secondary data preload skipped: already running');
+        return Promise.resolve();
+    }
+
+    isPreloadingSecondaryData = true;
+
     console.log('Preloading secondary data...', { forceReload });
 
     const tasks = [];
@@ -762,7 +769,13 @@ function preloadSecondaryData(forceReload = false) {
         tasks.push(fetchMentorData(true));
     }
 
-    return Promise.all(tasks);
+    return Promise.all(tasks)
+        .catch(error => {
+            console.error('Preload secondary data error:', error);
+        })
+        .finally(() => {
+            isPreloadingSecondaryData = false;
+        });
 }
     
 function getMentorOverviewData() {
