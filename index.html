@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.45</div>
+            <div class="version-tag">version #3.2.46</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -529,11 +529,14 @@
         let dbNews = []; // ตัวแปรเก็บข้อมูลคำนิยาม
         
         let dbActivities = [];
-    let dbMentors = [];
-let dbMentorMembers = [];
+        let dbMentors = [];
+        let dbMentorMembers = [];
+        let isPreloadingSecondaryData = false;
+    
 let selectedMentorLevel = 'ALL';
 let mentorSearchQuery = '';
 let selectedMentorId = '';
+    
         let selectedActivityType = 'Nexus Journey';
         let selectedActivityGroup = '';
         let selectedActivityId = '';
