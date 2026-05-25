@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.47</div>
+            <div class="version-tag">version #3.2.48</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -705,7 +705,9 @@ function fetchBirthdayData(silentMode = false) {
 }
 
 function fetchActivityData(silentMode = false) {
-fetch(API_URL + '?action=activities&ts=' + Date.now())
+    console.log('Fetching activity data...');
+
+    return fetch(API_URL + '?action=activities&ts=' + Date.now())
         .then(res => res.json())
         .then(responseObj => {
             if (!responseObj.success) {
@@ -714,6 +716,11 @@ fetch(API_URL + '?action=activities&ts=' + Date.now())
             }
 
             dbActivities = responseObj.activities || [];
+
+            console.log('Activity data loaded:', {
+                activities: dbActivities.length
+            });
+
             if (!silentMode || currentActiveCircle === 'event') {
                 updateDashboardView();
             }
@@ -727,7 +734,7 @@ fetch(API_URL + '?action=activities&ts=' + Date.now())
 function fetchMentorData(silentMode = false) {
     console.log('Fetching mentor data...');
 
-fetch(API_URL + '?action=mentors&ts=' + Date.now())
+return fetch(API_URL + '?action=mentors&ts=' + Date.now())
         .then(response => response.json())
         .then(responseObj => {
             dbMentors = responseObj.mentors || [];
