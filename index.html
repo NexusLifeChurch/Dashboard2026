@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.40</div>
+            <div class="version-tag">version #3.2.41</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -1221,7 +1221,11 @@ function clearSelectedMentor() {
     selectedMentorId = '';
     updateDashboardView();
 }
-
+function showUnassignedMentorMembers() {
+    selectedMentorId = 'UNASSIGNED';
+    updateDashboardView();
+}
+    
 function createMentorSheepRowHTML(member) {
     const imageUrl = member.Url_Image || FALLBACK_IMAGE_URL;
 
@@ -1438,7 +1442,130 @@ function renderSelectedMentorSheepView(contentArea, mentor) {
     `;
 }
     
-    
+    function renderUnassignedMentorMembersView(contentArea, overview) {
+    const members = Array.isArray(overview.unassignedMembers) ? overview.unassignedMembers : [];
+
+    contentArea.innerHTML = `
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <button onclick="clearSelectedMentor()" style="
+                border:none;
+                background:#F8FAFC;
+                color:var(--gray-text);
+                border-radius:999px;
+                padding:8px 12px;
+                font-family:'Prompt', sans-serif;
+                font-size:12px;
+                font-weight:800;
+                margin-bottom:14px;
+                cursor:pointer;
+            ">
+                <i class="fa-solid fa-arrow-left" style="margin-right:5px;"></i>
+                กลับไปรายชื่อผู้เลี้ยง
+            </button>
+
+            <div style="display:flex; align-items:center; gap:13px;">
+                <div style="
+                    width:62px;
+                    height:62px;
+                    border-radius:22px;
+                    background:var(--orange-soft);
+                    color:var(--orange);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:26px;
+                    flex-shrink:0;
+                ">
+                    <i class="fa-solid fa-user-plus"></i>
+                </div>
+
+                <div style="flex:1; min-width:0;">
+                    <div style="
+                        font-size:18px;
+                        font-weight:900;
+                        color:var(--charcoal);
+                        line-height:1.35;
+                        margin-bottom:4px;
+                    ">
+                        รอเชื่อมผู้เลี้ยง
+                    </div>
+
+                    <div style="
+                        font-size:12px;
+                        color:var(--gray-text);
+                        line-height:1.6;
+                    ">
+                        สมาชิก Family ที่ยังไม่ได้เชื่อมโยงกับผู้เลี้ยงในระบบ
+                    </div>
+                </div>
+            </div>
+
+            <div style="
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:10px;
+                margin-top:15px;
+            ">
+                ${createMentorSummaryMiniCardHTML(members.length, 'รอเชื่อมผู้เลี้ยง', 'fa-user-plus')}
+                ${createMentorSummaryMiniCardHTML('Family', 'สถานภาพที่นับ', 'fa-heart')}
+            </div>
+
+            <div style="
+                font-size:11px;
+                color:var(--gray-text);
+                line-height:1.6;
+                margin-top:12px;
+                background:#F8FAFC;
+                border-radius:12px;
+                padding:9px 10px;
+            ">
+                <i class="fa-solid fa-circle-info" style="color:var(--orange); margin-right:5px;"></i>
+                รายชื่อนี้อ้างอิงสมาชิกสถานภาพ Family และปรับตามตัวกรองปัจจุบัน
+            </div>
+        </div>
+
+        <div class="clean-card" style="padding:16px; margin-bottom:14px;">
+            <div style="font-size:16px; font-weight:900; color:var(--charcoal); margin-bottom:4px;">
+                <i class="fa-solid fa-list-ul" style="color:var(--orange); margin-right:6px;"></i>
+                รายชื่อที่รอเชื่อมผู้เลี้ยง
+            </div>
+
+            <div style="font-size:12px; color:var(--gray-text); line-height:1.6; margin-bottom:13px;">
+                พบ ${members.length} คนตามตัวกรองปัจจุบัน
+            </div>
+
+            ${members.length > 0
+                ? members.map(member => createMentorSheepRowHTML(member)).join('')
+                : `
+                    <div style="text-align:center; padding:24px 16px;">
+                        <div style="
+                            width:58px;
+                            height:58px;
+                            border-radius:22px;
+                            background:var(--orange-soft);
+                            color:var(--orange);
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            margin:0 auto 14px;
+                            font-size:24px;
+                        ">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+
+                        <div style="font-size:16px; font-weight:900; color:var(--charcoal); margin-bottom:6px;">
+                            ไม่มีรายการรอเชื่อมผู้เลี้ยง
+                        </div>
+
+                        <div style="font-size:13px; color:var(--gray-text); line-height:1.7;">
+                            ตามตัวกรองปัจจุบัน สมาชิก Family ทุกคนมีผู้เลี้ยงแล้ว
+                        </div>
+                    </div>
+                `
+            }
+        </div>
+    `;
+}
 
 function getMentorLevels() {
     const levelSet = new Set();
@@ -1603,7 +1730,12 @@ const filteredMentors = getFilteredMentorsForDirectory(mentors);
 
 
     
-    if (selectedMentorId) {
+if (selectedMentorId === 'UNASSIGNED') {
+    renderUnassignedMentorMembersView(contentArea, overview);
+    return;
+}
+
+if (selectedMentorId) {
     const selectedMentor = mentors.find(mentor => {
         return String(mentor.Mentor_ID || '').trim() === String(selectedMentorId || '').trim();
     });
@@ -1677,9 +1809,8 @@ const filteredMentors = getFilteredMentorsForDirectory(mentors);
                 </div>
             </div>
         </div>
-
         ${overview.unassignedCount > 0 ? `
-            <div class="clean-card" style="padding:14px; margin-bottom:14px; border-color:#FED7AA;">
+        <div onclick="showUnassignedMentorMembers()" class="clean-card" style="padding:14px; margin-bottom:14px; border-color:#FED7AA; cursor:pointer;">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
                     <div>
                         <div style="font-size:14px; font-weight:900; color:var(--charcoal);">
