@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.43</div>
+            <div class="version-tag">version #3.2.44</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -675,7 +675,9 @@ function fetchAllSheetsData() {
         });
 }
 function fetchBirthdayData(silentMode = false) {
-    fetch(API_URL + '?action=birthdays&ts=' + Date.now())
+    console.log('Fetching birthday data...');
+
+    return fetch(API_URL + '?action=birthdays&ts=' + Date.now())
         .then(res => res.json())
         .then(responseObj => {
             if (!responseObj.success) {
@@ -683,10 +685,15 @@ function fetchBirthdayData(silentMode = false) {
                 return;
             }
 
+            dbBirthdays = responseObj.birthdays || [];
+
+            console.log('Birthday data loaded:', {
+                birthdays: dbBirthdays.length
+            });
+
             if (!silentMode || currentActiveCircle === 'birthday') {
                 updateDashboardView();
             }
-            updateDashboardView();
         })
         .catch(err => {
             console.error('Birthday Data Error:', err);
