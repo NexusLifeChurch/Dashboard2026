@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.3.0</div>
+            <div class="version-tag">version #3.3.1</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -2018,7 +2018,17 @@ ${filteredMentors.length > 0
 }
     
 
+/* =====================================================
+   5) ACTIVITY / EVENT MENU
+   ระบบกิจกรรม และรายชื่อผู้ร่วมกิจกรรม
 
+   หลักการสำคัญ:
+   - ใช้ข้อมูลจาก dbActivities ที่โหลดจาก action=activities
+   - Overview นับตาม Master Filter ปัจจุบัน
+   - Directory แสดง "รายการเข้าร่วมจริง"
+   - คนเดียวกันอยู่หลายกิจกรรมได้ จึงแสดงได้หลายแถว
+   - กดรายชื่อผู้ร่วมกิจกรรมเพื่อเปิด Profile รายคน
+===================================================== */
     
     
     
@@ -2069,6 +2079,23 @@ function countUniqueMemberIdsFromParticipants(participants) {
             });
         }
 
+/* =====================================================
+   7) MASTER FILTER
+   ระบบตัวกรองหลักของ Dashboard
+
+   ใช้ควบคุมข้อมูลที่แสดงในหลายเมนู เช่น:
+   - Care
+   - People
+   - Activity
+   - Mentor
+   - Birthday
+
+   ตัวกรองหลักประกอบด้วย:
+   - กลุ่มสถานภาพ เช่น Community / Send / All
+   - รวมเด็ก / ไม่รวมเด็ก
+   - เลือกกลุ่มแคร์
+===================================================== */
+    
 function isMemberPassedMasterFilter(member) {
     const nxl = String(member.Nxl_Status || '').trim();
 
@@ -2986,6 +3013,18 @@ function getClassifyBadgeHTML(classify) {
         </div>
     `;
 }
+
+/* =====================================================
+   6) BIRTHDAY MENU
+   ระบบแสดงวันเกิดของสมาชิก
+
+   หลักการสำคัญ:
+   - ใช้ข้อมูลจาก dbBirthdays ที่โหลดจาก action=birthdays
+   - แสดงตามเดือนที่เลือก
+   - ใช้ Master Filter ร่วมกับเมนูอื่น
+   - สามารถค้นหาชื่อ และเรียงตามวันเกิดได้
+   - กดรายชื่อเพื่อเปิด Profile รายคน
+===================================================== */
     
 function renderBirthdayView(contentArea) {
     if (dbBirthdays.length === 0) {
