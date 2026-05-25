@@ -3155,6 +3155,20 @@ function renderBirthdayView(contentArea) {
         ${listHTML}
     `;
 }
+
+/* =====================================================
+   11) MAIN DASHBOARD RENDER / CARE & PEOPLE OVERVIEW
+   ส่วน render หน้าหลักของ Dashboard ตามเมนูที่เลือก
+
+   หมายเหตุ:
+   - Care Menu และ People Menu เวอร์ชันนี้ยัง render อยู่ใน updateDashboardView()
+   - ถ้า currentActiveCircle = 'care' จะแสดงภาพรวม/รายชื่อตามกลุ่มแคร์
+   - ถ้า currentActiveCircle = 'people' จะแสดงภาพรวม/รายชื่อตามสถานภาพ
+   - เมนูเฉพาะทาง เช่น Birthday, Activity, Mentor จะแยกไปเรียก function ของตัวเอง
+   - ในอนาคตถ้า Cleanup รอบใหญ่ ค่อยแยก Care / People ออกเป็น function แยก
+===================================================== */
+
+    
         function updateDashboardView() {
             let careListContainer = document.querySelector('.care-list-container');
             let savedScrollPos = careListContainer ? careListContainer.scrollTop : 0;
