@@ -522,6 +522,19 @@
     </div>
 
 <script>
+
+/* =====================================================
+   1) CONFIG / GLOBAL STATE
+   ส่วนนี้เก็บค่าตั้งต้นของระบบ และตัวแปรกลางทั้งหมด
+
+   เช่น:
+   - API_URL สำหรับเชื่อมต่อ Google Apps Script
+   - FALLBACK_IMAGE_URL รูปสำรอง
+   - dbMembers / dbCares / dbActivities / dbMentors
+   - currentActiveCircle / currentActiveBottom
+   - masterFilterSettings
+===================================================== */
+    
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQxnVCRsusVxGrkFxjGR818LVcjYPoLcpwSHCZ1DirfhG_ZaasNcrnnJ_4wZFEu7Jd/exec';
         const FALLBACK_IMAGE_URL = 'https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true';
         let dbMembers = [];    
@@ -569,6 +582,17 @@ const STORAGE_KEYS = {
             '': { name: 'ชุมชนทั้งหมด', icon: 'fa-globe' }
         };
 
+    
+/* =====================================================
+   2) APP STARTUP / INITIAL LOAD
+   ส่วนเริ่มต้นการทำงานของแอป
+
+   ทำหน้าที่:
+   - โหลดข้อมูล cache เดิม
+   - โหลดข้อมูลหลักจาก Backend
+   - เตรียม Profile Popup
+   - เตรียมระบบ PIN
+===================================================== */
         window.addEventListener('DOMContentLoaded', () => {
             loadNewsFromLocalStorage();
             fetchAllSheetsData();
@@ -587,6 +611,19 @@ const STORAGE_KEYS = {
             }
         }, 2000);
 
+/* =====================================================
+   3) DATA FETCHING / API LOADING
+   ส่วนโหลดข้อมูลจาก Backend และจัดเก็บไว้ในตัวแปรกลาง
+
+   ข้อมูลที่โหลด:
+   - Dashboard หลัก
+   - ข่าว / คำนิยาม
+   - วันเกิด
+   - กิจกรรม
+   - ผู้เลี้ยง
+   - preload ข้อมูลเสริม
+===================================================== */
+    
 function loadNewsFromLocalStorage() {
     const cachedNews = localStorage.getItem(STORAGE_KEYS.NEWS_CACHE);
 
@@ -787,6 +824,17 @@ function preloadSecondaryData(forceReload = false) {
             isPreloadingSecondaryData = false;
         });
 }
+
+/* =====================================================
+   4) MENTOR MENU
+   ระบบผู้เลี้ยง / ลูกแกะ
+
+   หลักการสำคัญ:
+   - Backend ส่ง mentorMembers มาเฉพาะสมาชิกสถานภาพ Family
+   - Frontend ยังใช้ Master Filter ชุดเดียวกับเมนูอื่น
+   - ใช้สำหรับแสดงภาพรวมผู้เลี้ยง รายชื่อผู้เลี้ยง
+     รายชื่อลูกแกะ และรายชื่อที่รอเชื่อมผู้เลี้ยง
+===================================================== */
     
 function getMentorOverviewData() {
     const filteredMembers = dbMentorMembers.filter(member => {
