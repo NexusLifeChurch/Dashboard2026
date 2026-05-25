@@ -366,7 +366,7 @@
             <div class="splash-content">
                 <img src="https://github.com/NexusLifeChurch/Dashboard2026/blob/main/Image/LogoCouldTree.png?raw=true" class="logo-heartbeat">
             </div>
-            <div class="version-tag">version #3.2.46</div>
+            <div class="version-tag">version #3.2.47</div>
         </div>
 
         <!-- Screen 2: PIN Screen -->
@@ -5264,13 +5264,7 @@ async function refreshAppDataFromSettings() {
         // 3) โหลดข้อมูลหลักใหม่
         await fetchAllSheetsData();
 
-        // 4) โหลดข้อมูลเสริมใหม่ทั้งหมดแบบเงียบ
-        if (status) {
-            status.innerHTML = 'กำลังโหลดข้อมูลวันเกิด กิจกรรม และผู้เลี้ยง';
-            status.style.color = 'var(--gray-text)';
-        }
-
-        await preloadSecondaryData(true);
+        // 4) โหลดข้อมูลเสริมใหม่ทั้งหมดแบบเงียบ (ลบออกทั้งก้อนเพราะมันซ้ำ)
 
         // 5) Render หน้าใหม่หลังข้อมูลทั้งหมดพร้อม
         if (typeof renderDashboard === 'function') {
