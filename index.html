@@ -1,3 +1,18 @@
+/*
+ * NxLife Community Dashboard
+ * Frontend Version: 3.3.6
+ *
+ * สถานะเวอร์ชันนี้:
+ * - เมนู Care / People / Activity / Mentor / Birthday ใช้งานได้
+ * - Activity และ Mentor preload หลังเปิดแอป เพื่อลดเวลารอเมื่อกดเมนู
+ * - Profile รายคนโหลดเมื่อกด และใช้ cache เพื่อลดการเรียกซ้ำ
+ * - โค้ดยังอยู่ในไฟล์เดียว เพื่อใช้งานจริงและปรับปรุงต่อก่อนแยกไฟล์
+ *
+ * หมายเหตุ:
+ * รอบนี้เป็น Cleanup เพื่อให้อ่านโค้ดง่ายขึ้น
+ * ยังไม่แยกไฟล์ CSS / JS ออกจาก index.html
+ */
+
 <!doctype html>
 <html lang="th">
   <head>
@@ -879,7 +894,7 @@
             class="logo-heartbeat"
           />
         </div>
-        <div class="version-tag">version #3.3.5</div>
+        <div class="version-tag">version #3.3.6</div>
       </div>
 
       <!-- Screen 2: PIN Screen -->
@@ -1250,7 +1265,10 @@
     </div>
 
     <script>
-      /* =====================================================
+
+
+
+/* =====================================================
    1) CONFIG / GLOBAL STATE
    ส่วนนี้เก็บค่าตั้งต้นของระบบ และตัวแปรกลางทั้งหมด
 
@@ -4223,7 +4241,7 @@ ${
     `;
       }
 
-      /* =====================================================
+/* =====================================================
    11) MAIN DASHBOARD RENDER / CARE & PEOPLE OVERVIEW
    ส่วน render หน้าหลักของ Dashboard ตามเมนูที่เลือก
 
@@ -4235,6 +4253,32 @@ ${
    - ในอนาคตถ้า Cleanup รอบใหญ่ ค่อยแยก Care / People ออกเป็น function แยก
 ===================================================== */
 
+
+/*
+ * updateDashboardView()
+ *
+ * function หลักสำหรับ render หน้าจอปัจจุบันของ Dashboard
+ *
+ * ใช้ตัวแปรสำคัญ 2 ตัว:
+ * - currentActiveCircle = เมนูวงกลมที่เลือกอยู่ เช่น care, people, event, mentor, birthday
+ * - currentActiveBottom = เมนูล่างที่เลือกอยู่ เช่น home, overview, directory, filter
+ *
+ * หน้าที่หลัก:
+ * 1. ถ้าอยู่หน้า home → renderHomeView()
+ * 2. ถ้าอยู่หน้า filter → renderFilterView()
+ * 3. ถ้าเป็นเมนูพิเศษ เช่น birthday / event / mentor
+ *    จะส่งต่อไปยัง function เฉพาะของเมนูนั้น
+ * 4. ถ้าเป็น care / people overview
+ *    จะ render กราฟและสถิติหลักใน function นี้
+ * 5. ถ้าเป็น directory
+ *    จะเลือกว่าจะใช้ Directory ปกติ, Activity Directory หรือ Mentor Directory
+ *
+ * หมายเหตุ:
+ * function นี้เป็นแกนกลางของ Dashboard
+ * ถ้าจะ refactor ในอนาคต ควรแยกอย่างระมัดระวัง
+ * เพราะมีผลกับทุกเมนูหลัก
+ */
+function updateDashboardView() {
       function updateDashboardView() {
         let careListContainer = document.querySelector(".care-list-container");
         let savedScrollPos = careListContainer
@@ -4729,7 +4773,7 @@ ${
           });
       }
 
-      /* =====================================================
+/* =====================================================
    8) PROFILE MODAL / MEMBER DETAIL
    ระบบแสดงรายละเอียดสมาชิกแบบรายคน
 
@@ -4741,6 +4785,20 @@ ${
    - Profile รายคนจะโหลดตอนกด ไม่ preload ตั้งแต่แรก
 ===================================================== */
 
+/*
+ * เปิด Profile รายคน
+ *
+ * ใช้เมื่อผู้ใช้กดรายชื่อจากเมนูต่าง ๆ เช่น:
+ * - รายชื่อสมาชิกทั่วไป
+ * - รายชื่อผู้ร่วมกิจกรรม
+ * - รายชื่อลูกแกะในระบบผู้เลี้ยง
+ * - รายชื่อวันเกิด
+ *
+ * หลักการ:
+ * - ถ้ามีข้อมูลใน memberDetailCache แล้ว จะใช้ cache ทันที
+ * - ถ้ายังไม่มี จะโหลดจาก Backend action=member
+ * - ช่วยลดการเรียก API ซ้ำเมื่อเปิด Profile คนเดิม
+ */
       function openProfile(memberId) {
         let member = dbMembers.find((m) => String(m.M_ID) === String(memberId));
         if (!member) return;
@@ -5034,7 +5092,17 @@ ${
           overlay.style.display = "none";
         }, 300);
       }
-
+/*
+ * render ข้อมูลรายละเอียดในหน้า Profile
+ *
+ * หน้านี้รวมข้อมูลหลายส่วนของสมาชิก:
+ * - ข้อมูลติดต่อ
+ * - ข้อมูลฝ่ายวิญญาณ
+ * - บันทึก / Memo
+ * - ประวัติกิจกรรม
+ *
+ * ข้อมูลมาจาก Backend action=member
+ */
       function renderProfileDetailFullPage(tab, detail) {
         if (tab === "contact") {
           return renderProfileContactFullPage(detail);
@@ -6069,7 +6137,15 @@ ${
       let pinMode = "UNLOCK";
       let tempNewPin = "";
       const dots = document.querySelectorAll(".dot");
-
+/*
+ * ระบบ PIN สำหรับเข้าใช้งาน Dashboard
+ *
+ * หลักการ:
+ * - ใช้ localStorage เก็บรหัส PIN ในเครื่องผู้ใช้
+ * - ตรวจสอบ PIN ก่อนเข้าสู่หน้า Dashboard
+ * - มีระบบนับจำนวนครั้งที่กรอกผิด
+ * - รองรับการตั้งค่า PIN ใหม่และ Reset PIN
+ */
       function initPinSystem() {
         if (isPinLocked()) {
           showLockMessage();
@@ -6616,7 +6692,18 @@ ${
       function closeAlert() {
         document.getElementById("custom-alert").classList.remove("show");
       }
-
+/*
+ * Refresh Data จากหน้า Settings
+ *
+ * ใช้เมื่อต้องการดึงข้อมูลล่าสุดจาก Backend
+ *
+ * ขั้นตอนหลัก:
+ * 1. ปิดปุ่ม Refresh ชั่วคราว เพื่อกันกดซ้ำ
+ * 2. ล้าง cache ข้อมูลรายคนและข้อมูลเสริม
+ * 3. โหลดข้อมูล Dashboard หลักใหม่
+ * 4. preload วันเกิด / กิจกรรม / ผู้เลี้ยงใหม่
+ * 5. render หน้า Dashboard อีกครั้ง
+ */
       async function refreshAppDataFromSettings() {
         const btn = document.getElementById("refresh-data-btn");
         const status = document.getElementById("refresh-data-status");
@@ -6981,7 +7068,16 @@ ${
    - Refresh จะโหลดข้อมูลหลักก่อน แล้ว preload วันเกิด กิจกรรม ผู้เลี้ยง
    - memberDetailCache จะถูกล้าง เพื่อให้ Profile โหลดข้อมูลล่าสุด
 ===================================================== */
-
+/*
+ * เปิดเมนู Settings
+ *
+ * เมนูนี้รวมคำสั่งสำหรับผู้ใช้ เช่น:
+ * - ตั้งค่า PIN ใหม่
+ * - ลืม PIN / Reset PIN
+ * - Refresh Data
+ *
+ * ใช้เป็นทางเข้าหลักของระบบตั้งค่า
+ */
       function openSettingsMenu() {
         setupSettingsMenuPopup();
 
