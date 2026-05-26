@@ -879,7 +879,7 @@
             class="logo-heartbeat"
           />
         </div>
-        <div class="version-tag">version #3.3.4</div>
+        <div class="version-tag">version #3.3.5</div>
       </div>
 
       <!-- Screen 2: PIN Screen -->
@@ -1378,7 +1378,20 @@
           localStorage.removeItem(STORAGE_KEYS.NEWS_CACHE);
         }
       }
-
+/*
+ * โหลดข้อมูลหลักของ Dashboard
+ *
+ * ใช้สำหรับดึงข้อมูลจาก Backend action=dashboard ได้แก่:
+ * - Members
+ * - Care_Info
+ * - NewsFeed / Stories
+ *
+ * หลังโหลดเสร็จ:
+ * - จัดรูปข้อมูลสมาชิกให้อยู่ในรูปแบบที่ frontend ใช้งานง่าย
+ * - ตั้งค่า Master Filter เริ่มต้นให้เลือกทุก Care
+ * - render หน้า Dashboard ปัจจุบัน
+ * - preload ข้อมูลเสริม เช่น วันเกิด กิจกรรม และผู้เลี้ยง
+ */
       function fetchAllSheetsData() {
         fetch(API_URL + "?action=dashboard")
           .then((res) => res.json())
@@ -1459,6 +1472,16 @@
             );
           });
       }
+
+/*
+ * โหลดข้อมูลวันเกิดจาก Backend action=birthdays
+ *
+ * silentMode:
+ * - false = โหลดแล้ว render หน้าใหม่ตามปกติ
+ * - true  = โหลดแบบเงียบ ใช้สำหรับ preload ตอนเปิดแอป
+ *
+ * ข้อมูลจะถูกเก็บไว้ใน dbBirthdays
+ */
       function fetchBirthdayData(silentMode = false) {
         console.log("Fetching birthday data...");
 
@@ -1489,6 +1512,15 @@
           });
       }
 
+ /*
+ * โหลดข้อมูลกิจกรรมจาก Backend action=activities
+ *
+ * ข้อมูลที่ได้เป็นกิจกรรมที่มีผู้เข้าร่วมจริง
+ * โดย Backend ใช้ Mbr_Activitys เป็นฐานหลัก
+ *
+ * ข้อมูลจะถูกเก็บไว้ใน dbActivities
+ * และใช้ต่อใน Activity Overview / Activity Directory
+ */
       function fetchActivityData(silentMode = false) {
         console.log("Fetching activity data...");
 
@@ -1518,7 +1550,15 @@
             showAlert("โหลดกิจกรรมไม่ได้", "กรุณาตรวจสอบ API activities");
           });
       }
-
+/*
+ * โหลดข้อมูลระบบผู้เลี้ยงจาก Backend action=mentors
+ *
+ * ข้อมูลที่ได้แบ่งเป็น 2 ส่วน:
+ * - dbMentors = รายชื่อผู้เลี้ยงทั้งหมดจาก Mentors_Info
+ * - dbMentorMembers = สมาชิก Family ที่อยู่ในระบบผู้เลี้ยง
+ *
+ * ใช้ต่อใน Mentor Overview และ Mentor Directory
+ */
       function fetchMentorData(silentMode = false) {
         console.log("Fetching mentor data...");
 
@@ -1545,6 +1585,20 @@
             );
           });
       }
+
+/*
+ * preload ข้อมูลเสริมหลังจากโหลด Dashboard หลักเสร็จ
+ *
+ * เป้าหมาย:
+ * - ทำให้เมนู วันเกิด / กิจกรรม / ผู้เลี้ยง เปิดได้เร็วขึ้น
+ * - โหลดข้อมูลไว้ล่วงหน้าโดยไม่รบกวนหน้าแรก
+ *
+ * forceReload:
+ * - false = โหลดเฉพาะข้อมูลที่ยังไม่มี
+ * - true  = บังคับโหลดใหม่ทั้งหมด ใช้กับ Refresh Data
+ *
+ * isPreloadingSecondaryData ใช้กันการโหลดซ้ำพร้อมกัน
+ */      
 
       function preloadSecondaryData(forceReload = false) {
         if (isPreloadingSecondaryData) {
@@ -1583,7 +1637,7 @@
           });
       }
 
-      /* =====================================================
+/* =====================================================
    4) MENTOR MENU
    ระบบผู้เลี้ยง / ลูกแกะ
 
@@ -1594,6 +1648,23 @@
      รายชื่อลูกแกะ และรายชื่อที่รอเชื่อมผู้เลี้ยง
 ===================================================== */
 
+
+/*
+ * คำนวณข้อมูลภาพรวมระบบผู้เลี้ยง
+ *
+ * หลักการ:
+ * - ใช้ dbMentors เป็นรายชื่อผู้เลี้ยงทั้งหมด
+ * - ใช้ dbMentorMembers เป็นฐานลูกแกะในระบบผู้เลี้ยง
+ * - dbMentorMembers ถูกกรองจาก Backend ให้เป็น Classify = Family เท่านั้น
+ * - Frontend ยังใช้ Master Filter ปัจจุบันร่วมด้วย
+ *
+ * ผลลัพธ์ที่ได้:
+ * - จำนวนผู้เลี้ยงทั้งหมด
+ * - จำนวนผู้เลี้ยงที่กำลังดูแลจริง
+ * - จำนวนลูกแกะที่มีผู้เลี้ยง
+ * - จำนวนสมาชิก Family ที่รอเชื่อมผู้เลี้ยง
+ * - รายชื่อผู้เลี้ยงเรียงตามจำนวนลูกแกะ
+ */
       function getMentorOverviewData() {
         const filteredMembers = dbMentorMembers.filter((member) => {
           return isMemberPassedMasterFilter(member);
@@ -1926,7 +1997,18 @@
         </div>
     `;
       }
-
+/*
+ * แสดงหน้า Mentor Overview
+ *
+ * หน้านี้ใช้สำหรับดูภาพรวมการดูแล:
+ * - Summary 4 ช่อง
+ * - จุดที่ควรติดตาม
+ * - การกระจายลูกแกะตามผู้เลี้ยง
+ *
+ * หมายเหตุ:
+ * รายชื่อ workload ในหน้านี้แสดงเฉพาะ 10 อันดับแรก
+ * ส่วนรายชื่อผู้เลี้ยงทั้งหมดดูได้ที่ Mentor Directory
+ */
       function renderMentorOverviewView(contentArea) {
         if (dbMentors.length === 0) {
           contentArea.innerHTML = `
@@ -2615,6 +2697,17 @@
         updateDashboardView();
       }
 
+/*
+ * แสดงหน้า Mentor Directory
+ *
+ * ใช้สำหรับ:
+ * - แสดงรายชื่อผู้เลี้ยงทั้งหมด
+ * - ค้นหาผู้เลี้ยง
+ * - กรองตาม Mentor Level
+ * - กดผู้เลี้ยงเพื่อดูรายชื่อลูกแกะ
+ * - กด Card "รอเชื่อมผู้เลี้ยง" เพื่อดูสมาชิก Family ที่ยังไม่มีผู้เลี้ยง
+ */
+
       function renderMentorDirectoryView(contentArea) {
         if (dbMentors.length === 0) {
           contentArea.innerHTML = `
@@ -2947,6 +3040,22 @@ ${
 
         return statusMatch && kidsMatch && careMatch;
       }
+
+/*
+ * คำนวณข้อมูลภาพรวมกิจกรรม
+ *
+ * หลักการ:
+ * - ใช้ dbActivities เป็นฐานข้อมูลกิจกรรม
+ * - นับเฉพาะกิจกรรมที่มีผู้เข้าร่วมหลังผ่าน Master Filter แล้ว
+ * - ถ้ากิจกรรมใดเหลือผู้เข้าร่วม 0 คนหลัง Filter จะไม่ถูกนับใน Overview
+ *
+ * ค่าที่คำนวณ:
+ * - จำนวนหมวดกิจกรรม
+ * - จำนวนรอบจัด
+ * - จำนวนรายการเข้าร่วม
+ * - จำนวนผู้เข้าร่วมไม่ซ้ำ
+ * - สถานะ ผ่าน / ไม่ผ่าน / อื่น ๆ
+ */
 
       function getActivityOverviewData(actType) {
         const matchedActivities = dbActivities.filter((activity) => {
@@ -7515,6 +7624,18 @@ ${createActivitySummaryMiniCardHTML("", overview.uniquePeopleCount, "ผู้�
         }
     `;
       }
+
+/*
+ * สร้างรายการแถวสำหรับ Activity Directory
+ *
+ * หลักการ:
+ * - แสดงเป็น "รายการเข้าร่วมจริง"
+ * - คนเดียวกันสามารถแสดงหลายแถวได้ ถ้าเข้าร่วมหลายกิจกรรม
+ * - ใช้ตัวกรอง Act_Type / Act_Group / Act_Name
+ * - ใช้ Master Filter ร่วมด้วย
+ * - กดแต่ละแถวเพื่อเปิด Profile รายคน
+ */
+
       function getActivityDirectoryRows() {
         const rows = [];
 
