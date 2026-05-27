@@ -879,7 +879,7 @@
             class="logo-heartbeat"
           />
         </div>
-        <div class="version-tag">version #3.3.40</div>
+        <div class="version-tag">version #3.4.1</div>
       </div>
 
       <!-- Screen 2: PIN Screen -->
@@ -1303,7 +1303,7 @@
       let birthdaySortMode = "birthday";
       let birthdaySearchText = "";
 
-      let currentActiveCircle = "";
+      let currentActiveCircle = "care";
       let currentActiveBottom = "home";
       let directorySearchText = "";
 
@@ -3365,26 +3365,23 @@ ${
           true,
         );
       }
-      function handleBottomNav(target, element, keepCircleContext = false) {
-        document
-          .querySelectorAll(".nav-bar .nav-btn")
-          .forEach((btn) => btn.classList.remove("active"));
-        if (element) element.classList.add("active");
+function handleBottomNav(target, element) {
+  document
+    .querySelectorAll(".nav-bar .nav-btn")
+    .forEach((btn) => btn.classList.remove("active"));
 
-        if (target !== "directory") {
-          directorySearchText = "";
-        }
+  if (element) element.classList.add("active");
 
-        if (target === "overview" && !keepCircleContext) {
-          currentActiveCircle = "";
-          document
-            .querySelectorAll("#circle-hub-menu .menu-btn")
-            .forEach((btn) => btn.classList.remove("active"));
-        }
+  currentActiveBottom = target;
 
-        currentActiveBottom = target;
-        updateDashboardView();
-      }
+  // ถ้ายังไม่เคยเลือกเมนูวงกลม ให้ใช้กลุ่มแคร์เป็นค่าเริ่มต้น
+  // แต่ถ้าเคยเลือกแล้ว ให้จำเมนูเดิมไว้ ไม่ล้างกลับเป็นลูกโลก
+  if (!currentActiveCircle) {
+    currentActiveCircle = "care";
+  }
+
+  updateDashboardView();
+}
       function setStatusMode(mode) {
         masterFilterSettings.statusMode = mode;
         updateDashboardView();
@@ -4256,7 +4253,7 @@ ${
         const subPageHeader = document.getElementById("sub-page-header");
         const contentArea = document.getElementById("dashboard-content-area");
         const activeCtx =
-          circleContext[currentActiveCircle] || circleContext[""];
+              circleContext[currentActiveCircle] || circleContext["care"];
         const viewTitle =
           currentActiveBottom === "overview" ? "ภาพรวม" : "รายชื่อ";
 
@@ -6658,8 +6655,7 @@ ${
           dbMentors = [];
           dbMentorMembers = [];
 
-          // 2) กลับไปหน้า Home เพื่อกันข้อมูลค้างจากเมนูย่อย
-          currentActiveCircle = "";
+          // 2 เปลี่ยนเป็นไม่ล้าง currentActiveCircle เพื่อให้ระบบจำเมนูวงกลมล่าสุดไว้
 
           // 3) โหลดข้อมูลหลักใหม่
           await fetchAllSheetsData();
