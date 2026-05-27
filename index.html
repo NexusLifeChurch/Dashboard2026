@@ -7647,25 +7647,25 @@ ${createActivitySummaryMiniCardHTML("", overview.uniquePeopleCount, "ผู้�
         const rows = [];
 
         dbActivities.forEach((activity) => {
-          const actType = String(activity.Act_Type || "").trim();
-          const actGroup = String(activity.Act_Group || "").trim();
-          const actId = String(activity.Act_ID || "").trim();
+const actType = String(activity.Act_Type || "").trim();
+const actGroup = String(activity.Act_Group || "").trim();
+const actId = String(activity.Act_ID || "").trim();
 
-          const typeMatch =
-            actType.toLowerCase() ===
-            String(selectedActivityType || "")
-              .trim()
-              .toLowerCase();
+const selectedType = String(selectedActivityType || "").trim();
+            const selectedGroup = String(selectedActivityGroup || "ALL").trim();
+            const selectedActId = String(selectedActivityId || "ALL").trim();
 
-          const groupMatch =
-            !selectedActivityGroup ||
-            selectedActivityGroup === "ALL" ||
-            actGroup === selectedActivityGroup;
+            const typeMatch =
+              !selectedType ||
+              actType.toLowerCase() === selectedType.toLowerCase();
 
-          const actMatch =
-            !selectedActivityId ||
-            selectedActivityId === "ALL" ||
-            actId === selectedActivityId;
+            const groupMatch =
+              selectedGroup === "ALL" ||
+              actGroup === selectedGroup;
+
+            const actMatch =
+              selectedActId === "ALL" ||
+              actId === selectedActId;
 
           if (!typeMatch || !groupMatch || !actMatch) return;
 
